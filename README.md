@@ -35,18 +35,36 @@ Mobile-first design
 Integration over invention
 MVP before scale
 
+## Core MVP Features
+
+| Feature | Description |
+
+| Account Creation | Simple onboarding with email-based registration |
+| Smart Wallet | Secure wallet provisioned automatically — no blockchain knowledge required |
+| Fiat On-Ramp | Fund accounts directly from traditional banking |
+| Stablecoin Balance | Hold digital dollars through stablecoin infrastructure |
+| Send & Receive | Fast peer-to-peer payments on modern rails |
+| Savings Vault | Create savings goals and track progress |
+| Yield Generation | Earn yield through selected infrastructure partners |
+| Debit Card Access | Spend funds in the real world via integrated card infrastructure |
+| Financial Insights | Actionable insights focused on wealth building and financial confidence |
 
 
-Core MVP Features
 
-FeatureDescriptionAccount CreationSimple onboarding with email-based registrationSmart WalletSecure wallet provisioned automatically — no blockchain knowledge requiredFiat On-RampFund accounts directly from traditional bankingStablecoin BalanceHold digital dollars through stablecoin infrastructureSend & ReceiveFast peer-to-peer payments on modern railsSavings VaultCreate savings goals and track progressYield GenerationEarn yield through selected infrastructure partnersDebit Card AccessSpend funds in the real world via integrated card infrastructureFinancial InsightsActionable insights focused on wealth building and financial confidence
+## Technology Stack
 
+| Layer | Provider |
 
-Technology Stack
-
-Women First is not building banking infrastructure. It is a consumer experience built on top of best-in-class existing infrastructure — a wrapper model that keeps crypto abstracted and onboarding seamless.
-
-LayerProviderBlockchainBaseWallet InfrastructurePrivyFiat On / Off RampBridge XYZCard InfrastructureGnosis PayTransaction SponsorshipEIP-7702SwapsLI.FIYieldAave, Morpho, CompoundNotificationsResendFrontendReact NativeBackendNode.js
+| Blockchain | Base |
+| Wallet Infrastructure | Privy |
+| Fiat On / Off Ramp | Bridge XYZ |
+| Card Infrastructure | Gnosis Pay |
+| Transaction Sponsorship | EIP-7702 |
+| Swaps | LI.FI |
+| Yield | Aave, Morpho, Compound |
+| Notifications | Resend |
+| Frontend | React Native |
+| Backend | Node.js |
 
 
 Architecture Philosophy
