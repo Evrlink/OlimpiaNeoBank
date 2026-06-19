@@ -1,6 +1,6 @@
 # Olimpia — Architecture
 
-**Version:** 1.3  
+**Version:** 1.4  
 **Status:** Draft for review  
 **Depends on:** [PRD.md](./PRD.md) (approved v1.7), [Brand.md](./Brand.md) (approved)  
 **Scope:** Consumer finance prototype — system design only (no implementation)
@@ -49,6 +49,10 @@ Olimpia is a three-surface system:
       ▼      ▼      ▼      ▼      ▼      ▼      ▼
    Privy  Bridge Gnosis  LI.FI  Yield  Resend  Base
                   Pay          layer         (settlement)
+                                    │
+                                    ▼
+                              Anthropic API
+                              (Pia coach — server-side only)
 ```
 
 ### Approved infrastructure stack
@@ -63,6 +67,7 @@ Olimpia is a three-surface system:
 | 6 | **Yield layer** (Aave, Morpho, Compound) | USDC growth / yield allocation |
 | 7 | **Resend** | Transactional email |
 | 8 | **Node.js** | Orchestration and application data |
+| 9 | **Anthropic API** | Pia AI Financial Coach — server-side LLM only |
 
 **Also from PRD (unchanged):** **EIP-7702 transaction sponsorship** — gas and network fees are sponsored so users never see or pay gas.
 
@@ -82,7 +87,7 @@ Olimpia is a three-surface system:
 | Virtual debit card | Yes |
 | Profile | Yes |
 | Marketing landing page | Yes |
-| **Pia AI Guide** | **Future** |
+| **Pia AI Financial Coach** | Yes |
 
 ---
 
@@ -103,6 +108,7 @@ User (Mobile App)
             ├─► LI.FI API ──────────► Route swaps (backend-initiated only)
             ├─► Yield provider API ─► Deposit / withdraw USDC (MVP: one provider)
             ├─► Resend API ─────────► Email notifications
+            ├─► Anthropic API ──────► Pia coach completions (server-side)
             └─► Base (via relayer / RPC) ─► Settlement reads, sponsored txs
 ```
 
@@ -165,7 +171,7 @@ Olimpia has **two frontends** sharing brand direction (Brand.md) but **no shared
 | 1 | **Hero** | — | Eyebrow, headline, subheadlines, tagline, CTAs | — |
 | 2 | **Product Preview** | `#preview` | Mobile mockup showcase | Static asset |
 | 3 | **Built Around Real Life** | `#real-life` | 4 goal cards with progress UI | Static content |
-| 4 | **Your Money Bestie (Pia)** | `#pia` | Messaging card + **Coming Soon** badge | Static — **not in app MVP** |
+| 4 | **Your Money Bestie (Pia)** | `#pia` | Messaging-style preview of in-app coach | Static — reflects app MVP Pia |
 | 5 | **Trusted Infrastructure** | `#infrastructure` | Headline + 6 provider logos | Static assets |
 | 6 | **Features** | `#features` | 5 pillars: Save · Spend · Grow · Learn · Own | Static |
 | 7 | **How It Works** | `#how-it-works` | 4-step flow | Static |
@@ -223,7 +229,7 @@ Static responsive card grid — **product-UI style**, not illustrative marketing
 
 #### Your Money Bestie (Pia)
 
-Static **messaging-style conversation card** with **Coming Soon** badge. Marketing-only preview — **no API, no chat, no LLM**. Pia is **not** in mobile app MVP.
+Static **messaging-style conversation card** previewing the in-app Pia coach. Pia ships in **mobile app MVP** (§12B). Marketing copy aligns with Brand.md — supportive, educational, not financial advice. No live chat or Anthropic calls on the marketing site.
 
 #### Trusted Infrastructure
 
@@ -404,7 +410,7 @@ See FAQ table above. Implementation notes:
 #### Marketing — explicitly out of scope
 
 - User accounts, Privy, wallets, or live balances on web
-- Pia chat or AI backend
+- Pia chat or Anthropic API on marketing site
 - CMS, blog, or multi-page site beyond `/learn/usdc`
 - Copying Defied branding or visuals
 
@@ -450,8 +456,9 @@ See FAQ table above. Implementation notes:
 | Goal Detail | Savings | Goal Detail + New Goal sheet |
 | Growth Account | Savings or Home | Growth deposit / withdraw |
 | Card reveal | Card | CVV reveal (auth-gated) |
+| **Pia AI Coach** | Home (**Ask Pia**) or Profile | Pia chat (§12B) |
 
-#### Screen inventory (maps to PRD — 11 screens)
+#### Screen inventory (maps to PRD — 12 screens)
 
 | # | Screen | Tab / flow | Key APIs |
 |---|--------|------------|----------|
@@ -465,11 +472,11 @@ See FAQ table above. Implementation notes:
 | 8 | Transaction Detail | Stack | `GET /activity/:id` |
 | 9 | Savings (goals list) | Savings tab | `GET /goals` |
 | 10 | Goal Detail | Stack/sheet | `GET /goals/:id`, `POST .../allocate` |
-| 11 | Card | Card tab | `GET /card`, `POST /card/issue`, `POST /card/freeze` |
-| 12 | Growth Account | Savings/Home | `GET /growth`, `POST /growth/deposit`, `POST /growth/withdraw` |
-| 13 | Profile | Profile tab | `GET /me`, `PATCH /me`, Privy sign-out |
+| 10 | Card | Card tab | `GET /card`, `POST /card/issue`, `POST /card/freeze` |
+| 11 | **Pia** | Stack (Home / Profile) | `GET /pia/thread`, `POST /pia/messages` |
+| 12 | Profile | Profile tab | `GET /me`, `PATCH /me`, Privy sign-out |
 
-*Growth may share Savings tab context or live on Goal/Home — single growth surface required for MVP.*
+*Growth account and withdraw flows are MVP capabilities (§7, §11) but may live inline on Home/Savings — not separate PRD screens. Withdraw is a modal/stack flow, not a tab.*
 
 #### Mobile modules → providers
 
@@ -486,18 +493,29 @@ See FAQ table above. Implementation notes:
 | Debit card | Virtual card spend | **Gnosis Pay** |
 | Profile | Account settings | Backend + **Privy** |
 | Email receipts | Notifications | **Resend** (backend-triggered) |
+| **Pia AI Coach** | Money bestie chat | **Anthropic API** (backend proxy only) |
 
 #### Mobile app rules
 
-- Never call Bridge, Gnosis Pay, LI.FI, or yield protocols directly from the app.
+- Never call Bridge, Gnosis Pay, LI.FI, yield protocols, or **Anthropic** directly from the app.
 - Never display wallet addresses, chains, tokens, gas, or protocol names.
 - All amounts in **USD** (two decimal places).
 - All async flows use normalized statuses from backend (see Section 21).
 - Poll or refresh on `processing` states until `completed` or `failed` (push **Future**).
 
-#### Pia (AI Guide)
+#### Pia (AI Financial Coach) — summary
 
-**Not in mobile app MVP.** No Pia screens, APIs, or chat in app at launch. Marketing site preview only.
+In-app **lightweight chat** backed by **Anthropic API** (server-side only). Full flow, guardrails, and APIs: **§12B**.
+
+| Allowed | Not allowed |
+|---------|-------------|
+| Education (USDC, stablecoins, savings concepts) | Financial advice |
+| Product guidance (how Olimpia features work) | Investment recommendations |
+| Goal coaching (progress, motivation, next steps) | Trading or swap suggestions |
+| Progress reinforcement (milestones, celebrations) | Tax, legal, or insurance advice |
+| Plain-language explanations on user request | Portfolio picks or "buy/sell X" |
+
+Voice and personality: **Brand.md — AI Guide (Pia)**. Persistent disclaimer: Pia is a coach, not a financial advisor.
 
 ---
 
@@ -523,6 +541,7 @@ The Node.js backend is the **single orchestration layer** between the mobile app
 10. Consume provider webhooks and normalize status updates.
 11. Send transactional email via Resend.
 12. Expose a stable, dollar-denominated REST API to the mobile app.
+13. Proxy Pia coach requests to Anthropic with guardrails, user context, and conversation persistence (§12B).
 
 ### Suggested internal structure (logical modules)
 
@@ -539,6 +558,7 @@ src/
 ├── growth/           # Yield allocations
 ├── card/             # Gnosis Pay integration
 ├── routing/          # LI.FI orchestration
+├── pia/              # Coach: Anthropic client, prompts, guardrails, context assembly
 ├── webhooks/         # Inbound provider events
 ├── notifications/    # Resend email dispatch
 └── jobs/             # Polling / retry workers (if webhooks delayed)
@@ -548,7 +568,7 @@ src/
 
 | Store | Purpose |
 |-------|---------|
-| **Primary database** (e.g. PostgreSQL) | Users, wallets, transactions, goals, growth allocations, webhook idempotency keys |
+| **Primary database** (e.g. PostgreSQL) | Users, wallets, transactions, goals, growth allocations, **Pia threads/messages**, webhook idempotency keys |
 | **Secrets manager / env** | Provider API keys, webhook secrets, relayer keys |
 
 No custom blockchain indexer required for MVP — rely on provider APIs, webhooks, and targeted on-chain reads where needed.
@@ -1033,6 +1053,165 @@ Settings merged into Profile tab per PRD screen inventory.
 
 ---
 
+## 12B. Pia AI Financial Coach Flow
+
+### Role
+
+**Pia** is Olimpia's in-app AI coach ("money bestie") — a **lightweight chat** for education, product guidance, goal coaching, and progress reinforcement. Pia uses the **Anthropic Messages API** exclusively through the Node.js backend. The mobile app never holds an Anthropic API key.
+
+Pia is **not** a financial advisor, investment recommender, or trading assistant.
+
+### User-facing experience
+
+| Element | Spec |
+|---------|------|
+| **Entry points** | Home quick action **Ask Pia** · Profile **Ask Pia** |
+| **Screen** | Message thread (user + Pia bubbles), text input, send button |
+| **Suggested prompts** | 3–4 chips on empty state — e.g. *How do goals work?* · *What is growth?* · *Am I on track?* |
+| **Disclaimer** | Persistent footer or first-visit notice: *Pia is your money coach, not a financial advisor.* |
+| **Tone** | Brand.md — supportive, encouraging, plain language; playfulness 6/10 |
+
+### Allowed coaching scope
+
+| Category | Examples |
+|----------|----------|
+| **Education** | What USDC/stablecoins are; how savings and growth work at a beginner level; general money confidence topics |
+| **Product guidance** | How to add money, set a goal, use growth account, freeze card, send/receive |
+| **Goal coaching** | Progress toward named goals; encouragement; simple next steps (*add $20 this week*) |
+| **Progress reinforcement** | Celebrate first deposit, goal milestones, starting growth — Brand-aligned copy |
+
+### Hard boundaries (guardrails)
+
+Backend **must** enforce — not rely on prompt alone:
+
+| Block | Behavior |
+|-------|----------|
+| **Financial advice** | Refuse; redirect to educational framing or human support |
+| **Investment recommendations** | No buy/sell/hold specific securities, tokens, or assets |
+| **Trading features** | No swap, trade, or speculation instructions |
+| **Tax / legal** | No tax filing, legal, or insurance advice — suggest professional help |
+| **Crypto operations** | Never instruct user to manage wallets, keys, gas, or chains |
+| **Guaranteed returns** | Never promise fixed yield; growth is estimated and variable |
+
+**Output filter (MVP):** Keyword and pattern checks on model output before returning to client; log blocked responses internally. **Future:** classifier or secondary model review.
+
+### System flow
+
+```
+Mobile App
+    │ GET /pia/thread          → load history + suggested prompts
+    │ POST /pia/messages { content }
+    ▼
+Backend (pia module)
+    │ Verify Privy auth
+    │ Rate-limit per user
+    │ Load PiaThread + recent PiaMessage rows (last N turns)
+    │ Assemble context snapshot (read-only aggregates — see below)
+    │ Build system prompt + messages → Anthropic Messages API
+    │ Apply output guardrails
+    │ Persist user message + assistant reply
+    ▼
+Mobile App
+    │ Append Pia reply to thread
+    │ Optional: surface milestone toast if reply references celebration trigger
+```
+
+**MVP:** Non-streaming response acceptable (single JSON reply). Streaming (**Future**) via SSE if UX requires lower perceived latency.
+
+### Context snapshot (injected per request)
+
+Backend assembles a **read-only JSON context** from Olimpia data — never raw provider payloads or wallet addresses:
+
+| Field | Source | Use |
+|-------|--------|-----|
+| `displayName` | User | Personalization |
+| `balanceSummary` | Ledger | Available, goals allocated, growth allocated (USD) |
+| `goals[]` | Goal | name, targetUsd, allocatedUsd, progressPercent |
+| `growthSummary` | GrowthAllocation | principalUsd, estimatedEarningsUsd, inGrowth boolean |
+| `recentMilestones[]` | Derived | e.g. first_goal_created, first_growth_deposit — optional MVP |
+| `productFacts` | Static config | Olimpia is not a bank; dollars not crypto in UI; support email |
+
+Do **not** send: email, phone, full transaction history, PAN, webhook payloads, or on-chain addresses to Anthropic unless required and documented — prefer aggregates and first names only.
+
+### System prompt (direction)
+
+Fixed server-side template (Brand.md voice) including:
+
+1. Pia identity — money bestie, women-first supportive tone
+2. Scope — educate, guide product, coach goals, celebrate progress
+3. Refusal rules — no financial advice, investments, trading, tax/legal
+4. Product facts — wrapper model, invisible USDC, growth is variable
+5. Context block — serialized snapshot from backend
+6. Response length — concise; prefer short paragraphs and one clear next step
+
+### Data model additions
+
+| Entity | Key fields | Notes |
+|--------|------------|-------|
+| **PiaThread** | id, userId, createdAt, updatedAt | One thread per user (MVP) |
+| **PiaMessage** | id, threadId, role (`user` \| `assistant`), content, createdAt, blocked? | Append-only log |
+
+```
+User 1──1 PiaThread
+PiaThread 1──* PiaMessage
+```
+
+**Retention (MVP):** Store full history; send last **20 messages** (10 turns) to Anthropic for context window control.
+
+### API routes
+
+| Method | Route | Purpose | MVP |
+|--------|-------|---------|-----|
+| GET | `/pia/thread` | Thread id, recent messages, suggested prompts, disclaimer | Yes |
+| POST | `/pia/messages` | Send user message; return assistant reply | Yes |
+| DELETE | `/pia/thread` | Clear conversation history | **Future** |
+
+`POST /pia/messages` body: `{ "content": "string" }`  
+Response: `{ "message": { "role": "assistant", "content": "..." }, "blocked": false }`
+
+### Anthropic integration (backend)
+
+| Concern | MVP approach |
+|---------|----------------|
+| **API** | Anthropic Messages API (`POST /v1/messages`) |
+| **Model** | Claude Haiku or Sonnet — choose at implementation for cost/latency vs. quality |
+| **Secrets** | `ANTHROPIC_API_KEY` in secrets manager only |
+| **Timeout** | 30s max; friendly error to user on timeout |
+| **Rate limit** | e.g. 30 messages / user / hour (tune at launch) |
+| **Idempotency** | Optional `Idempotency-Key` header on POST to prevent duplicate sends |
+| **Logging** | Log request ids and latency; do not log full message content in production logs (**Future** redaction policy) |
+
+### MVP simplifications
+
+| Area | MVP | Deferred |
+|------|-----|----------|
+| **Threads** | One thread per user | Multiple threads / topics |
+| **Streaming** | Full reply in one response | SSE token stream |
+| **Proactive Pia** | User-initiated only | Push nudges, milestone messages |
+| **Tool use** | Context snapshot only | LLM tools that mutate ledger |
+| **Voice input** | Text only | Speech-to-text |
+| **Human handoff** | Support email link in refusal copy | In-app support chat |
+
+### Security & privacy
+
+- Anthropic API key never in mobile app or marketing site.
+- Pia endpoints require Privy auth — same as other `/api/v1` routes.
+- Minimize PII in prompts; use aggregates for financial state.
+- Block requests attempting to extract system prompt or bypass guardrails.
+- Document Anthropic data handling in Privacy Policy at launch.
+
+### Risks
+
+| Risk | Mitigation |
+|------|------------|
+| Model gives investment advice | System prompt + output filter + refusal templates |
+| Hallucinated product behavior | `productFacts` in context; keep answers aligned with actual MVP features |
+| Over-sharing user data | Context snapshot whitelist |
+| API cost abuse | Per-user rate limits |
+| User treats Pia as advisor | Persistent disclaimer; refusal copy reinforces coach role |
+
+---
+
 ## 13. Data Model
 
 Logical entities — implementation types deferred.
@@ -1055,6 +1234,8 @@ Logical entities — implementation types deferred.
 | **CardTransaction** | id, userId, cardId, amountUsd, merchantName, status, createdAt | Spend history |
 | **WebhookEvent** | id, provider, eventId, payload, processedAt | Idempotency |
 | **WaitlistEntry** | id, email, createdAt, source | Marketing signups |
+| **PiaThread** | id, userId, createdAt, updatedAt | One coach thread per user (MVP) |
+| **PiaMessage** | id, threadId, role, content, createdAt, blocked | Chat history |
 
 ### Transaction types (activity feed)
 
@@ -1068,6 +1249,8 @@ User 1──* Transaction
 User 1──* Goal
 User 1──0..1 Card
 User 1──0..1 GrowthAllocation
+User 1──1 PiaThread
+PiaThread 1──* PiaMessage
 Goal 1──* GoalMovement
 ```
 
@@ -1138,6 +1321,13 @@ Base path: `/api/v1` — all routes require Privy auth unless noted.
 | POST | `/card/freeze` | Freeze / unfreeze | Yes |
 | GET | `/card/transactions` | Card spend history | Yes |
 
+### Pia (AI Financial Coach)
+
+| Method | Route | Purpose | MVP |
+|--------|-------|---------|-----|
+| GET | `/pia/thread` | Load thread, history, suggested prompts | Yes |
+| POST | `/pia/messages` | Send message; receive Pia reply | Yes |
+
 ### Webhooks (inbound — no user auth)
 
 | Method | Route | Provider | MVP |
@@ -1171,6 +1361,7 @@ Base path: `/api/v1` — all routes require Privy auth unless noted.
 | **LI.FI** | Cross-asset / cross-route swaps | Invoke only server-side when required; hide all routing from UI |
 | **Aave / Morpho / Compound** | USDC yield | Deposit/withdraw USDC; track position; show estimated earnings |
 | **Resend** | Email delivery | Send receipts, confirmations, security notices |
+| **Anthropic** | LLM completions for Pia coach | Proxy messages server-side; apply guardrails; never expose API key to clients |
 | **EIP-7702 relayer** | Gas sponsorship | Pay gas; never surface fees to user |
 
 ---
@@ -1224,6 +1415,7 @@ Base path: `/api/v1` — all routes require Privy auth unless noted.
 | **Card data** | Display via Gnosis Pay secure components or tokenized API — never store full PAN/CVV in Olimpia DB |
 | **API** | HTTPS only; rate limiting on auth and transfer endpoints |
 | **Idempotency** | Idempotency keys on `POST /transfers`, `/funding/*`, `/growth/*` |
+| **Pia / Anthropic** | API key server-only; rate-limit `/pia/*`; minimize PII in prompts; output guardrails (§12B) |
 | **Audit** | Append-only transaction log; webhook event store |
 
 **Prototype caveat:** This is a consumer finance prototype, not a licensed bank. Security controls reflect best-effort MVP — not production banking grade.
@@ -1244,6 +1436,7 @@ Base path: `/api/v1` — all routes require Privy auth unless noted.
 | Privy session expiry | API errors | Refresh flow in mobile SDK |
 | Sponsored tx budget exhaustion | On-chain ops fail | Monitor relayer balance; alert internally |
 | P2P recipient not found | Send fails | User lookup validation before confirm |
+| Pia inappropriate advice | Regulatory / trust risk | Guardrails, disclaimers, refusal templates (§12B) |
 | Regulatory / KYC gaps | Ramp or card blocked | Bridge and Gnosis handle KYC; backend surfaces provider errors plainly |
 
 ---
@@ -1263,7 +1456,7 @@ Explicit choices to optimize for **fastest working MVP**:
 | **Goals** | Ledger envelopes, no on-chain per-goal | Smart contract goals |
 | **Marketing site** | Static landing page | CMS, blog, waitlist API |
 | **Notifications** | Email (Resend) | Push notifications |
-| **AI Guide (Pia)** | Not in architecture | Full Pia integration |
+| **Pia AI Coach** | Lightweight chat + Anthropic (§12B) | Proactive nudges, streaming, multi-thread |
 | **Analytics** | Basic event logging | Data warehouse, cohort dashboards |
 | **Admin** | Manual DB/support scripts | Admin dashboard |
 | **Reconciliation** | Manual spot checks | Automated reconciliation jobs |
@@ -1282,8 +1475,7 @@ Card, send, and withdraw operate on **available** only.
 
 | Feature | Notes |
 |---------|-------|
-| **Pia AI Guide** | Female AI guide ("money bestie"); answers money questions, explains investing and yield; not a financial advisor. Requires LLM service, conversation store, guardrails, and in-app UI — **not in MVP**. |
-| **AI Financial Advisor** | PRD future feature — distinct from Pia guide; deeper advisory flows |
+| **AI Financial Advisor** | PRD future feature — distinct from Pia coach; deeper personalized advisory flows |
 | **Request money** | P2P request flow with pending states |
 | **Push notifications** | FCM (Android) + APNs (iOS) via notification service |
 | **Physical debit card** | Gnosis Pay physical issuance |
@@ -1364,7 +1556,7 @@ Confirms this document covers **marketing website** and **React Native mobile ap
 | Hero section | §3A | ✓ |
 | Product preview / mockup | §3A | ✓ |
 | Built Around Real Life | §3A | ✓ |
-| Your Money Bestie (Pia — future) | §3A, §3B, §20 | ✓ |
+| Your Money Bestie (Pia) | §3A, §3B, §12B | ✓ |
 | Trusted Infrastructure | §3A | ✓ |
 | Features (5 pillars) | §3A | ✓ |
 | How It Works (4 steps) | §3A | ✓ |
@@ -1397,8 +1589,8 @@ Confirms this document covers **marketing website** and **React Native mobile ap
 | USDC Growth Account / yield | §11 | ✓ |
 | Virtual debit card (Gnosis Pay) | §12 | ✓ |
 | Profile | §12A | ✓ |
+| Pia AI Financial Coach (in-app) | §3B, §12B | ✓ |
 | User-facing states (all flows) | §21 | ✓ |
-| Pia in app | §3B — **Future, not MVP** | ✓ |
 
 ### Backend & infrastructure
 
@@ -1409,7 +1601,7 @@ Confirms this document covers **marketing website** and **React Native mobile ap
 | Status tracking + normalization | §16, §21 | ✓ |
 | API route inventory | §14 | ✓ |
 | Data model | §13 | ✓ |
-| Privy · Base · Bridge · Gnosis Pay · LI.FI · Yield · Resend | §15 | ✓ |
+| Privy · Base · Bridge · Gnosis Pay · LI.FI · Yield · Resend · **Anthropic** | §15 | ✓ |
 | EIP-7702 gas sponsorship | §1, §5 | ✓ |
 
 ---
@@ -1437,7 +1629,8 @@ Before implementation begins:
 - [ ] **Marketing SEO + agent optimization** accepted (§3A — semantic HTML, metadata, JSON-LD, `/llms.txt`, `/learn/usdc`)
 - [ ] **Mobile app** navigation, screens, and platform strategy accepted (§3B)
 - [ ] MVP capability list confirmed (including withdraw + growth)
-- [ ] Pia / AI Guide confirmed as **marketing preview only** — not app MVP
+- [ ] Pia AI Financial Coach scope and guardrails accepted (§12B)
+- [ ] Pia / AI Guide confirmed as **in-app MVP** — marketing preview only on web (§3A)
 - [ ] Provider stack unchanged
 - [ ] API route inventory sufficient (including `/waitlist`)
 - [ ] Balance and ledger policy confirmed
@@ -1450,4 +1643,4 @@ Before implementation begins:
 
 ---
 
-*End of Architecture.md v1.3*
+*End of Architecture.md v1.4*
