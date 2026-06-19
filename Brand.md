@@ -636,13 +636,15 @@ Add money  →  Receive USDC  →  Grow your money  →  Spend anytime
 | # | Question (direction) |
 |---|----------------------|
 | 1 | What is Olimpia? |
-| 2 | What is USDC? (link to `/learn/usdc`) |
-| 3 | Is my money safe? |
-| 4 | How do I add or withdraw money? |
-| 5 | How does growing my savings work? |
-| 6 | Do I need to understand crypto? |
-| 7 | Is Olimpia only for women? |
-| 8 | When can I get the app? |
+| 2 | Who is Olimpia for? |
+| 3 | What is USDC? (link to `/learn/usdc`) |
+| 4 | What is a stablecoin? (link to `/learn/usdc`) |
+| 5 | Do I need crypto experience? |
+| 6 | How does yield work? |
+| 7 | Can I withdraw my money? |
+| 8 | Is Olimpia a bank? |
+
+**SEO / agent rule:** FAQ answers must be real HTML text (not image-only). See Architecture.md §3A.
 
 ---
 
@@ -674,11 +676,21 @@ Minimal — compact on mobile.
 
 ### `/learn/usdc`
 
-Educational page for USDC and stablecoins. Linked from Hero subheadline only.
+Educational page for USDC and stablecoins. Linked from Hero subheadline **USDC** text.
 
-**Explain:** Stablecoins · USDC · why Olimpia uses them invisibly · estimated variable earnings.
+**Explain (H2 topics):**
+
+1. What USDC is
+2. What a stablecoin is
+3. Why Olimpia uses USDC (invisible infrastructure — users see dollars)
+4. How yield works at a beginner level (estimated, variable, not guaranteed)
+5. You do not need crypto experience
+
+**Tone:** Beginner-friendly, confident, educational — aligned with *Learn* pillar.
 
 **Avoid:** DeFi mechanics, wallets, gas, chain selection, protocol jargon.
+
+**SEO:** Dedicated title, meta description, canonical URL, and semantic HTML. See Architecture.md §3A.
 
 ---
 

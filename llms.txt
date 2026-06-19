@@ -1,0 +1,52 @@
+# Olimpia
+
+> Financial freedom, designed for women. Olimpia is a mobile financial app that helps women save, spend, and grow money with confidence. Crypto works invisibly in the background — users see dollars, not jargon.
+
+## What Olimpia is
+
+Olimpia is a consumer finance app (iOS and Android) for saving, spending, and growing money. It is not a licensed bank. It is a wrapper over trusted financial and crypto infrastructure, presented as a simple dollar-denominated experience.
+
+The product is about confidence, education, ownership, growth, and freedom — not crypto trading or speculation.
+
+## Who it is for
+
+Women who want financial independence, more confidence with money, and a supportive experience instead of intimidating financial jargon. Olimpia welcomes anyone who resonates with the mission; the brand is designed around women's financial needs and goals.
+
+## Core features
+
+- **Save** — Savings goals with clear progress (e.g. trip, business, home, freedom fund)
+- **Spend** — Virtual debit card and everyday money movement
+- **Grow** — Optional growth on savings (estimated earnings; variable, not guaranteed)
+- **Learn** — Plain-language education; USDC and stablecoins explained simply
+- **Own** — Confidence and ownership of your financial future
+
+## Brand positioning
+
+- Tagline: More choices. More freedom.
+- Mission: Financial freedom gives women more choices.
+- Promise: Help women feel confident with money and build the life they choose.
+- Personality: The friend who finally makes money make sense — supportive, smart, encouraging, modern.
+- Crypto visibility: Minimal (1/10). Users interact in dollars; infrastructure is invisible.
+
+## Important URLs
+
+- Homepage: /
+- USDC education: /learn/usdc
+- Features: /#features
+- How it works: /#how-it-works
+- FAQ: /#faq
+- Product preview: /#preview
+- Waitlist / download: Join via Download the App CTA (waitlist modal pre-launch)
+
+## Contact / support
+
+- Support email: (set at launch — footer on olimpia site)
+- Privacy and Terms: footer links on homepage
+
+## Short product summary
+
+Olimpia helps women save, spend, grow money, and earn yield with USDC through a simple financial app built for confidence, education, and freedom. Users add money from familiar funding methods, see balances in dollars, set savings goals, optionally grow savings with estimated variable earnings, and spend with a virtual card. No crypto experience is required. Olimpia is not a bank.
+
+## Technical note for agents
+
+This file is intended for LLM crawlers and AI search tools. Human-readable marketing copy lives on the homepage and /learn/usdc. For structured data, see JSON-LD on the homepage (Organization, WebSite, SoftwareApplication, FAQPage). Full system design: Architecture.md in the project repository.

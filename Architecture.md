@@ -1,6 +1,6 @@
 # Olimpia — Architecture
 
-**Version:** 1.2  
+**Version:** 1.3  
 **Status:** Draft for review  
 **Depends on:** [PRD.md](./PRD.md) (approved v1.7), [Brand.md](./Brand.md) (approved)  
 **Scope:** Consumer finance prototype — system design only (no implementation)
@@ -177,6 +177,7 @@ Olimpia has **two frontends** sharing brand direction (Brand.md) but **no shared
 |-------|---------|
 | `/` | Full landing page (sections above) |
 | `/learn/usdc` | USDC + stablecoin education (linked from Hero **USDC** text) |
+| `/llms.txt` | Agent-readable product summary for LLM crawlers and AI search |
 
 #### Hero (approved copy — Brand.md)
 
@@ -238,7 +239,22 @@ Static 4-step visual: **Add money → Receive USDC → Grow your money → Spend
 
 #### FAQ
 
-Accordion component; 6–8 questions. Answers static. USDC question links to `/learn/usdc`. See Brand.md for question list.
+Accordion component; **6–8 questions**. Answers must be **real HTML text** in the DOM — not image-only, not canvas, not screenshot text. Crawlers and AI agents must be able to read full Q&A without JavaScript interaction (accordion may collapse visually; use `<details>`/`<summary>` or ensure answer text exists in HTML).
+
+**Required questions** (Brand.md + SEO — use approved tone):
+
+| # | Question |
+|---|----------|
+| 1 | What is Olimpia? |
+| 2 | Who is Olimpia for? |
+| 3 | What is USDC? |
+| 4 | What is a stablecoin? |
+| 5 | Do I need crypto experience? |
+| 6 | How does yield work? |
+| 7 | Can I withdraw my money? |
+| 8 | Is Olimpia a bank? |
+
+USDC and stablecoin answers should link to `/learn/usdc`. Additional questions (e.g. app availability, safety) may replace one slot if copy stays within 6–8 total.
 
 #### Final CTA + Footer
 
@@ -251,6 +267,139 @@ Final section repeats download/waitlist CTA + tagline. Footer: App Store / Googl
 | POST | `/api/v1/waitlist` | None (rate-limited) | Capture email `{ email }` → store + optional Resend confirmation |
 
 **Alternative MVP:** Third-party form (e.g. Resend audience, Mailchimp embed) if backend waitlist is deferred — document choice at implementation.
+
+#### SEO + Agent Optimization (MVP)
+
+**Goal:** The marketing site must be easy for search engines, AI agents, and LLM crawlers to understand, summarize, and cite — while remaining clear and trustworthy for human visitors. Copy aligns with **Brand.md**. No keyword stuffing; prioritize clarity and beginner-friendly language.
+
+##### 1. Semantic HTML
+
+| Rule | Requirement |
+|------|-------------|
+| **H1** | Exactly **one** `<h1>` per page (homepage: primary headline) |
+| **Headings** | Logical `<h2>` per major section (Hero content may use `<p>` for eyebrow; section titles = H2); `<h3>` for subsections (FAQ items, learn page topics) |
+| **Section names** | Descriptive headings matching visible labels — e.g. *Built Around Real Life*, *How It Works*, *FAQ* — not generic *Section 3* |
+| **Text in images** | Important copy must **not** exist only inside images; mockups may show UI labels but headlines, FAQ, features, and education body copy must be HTML |
+| **Landmarks** | Use `<header>`, `<nav>`, `<main>`, `<section>`, `<footer>` where appropriate |
+
+**Homepage H1 (approved):** *Your future deserves more than a checking account.*  
+**`/learn/usdc` H1 (suggested):** *Understanding USDC — stable, simple, behind the scenes*
+
+##### 2. Metadata (every public page)
+
+Include in `<head>` for `/` and `/learn/usdc` (page-specific descriptions where noted).
+
+| Tag | Homepage value |
+|-----|----------------|
+| **`<title>`** | `Olimpia \| Financial freedom, designed for women` |
+| **Meta description** | `Olimpia helps women save, spend, grow money, and earn yield with USDC through a simple financial app built for confidence, education, and freedom.` |
+| **Open Graph title** | Same as `<title>` |
+| **Open Graph description** | Same as meta description |
+| **Open Graph type** | `website` |
+| **Open Graph url** | Canonical homepage URL |
+| **Twitter/X card** | `summary_large_image` + matching title and description |
+| **Canonical URL** | Absolute URL per page (`/` and `/learn/usdc`) |
+
+**`/learn/usdc` meta description (suggested):** `Learn what USDC and stablecoins are, why Olimpia uses them invisibly, and how savings growth works — no crypto experience required.`
+
+Add `og:image` and `twitter:image` when brand OG asset exists (**Future** if asset deferred).
+
+##### 3. Structured data (JSON-LD)
+
+Embed `<script type="application/ld+json">` in page HTML. Validate with Google Rich Results Test before launch.
+
+**Homepage — include all four schemas:**
+
+| Schema | Purpose |
+|--------|---------|
+| **Organization** | Olimpia brand entity; `name`, `url`, `logo`, `description` aligned with Brand.md mission |
+| **WebSite** | Site identity; `name`, `url`, optional `description` |
+| **SoftwareApplication** | Mobile app product; `name`: Olimpia; `applicationCategory`: FinanceApplication; `operatingSystem`: iOS, Android; `offers` (free); description from brand promise — not a bank |
+| **FAQPage** | `mainEntity` array matching visible FAQ questions and answers (same text as HTML FAQ) |
+
+**`/learn/usdc`:** `WebPage` + `BreadcrumbList` (Home → Learn USDC). FAQPage optional if page includes inline Q&A.
+
+**Example — FAQPage fragment (answers must match on-page copy):**
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Olimpia?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Olimpia is a financial app designed for women to save, spend, and grow money with confidence. Crypto works invisibly in the background — you see dollars, not jargon."
+      }
+    }
+  ]
+}
+```
+
+(Draft full JSON-LD at implementation; keep `acceptedAnswer.text` identical to visible FAQ HTML.)
+
+##### 4. Agent-readable content — `/llms.txt`
+
+Serve a plain-text file at **`/llms.txt`** (public, no auth). Source file in repo: `llms.txt` (deploy to site root).
+
+Must include:
+
+- What Olimpia is
+- Who it is for
+- Core features (Save · Spend · Grow · Learn · Own)
+- Brand positioning (confidence, education, freedom — not crypto trading)
+- Important URLs (`/`, `/learn/usdc`, `#features`, `#faq`, waitlist)
+- Contact / support URL (footer email)
+- Short product summary (2–4 sentences, cite-friendly)
+
+Format: Markdown-style headings and bullet lists; plain language; no protocol jargon.
+
+##### 5. Educational page — `/learn/usdc`
+
+Dedicated static page linked from Hero **USDC** text. Beginner-friendly; aligned with Brand.md invisible-infrastructure principle.
+
+| Topic | Content direction |
+|-------|-------------------|
+| **What USDC is** | A digital dollar stablecoin — designed to stay close to $1 USD |
+| **What a stablecoin is** | Crypto asset pegged to a stable value (usually the US dollar); less volatile than Bitcoin |
+| **Why Olimpia uses USDC** | Reliable dollar-equivalent infrastructure behind the scenes; users interact in dollars |
+| **How yield works (beginner)** | Optional growth on savings; estimated earnings, variable, not guaranteed; plain-language only |
+| **No crypto experience needed** | Explicit reassurance — no wallets, keys, or trading knowledge required |
+
+**Avoid on this page:** DeFi mechanics, wallet addresses, gas, chain selection, Aave/Morpho/Compound names, APY optimization language.
+
+**Semantic structure:** One H1; H2 per topic above; body paragraphs in HTML.
+
+##### 6. FAQ — crawler and agent requirements
+
+See FAQ table above. Implementation notes:
+
+- Each question: `<h3>` or `<summary>` with full question text
+- Each answer: `<p>` (or short list) with complete answer — not "click to expand" placeholders without content
+- `FAQPage` JSON-LD must mirror the same Q&A strings
+- Prefer `<section id="faq">` with named anchor for `#faq`
+
+##### 7. Accessibility (supports SEO and agents)
+
+| Requirement | Spec |
+|-------------|------|
+| **Alt text** | All meaningful images and logos; decorative images `alt=""` |
+| **Buttons** | Visible labels or `aria-label` — e.g. *Join waitlist*, *Download the App*, *Learn More* |
+| **Contrast** | Meet WCAG AA for text (Brand.md palette) |
+| **Responsive** | Mobile-first; readable without horizontal scroll; touch targets ≥ 44px |
+| **Focus** | Keyboard-navigable nav, FAQ, and modal |
+
+##### 8. What not to do
+
+- Keyword stuffing or hidden text
+- Cloaking different content for bots vs. users
+- Putting FAQ or feature copy only in images or video
+- Crypto-native SEO bait (*best DeFi yield*, *web3 neobank*) — conflicts with brand
+- Extra landing pages for SEO alone (stay within `/` + `/learn/usdc` + `/llms.txt`)
+
+**Readable by:** human visitors · Google · AI search engines · LLM agents · future crawlers — same honest copy for all.
 
 #### Marketing — explicitly out of scope
 
@@ -1222,7 +1371,13 @@ Confirms this document covers **marketing website** and **React Native mobile ap
 | FAQ | §3A | ✓ |
 | Waitlist / app download CTA | §3A waitlist modal, §14 `/waitlist` | ✓ |
 | Footer | §3A | ✓ |
-| `/learn/usdc` education page | §3A routes | ✓ |
+| `/learn/usdc` education page | §3A routes, SEO §5 | ✓ |
+| `/llms.txt` agent-readable summary | §3A SEO §4 | ✓ |
+| SEO + agent optimization | §3A SEO subsection | ✓ |
+| Semantic HTML + metadata | §3A SEO §1–2 | ✓ |
+| JSON-LD structured data | §3A SEO §3 | ✓ |
+| FAQ as real HTML | §3A FAQ, SEO §6 | ✓ |
+| Accessibility (alt, contrast, responsive) | §3A SEO §7 | ✓ |
 
 ### React Native mobile app
 
@@ -1279,6 +1434,7 @@ Before implementation begins:
 
 - [ ] Architecture overview and wrapper model accepted
 - [ ] **Marketing website** section map and waitlist flow accepted (§3A)
+- [ ] **Marketing SEO + agent optimization** accepted (§3A — semantic HTML, metadata, JSON-LD, `/llms.txt`, `/learn/usdc`)
 - [ ] **Mobile app** navigation, screens, and platform strategy accepted (§3B)
 - [ ] MVP capability list confirmed (including withdraw + growth)
 - [ ] Pia / AI Guide confirmed as **marketing preview only** — not app MVP
@@ -1294,4 +1450,4 @@ Before implementation begins:
 
 ---
 
-*End of Architecture.md v1.2*
+*End of Architecture.md v1.3*
