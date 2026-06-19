@@ -1070,7 +1070,11 @@ Architecture.md (approved / in review)
     ↓
 UserFlows.md (this document)
     ↓
-BuildPlan.md (future — not in scope here)
+BuildPlan.md (implementation phases)
+    ↓
+ScreenInventory.md (screen-level spec)
+    ↓
+NavigationMap.md (navigation validation)
 ```
 
 ---
