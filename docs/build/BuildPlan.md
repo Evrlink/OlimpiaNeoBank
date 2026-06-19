@@ -1,9 +1,9 @@
 # Olimpia — Build Plan
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Status:** Draft for review  
 **Purpose:** Implementation phases for MVP — optimized for the **fastest path to a working prototype**  
-**Source of truth:** [PRD.md](./PRD.md) (v1.8) · [Brand.md](./Brand.md) (approved) · [Architecture.md](./Architecture.md) (v1.4) · [UserFlows.md](./UserFlows.md) (v1.3) · [NavigationMap.md](./NavigationMap.md) (v1.1) · [ScreenInventory.md](./ScreenInventory.md) (v1.1)
+**Source of truth:** [PRD.md](../product/PRD.md) (v1.10) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v1.5) · [UserFlows.md](../product/UserFlows.md) (v1.3) · [NavigationMap.md](../product/NavigationMap.md) (v1.1) · [ScreenInventory.md](../product/ScreenInventory.md) (v1.1)
 
 ---
 
@@ -30,7 +30,7 @@
 4. **Ledger-first features before chain-heavy features** — goals before P2P; P2P before card.
 5. **Pia after auth + goals** — coach needs user context; Anthropic integration is isolated and can ship without blocking money rails.
 6. **Single yield provider** — Architecture §11A Option A (e.g. Aave on Base).
-7. **UserFlows is acceptance** — each phase maps to flows in [UserFlows.md](./UserFlows.md); copy and outcomes from Brand.md.
+7. **UserFlows is acceptance** — each phase maps to flows in [UserFlows.md](../product/UserFlows.md); copy and outcomes from Brand.md.
 
 ---
 
@@ -69,11 +69,12 @@ Establish a single monorepo, deployable backend skeleton, and React Native app r
 - React Native: bottom tab scaffold (Home · Savings · Card · Profile), stack navigator, Brand.md theme tokens (colors, Cormorant Garamond + Inter)
 - CI: lint + typecheck on PR; optional API smoke test
 - Staging deploy: API host + DB; marketing deploy target (Vercel/Netlify)
+- **Launch geography assessment** — review Privy, BridgeXYZ, Gnosis Pay, LI.FI, and yield provider sandbox/docs; produce provider restriction matrix (on-ramp, off-ramp, card, KYC); recommend initial supported countries (TBD until founder confirms); document in [launch-geography.md](../architecture/launch-geography.md)
 
 ### Dependencies
 
 - Approved PRD, Architecture, Brand
-- Provider sandbox accounts: Privy (minimum for Phase 2)
+- Provider sandbox accounts: Privy (minimum for Phase 2); Bridge, Gnosis Pay, yield provider access for geography assessment
 - Apple Developer + Google Play Console access (for later phases)
 
 ### Acceptance criteria
@@ -83,6 +84,7 @@ Establish a single monorepo, deployable backend skeleton, and React Native app r
 - [ ] Database migrations apply cleanly
 - [ ] No secrets in git; `.env.example` documents required keys
 - [ ] README with local dev setup for all three apps
+- [ ] **Launch geography assessment complete** — provider restriction matrix documented in [launch-geography.md](../architecture/launch-geography.md); initial supported countries marked **TBD** pending founder launch strategy
 
 ---
 
@@ -416,7 +418,8 @@ Complete the money loop — cash out to bank and spend with a virtual debit card
 
 - Phase 4 (Bridge relationship)
 - Phase 6 (funded available balance for spend/withdraw QA)
-- Gnosis Pay staging + launch geography defined
+- Gnosis Pay staging access
+- Phase 0 launch geography assessment complete; card-eligible regions documented (founder confirmation of launch countries before release — Phase 10)
 - KYC path via Bridge/Gnosis for test users
 
 ### Acceptance criteria
@@ -452,7 +455,7 @@ Production-quality prototype ready for TestFlight, Google Play internal testing,
 
 - Phases 0–9 complete
 - Apple + Google developer accounts in good standing
-- Launch geography confirmed (Bridge + Gnosis constraints)
+- Phase 0 launch geography assessment complete; founder has confirmed initial supported countries (or explicitly deferred TBD for prototype demo geography)
 
 ### Acceptance criteria
 
@@ -505,7 +508,7 @@ Phase 0 (Foundation)
 | Risk | Mitigation |
 |------|------------|
 | Bridge/Gnosis sandbox delays | Staging ledger + manual credit for UI phases; parallel API integration |
-| Gnosis geo limits | Define launch region early; gate Card tab with plain copy |
+| Gnosis geo limits | Phase 0 geography assessment (Architecture §4A); gate Card tab with provider-driven plain copy |
 | Yield provider complexity | Option A single provider only; defer multi-provider |
 | Pia advice boundary | Server guardrails + disclaimer; test refusal prompts in QA |
 | iOS/Android drift | Single RN codebase; test both platforms every phase |
@@ -543,10 +546,12 @@ Before implementation begins:
 - [ ] Phase 0 monorepo structure accepted
 - [ ] Pia in Phase 7 (after goals) accepted
 - [ ] Single yield provider (Phase 8) accepted
+- [x] Growth account in MVP (founder confirmed — PRD v1.10 P0)
+- [x] Bank withdraw in MVP (founder confirmed — PRD v1.10 P0)
 - [ ] Withdraw + Card combined in Phase 9 accepted — or split if team prefers
-- [ ] Launch geography and real vs simulated money resolved (PRD §18)
+- [ ] Phase 0 launch geography assessment complete (Architecture §4A; [launch-geography.md](../architecture/launch-geography.md)); real vs simulated money resolved (PRD §18)
 - [ ] Store release owner identified
 
 ---
 
-*End of BuildPlan.md v1.0*
+*End of BuildPlan.md v1.1*

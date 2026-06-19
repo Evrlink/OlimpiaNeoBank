@@ -3,7 +3,7 @@
 **Version:** 1.0  
 **Status:** Draft for validation  
 **Purpose:** Validate navigation before development — no UI designs, no code  
-**Source of truth:** [PRD.md](./PRD.md) · [Brand.md](./Brand.md) · [Architecture.md](./Architecture.md) · [UserFlows.md](./UserFlows.md) · [BuildPlan.md](./BuildPlan.md) · [ScreenInventory.md](./ScreenInventory.md)
+**Source of truth:** [PRD.md](./PRD.md) · [Brand.md](../brand/Brand.md) · [Architecture.md](../architecture/Architecture.md) · [UserFlows.md](./UserFlows.md) · [BuildPlan.md](../build/BuildPlan.md) · [ScreenInventory.md](./ScreenInventory.md)
 
 ---
 

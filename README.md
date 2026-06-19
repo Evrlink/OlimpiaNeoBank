@@ -1,7 +1,49 @@
 # GirlNeoBank
-Neobank only for girls 
+
+Neobank only for girls.
+
+## Project Structure
+
+Monorepo for **Olimpia** (Olympia Neobank) — planning docs in `docs/`, implementation in `apps/` and `packages/`.
+
+### Applications (`apps/`)
+
+| Path | Purpose |
+|------|---------|
+| `apps/marketing/` | Public website and landing page |
+| `apps/mobile/` | React Native iOS and Android app |
+| `apps/api/` | Backend API, webhooks, and provider integrations |
+
+### Shared packages (`packages/`)
+
+| Path | Purpose |
+|------|---------|
+| `packages/ui/` | Reusable UI components |
+| `packages/design-system/` | Colors, typography, spacing, and design tokens |
+| `packages/config/` | Shared ESLint, TypeScript, and tooling configuration |
+| `packages/types/` | Shared TypeScript types |
+
+### Documentation (`docs/`)
+
+| Path | Purpose |
+|------|---------|
+| `docs/product/` | PRD, user flows, screens, navigation |
+| `docs/architecture/` | System architecture, launch geography |
+| `docs/brand/` | Brand, tone, and visual identity |
+| `docs/build/` | Build plan and implementation phases |
+
+### Root
+
+| File | Purpose |
+|------|---------|
+| `README.md` | Repository overview (this file) |
+| `llms.txt` | Agent/crawler summary for marketing SEO |
+
+Each folder contains a `README.md` with scope details. See [`docs/README.md`](./docs/README.md) for the full doc index.
+
+---
+
 # Women First
-Women First
 
 
 A modern financial experience designed for women — powered by crypto infrastructure behind the scenes.

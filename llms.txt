@@ -49,4 +49,4 @@ Olimpia helps women save, spend, grow money, and earn yield with USDC through a 
 
 ## Technical note for agents
 
-This file is intended for LLM crawlers and AI search tools. Human-readable marketing copy lives on the homepage and /learn/usdc. For structured data, see JSON-LD on the homepage (Organization, WebSite, SoftwareApplication, FAQPage). Full system design: Architecture.md in the project repository.
+This file is intended for LLM crawlers and AI search tools. Human-readable marketing copy lives on the homepage and /learn/usdc. For structured data, see JSON-LD on the homepage (Organization, WebSite, SoftwareApplication, FAQPage). Full system design: [`docs/architecture/Architecture.md`](./docs/architecture/Architecture.md) in the project repository.

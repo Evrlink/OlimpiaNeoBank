@@ -1,8 +1,8 @@
 # Olimpia — Architecture
 
-**Version:** 1.4  
+**Version:** 1.5  
 **Status:** Draft for review  
-**Depends on:** [PRD.md](./PRD.md) (approved v1.7), [Brand.md](./Brand.md) (approved)  
+**Depends on:** [PRD.md](../product/PRD.md) (approved v1.10), [Brand.md](../brand/Brand.md) (approved)  
 **Scope:** Consumer finance prototype — system design only (no implementation)
 
 ---
@@ -521,6 +521,84 @@ Voice and personality: **Brand.md — AI Guide (Pia)**. Persistent disclaimer: P
 
 ### Frontend rules (both surfaces)
 
+---
+
+## 4A. Launch Geography & Provider Restrictions
+
+Olimpia does **not** default to US-only support. Geographic scope is driven by **provider coverage** and **founder launch strategy**, not by an artificial product restriction.
+
+**Initial supported countries:** TBD based on provider capabilities and launch strategy.
+
+### Launch geography policy
+
+| Concept | Policy |
+|---------|--------|
+| **Service geography** | Which countries users may onboard, fund, withdraw, and receive a card — determined by provider matrix (below) and founder confirmation after Phase 0 assessment |
+| **Display currency** | USD / dollar-denominated USDC in UI — **separate** from user residency; users may see dollars globally where rails allow |
+| **Default posture** | Infrastructure chosen for global accessibility where possible; gate individual features when a provider does not support a user's geography |
+
+### Globally accessible (minimal geo friction expected)
+
+These layers are generally available worldwide; confirm target-market auth methods and any sanctions lists in Phase 0:
+
+| Layer | Provider | Notes |
+|-------|----------|-------|
+| Auth & wallets | **Privy** | Generally global; verify restricted jurisdictions in sandbox/docs |
+| Chain settlement | **Base** | On-chain; not geography-gated at protocol level |
+| Routing | **LI.FI** | Server-side swaps; generally global |
+| Yield | **Aave / Morpho / Compound** | On-chain deposits; generally global — regulatory posture for end users TBD |
+
+### Provider restriction flags (Phase 0 verification)
+
+Review each provider's sandbox and documentation during Phase 0. Document findings in [launch-geography.md](./launch-geography.md) (see [BuildPlan.md](../build/BuildPlan.md) Phase 0).
+
+| Provider | Capability | Geographic / compliance note | Phase 0 action |
+|----------|------------|------------------------------|----------------|
+| **BridgeXYZ** | On-ramp | Country/state coverage, payment methods, KYC tiers | Document supported countries + KYC requirements for deposits |
+| **BridgeXYZ** | Off-ramp | Payout countries, bank rails | Document supported payout geographies |
+| **Gnosis Pay** | Card issuance | Supported regions for virtual card; EEA focus historically | Document card-eligible countries; gate Card tab when unavailable |
+| **Privy** | Auth / KYC | Generally global; any restricted jurisdictions | Confirm auth methods per target markets |
+| **Yield providers** | Growth deposits | On-chain access; sanctions / compliance | Note any blocked jurisdictions |
+
+### Product behavior when geo-blocked
+
+When a provider does not serve a user's geography, gate the affected feature with plain-language copy — do not expose provider names or crypto jargon.
+
+| Feature | When blocked | UX pattern |
+|---------|--------------|------------|
+| **Card tab** | Gnosis Pay unavailable for user's region | Tab visible but gated: explain card is not available in their location yet; other features remain usable |
+| **Add money** | Bridge on-ramp unavailable | Fund action disabled or redirected with explanation; suggest supported alternatives if any |
+| **Withdraw** | Bridge off-ramp unavailable | Withdraw disabled with explanation; balance and in-app transfers may still work |
+| **KYC** | Provider requires verification user cannot complete | Surface provider-driven requirements plainly; link to support |
+
+Reference patterns: UserFlows §13 (card geo gate), ScreenInventory A14 error state.
+
+**MVP recommendation — backend eligibility flags:** Expose feature availability to the mobile app so gating is consistent and server-driven:
+
+- Extend `GET /me` with an `eligibility` object, **or**
+- Add `GET /config/eligibility` (auth required) returning flags such as `card`, `onRamp`, `offRamp`, `growth`
+
+Example shape:
+
+```json
+{
+  "eligibility": {
+    "card": { "available": false, "reason": "card_not_available_in_region" },
+    "onRamp": { "available": true },
+    "offRamp": { "available": true },
+    "growth": { "available": true }
+  }
+}
+```
+
+Mobile app reads flags at session start and after profile/geo changes; copy maps `reason` codes to Brand.md-aligned messages.
+
+### Phase 0 deliverable cross-reference
+
+The formal **launch geography assessment** is a Phase 0 deliverable per [BuildPlan.md](../build/BuildPlan.md). Output: provider restriction matrix + recommended initial countries (TBD pending founder launch strategy), stored in [launch-geography.md](./launch-geography.md).
+
+---
+
 ## 4. Backend Architecture
 
 ### Role
@@ -1015,7 +1093,7 @@ Mobile App
 
 - Virtual card only.
 - Single currency (USD / USDC-backed).
-- Geography limited to Gnosis Pay supported regions (define at launch).
+- Card availability gated by Gnosis Pay supported regions (see §4A); not assumed US-only.
 
 ---
 
@@ -1265,7 +1343,8 @@ Base path: `/api/v1` — all routes require Privy auth unless noted.
 | Method | Route | Purpose | MVP |
 |--------|-------|---------|-----|
 | POST | `/auth/sync` | Post-login user + wallet provisioning | Yes |
-| GET | `/me` | Profile + handle + notification prefs | Yes |
+| GET | `/me` | Profile + handle + notification prefs; **recommended:** include `eligibility` flags (§4A) | Yes |
+| GET | `/config/eligibility` | Feature availability by provider geography (§4A) — alternative to embedding in `/me` | Recommended |
 | PATCH | `/me` | Update profile | Yes |
 
 ### Balance & activity
@@ -1431,7 +1510,7 @@ Base path: `/api/v1` — all routes require Privy auth unless noted.
 | Bridge settlement delay | User anxiety | Normalized processing states; email updates |
 | Yield rate variability | Trust erosion | Estimated / variable disclaimers; Brand-aligned celebration copy |
 | Insufficient available balance | Failed sends/withdrawals/card | Ledger checks before initiation; friendly errors |
-| Gnosis Pay geo limits | Card unavailable | Define launch geography; gate card tab |
+| Gnosis Pay geo limits | Card unavailable | Complete Phase 0 geography assessment (§4A); gate Card tab with provider-driven copy |
 | On-chain tx failure | Stuck transfers | Retry logic; support escalation path |
 | Privy session expiry | API errors | Refresh flow in mobile SDK |
 | Sponsored tx budget exhaustion | On-chain ops fail | Monitor relayer balance; alert internally |
@@ -1637,10 +1716,10 @@ Before implementation begins:
 - [ ] User-facing state model accepted (§21)
 - [ ] Coverage matrix (§22) reviewed
 - [ ] MVP simplifications accepted
-- [ ] Launch geography defined (Bridge + Gnosis Pay constraints)
+- [ ] Phase 0 launch geography assessment complete (§4A; [launch-geography.md](./launch-geography.md)); initial supported countries TBD pending founder confirmation
 
 - [ ] Yield layer strategy: **Option A (single provider)** accepted per §11A
 
 ---
 
-*End of Architecture.md v1.4*
+*End of Architecture.md v1.5*

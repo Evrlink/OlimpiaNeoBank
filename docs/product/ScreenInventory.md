@@ -3,7 +3,7 @@
 **Version:** 1.1  
 **Status:** Draft for review  
 **Purpose:** Complete MVP screen and surface inventory for developers — no UI designs, no code  
-**Source of truth:** [PRD.md](./PRD.md) (v1.8) · [Brand.md](./Brand.md) (approved) · [Architecture.md](./Architecture.md) (v1.4) · [UserFlows.md](./UserFlows.md) (v1.3) · [NavigationMap.md](./NavigationMap.md) (v1.1) · [BuildPlan.md](./BuildPlan.md) (v1.0)
+**Source of truth:** [PRD.md](./PRD.md) (v1.10) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v1.5) · [UserFlows.md](./UserFlows.md) (v1.3) · [NavigationMap.md](./NavigationMap.md) (v1.1) · [BuildPlan.md](../build/BuildPlan.md) (v1.1)
 
 ---
 
@@ -893,7 +893,7 @@
 
 **Empty state:** No spends yet — card still issuable/viewable.
 
-**Error state:** Card unavailable (geo); CVV auth fail; decline on spend (shown in activity).
+**Error state:** Card unavailable (provider geography — Gnosis Pay); gated tab with plain copy; CVV auth fail; decline on spend (shown in activity).
 
 **Architecture modules:** `card/` · `ledger/` · `webhooks/` · `notifications/`.
 
@@ -1232,7 +1232,7 @@ Navigation structure and journey maps: [NavigationMap.md](./NavigationMap.md). P
 - [ ] Settings correctly merged into Profile (no separate screen)
 - [ ] Create Goal documented as sheet, not full screen
 - [ ] Card management on Card tab — no duplicate screen
-- [ ] Growth and Withdraw included as MVP surfaces
+- [x] Growth and Withdraw included as MVP surfaces (founder confirmed — PRD v1.10)
 - [ ] API mapping matches Architecture §14
 - [ ] Future deferrals aligned with PRD and Architecture
 - [ ] Navigation map matches UserFlows entry/exit points — see [NavigationMap.md](./NavigationMap.md)

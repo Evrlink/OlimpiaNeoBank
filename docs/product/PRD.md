@@ -1,7 +1,7 @@
 # Olimpia — Product Requirements Document (PRD)
 
-**Version:** 1.8  
-**Status:** Approved (amended — Pia AI Coach added to MVP)  
+**Version:** 1.10  
+**Status:** Approved (amended — Growth account and bank withdraw confirmed MVP)  
 **Approved by:** Founder  
 **Approved on:** 2026-06-16  
 **Scope:** Consumer finance prototype  
@@ -192,6 +192,8 @@ Features required to demonstrate the prototype's emotional and functional value 
 | **Savings goals** | Create goal, name, target, optional deadline, allocate funds |
 | **Goal progress view** | Visual progress, add/withdraw from goal |
 | **Debit card (prototype)** | Virtual card view, card controls, link to spending balance |
+| **Withdraw money** | Off-ramp to linked bank; draws from available balance |
+| **Growth account** | Put part of savings to work — plain-language growth surface, estimated variable earnings, deposit/withdraw |
 | **Pia AI Financial Coach** | In-app chat with Pia — explains concepts, guides product use, coaches goals, celebrates progress |
 | **Profile** | Name, notifications, support, sign out |
 
@@ -200,7 +202,6 @@ Features required to demonstrate the prototype's emotional and functional value 
 | Feature | User-facing description |
 |---------|-------------------------|
 | **Request money** | Request from contact with amount and message |
-| **Yield opportunity (simplified)** | "Grow your savings" toggle with plain-language earning explanation |
 | **Full transaction history** | Dedicated activity list beyond Home preview |
 | **Spending insight (lite)** | Simple weekly spend summary |
 | **Recurring savings** | Auto-allocate to goals on schedule |
@@ -265,6 +266,18 @@ Features required to demonstrate the prototype's emotional and functional value 
 10. Pia AI Financial Coach (chat)
 
 **Validates:** In-context education, goal motivation, and confidence — without turning the app into an advisory or trading product.
+
+### Phase 7 — "Part of my money is working"
+
+11. Growth account (deposit, withdraw, estimated earnings summary)
+
+**Validates:** Quiet growth narrative — hope and forward motion without investment-app complexity.
+
+### Phase 8 — "I can cash out when I need to"
+
+12. Withdraw to bank (off-ramp from available balance)
+
+**Validates:** Control and trust — money supports her life, not the other way around.
 
 ### Explicitly not in MVP
 
@@ -389,7 +402,7 @@ Home or Profile → Ask Pia
 
 ## 11. Screen Inventory
 
-**Scope:** Minimum viable set to demonstrate onboarding, funding, dashboard, savings goals, send money, receive money, card experience, Pia AI Coach, and profile.
+**Scope:** Minimum viable set to demonstrate onboarding, funding, dashboard, savings goals, send money, receive money, card experience, bank withdraw, growth account, Pia AI Coach, and profile.
 
 **Approach:** Consolidate multi-step flows; use inline states, modals, and sheets instead of dedicated screens where possible.
 
@@ -410,11 +423,23 @@ Home or Profile → Ask Pia
 | 11 | **Pia** | AI Financial Coach | Chat UI: message thread, text input, suggested prompts. Entry from Home quick action and Profile. |
 | 12 | **Profile** | Profile | Account info, notifications, security, help/support, sign out. Settings merged here — no separate Settings screen. |
 
+### Additional MVP surfaces (beyond 12 core screens)
+
+Stack/modal flows documented in [ScreenInventory.md](./ScreenInventory.md) — not separate tab screens:
+
+| Surface | Demonstrates |
+|---------|--------------|
+| **Pia introduction** | One-time onboarding moment after signup |
+| **Withdraw Money** | Bank off-ramp from available balance |
+| **Create Goal** | Bottom sheet from Savings |
+| **Growth Account** | Growth deposit, withdraw, earnings summary |
+
+**Total MVP mobile surfaces:** 16 (12 core + 4 above). See ScreenInventory.md for full spec.
+
 ### Deferred from minimal screen set
 
 - Full transaction history screen (Home preview + Transaction Detail suffice for MVP)
 - Request money (P1 — can extend Receive or Home actions later)
-- Yield / "Grow savings" flows
 - Spending insights
 - Notifications center (push/email + Profile entry sufficient for prototype)
 - Physical card order flow
@@ -451,11 +476,11 @@ Bottom tab bar (4 tabs):
 | Tab | Contains |
 |-----|----------|
 | **Home** | Balance, quick actions (Add, Send, Receive, **Ask Pia**), recent activity |
-| **Savings** | Goals list, total saved, create goal (sheet) |
+| **Savings** | Goals list, total saved, create goal (sheet), **Growth account** entry |
 | **Card** | Virtual card, recent card spend, card controls |
-| **Profile** | Account info, settings, help, **Ask Pia**, sign out |
+| **Profile** | Account info, settings, **Withdraw**, help, **Ask Pia**, sign out |
 
-**Modal / stack flows (not tabs):** Add Money, Send Money, Receive Money, Transaction Detail, Goal Detail, New Goal sheet, **Pia (chat)**
+**Modal / stack flows (not tabs):** Add Money, Send Money, Receive Money, **Withdraw Money**, Transaction Detail, Goal Detail, New Goal sheet, **Growth Account**, **Pia (chat)**
 
 **Marketing website (out of app navigation):** Standalone site for acquisition, education, support, and App Store / Google Play download links. Not part of the 12-screen app inventory.
 
@@ -516,8 +541,8 @@ These are **product-level assumptions** about what providers enable. Architectur
 
 **Product constraints from stack:**
 
-- USD-stablecoin mental model (presented as "dollars" in UI)
-- Card availability may be geography-dependent — prototype should define a single launch geography for demo purposes
+- USD-stablecoin mental model (presented as "dollars" in UI) — display currency is separate from user residency / service geography
+- Card, funding, and withdrawal availability are **geography-dependent per providers** (BridgeXYZ, Gnosis Pay) — not assumed US-only; initial supported countries TBD (Architecture §4A; Phase 0 assessment in BuildPlan)
 - Yield rates fluctuate — UI must show estimates, not guarantees (when yield is enabled)
 - Funding/settlement may not be instant — copy must set expectations
 
@@ -585,7 +610,7 @@ Provider SDKs and auth flows must support the React Native app on both iOS and A
 | Crypto leakage in UX | Breaks neobank positioning | Copy audit; banned word list; user testing |
 | Funding delays | Erodes trust | Honest processing states; email/in-app notifications |
 | Yield variability | Feels like bait-and-switch | Ranges, "estimated," easy opt-out (when enabled) |
-| Card geo limits | Demo fails for some testers | Define prototype geography upfront |
+| Card geo limits | Demo fails for some testers | Complete Phase 0 provider geography assessment (BuildPlan); gate features per provider coverage with plain copy |
 | Provider outage | Flow breaks | Graceful degradation messaging |
 | Patronizing positioning | Alienates target users | Validate with diverse testers; brand expression in Brand.md |
 | Over-scoped MVP | Shallow everything | Ruthless 12-screen discipline |
@@ -596,6 +621,7 @@ Provider SDKs and auth flows must support the React Native app on both iOS and A
 
 ### Assumptions
 
+- Infrastructure providers (Privy, Base, LI.FI, yield layer) are chosen for **global accessibility where possible**; launch countries are determined by the provider restriction matrix and founder launch strategy — not US-only by default.
 - **React Native mobile app** distributed via the **App Store** and **Google Play** is the primary validation surface; **iOS and Android launch simultaneously**.
 - A **marketing website** supports acquisition, education, support, and store conversion but is not the primary product experience.
 - Users will fund a prototype if onboarding feels trustworthy (real or staged demo — see Open Questions).
@@ -641,7 +667,7 @@ Explicitly deferred past mobile MVP:
 
 1. ~~**Brand name:**~~ **Resolved:** Public-facing brand name is **Olimpia**.
 2. **Positioning line:** One sentence for landing page?
-3. **Geography for prototype:** US-only? Which states for card and ramp demos?
+3. ~~**Geography for prototype:**~~ **Resolved framing:** Initial supported countries **TBD** based on provider capabilities and launch strategy. Complete Phase 0 launch geography assessment (BuildPlan Phase 0; Architecture §4A; [launch-geography.md](../architecture/launch-geography.md)) — founder confirms launch countries before Phase 9/10.
 4. **Real money vs. simulated:** Real fiat/stablecoin flows or staged balances for demos?
 
 ### User model
@@ -655,7 +681,7 @@ Explicitly deferred past mobile MVP:
 ### Money model
 
 10. **Balance structure:** Single pooled balance vs. sub-accounts? MVP recommendation: **single balance with goal envelopes** — confirm?
-11. **Withdrawals:** Off-ramp to bank in MVP or "coming soon"?
+11. ~~**Withdrawals:**~~ **Resolved:** Bank off-ramp **in MVP** (Withdraw Money surface; BuildPlan Phase 9).
 
 ### Card
 
@@ -666,6 +692,8 @@ Explicitly deferred past mobile MVP:
 
 - **Brand name:** Public-facing name is **Olimpia**.
 - **Platform launch:** iOS and Android launch **simultaneously** on App Store and Google Play.
+- **Growth account:** **In MVP** (P0; BuildPlan Phase 8).
+- **Bank withdraw:** **In MVP** (P0; BuildPlan Phase 9).
 
 ### Brand (deferred to Brand.md)
 
@@ -698,7 +726,7 @@ PRD approved 2026-06-16. **Brand.md** approved. **Architecture.md** drafted — 
 
 - [x] Vision, mission, and principles
 - [x] Personas reviewed as **draft assumptions** — approved as working hypotheses pending validation
-- [x] MVP P0 feature list and **12-screen inventory** (includes Pia AI Coach)
+- [x] MVP P0 feature list and screen inventory (12 core + 4 additional surfaces; includes Pia, Growth, Withdraw)
 - [x] Platform strategy: React Native (iOS + Android simultaneous launch), App Store + Google Play, Node.js backend, marketing website
 - [x] Phase prioritization
 - [x] Navigation structure
@@ -706,7 +734,7 @@ PRD approved 2026-06-16. **Brand.md** approved. **Architecture.md** drafted — 
 - [x] PRD contains **no** color, typography, motion, imagery, or brand/visual recommendations
 - [x] Brand.md approved as source of truth for brand direction
 - [x] Open questions resolved or explicitly deferred (see Section 18)
-- [ ] Success metrics and prototype geography *(deferred — resolve during Architecture.md or pre-build planning)*
+- [ ] Success metrics validated *(prototype geography resolved via Phase 0 assessment — Architecture §4A)*
 
 ---
 
@@ -720,4 +748,4 @@ PRD approved 2026-06-16. **Brand.md** approved. **Architecture.md** drafted — 
 
 ---
 
-*End of PRD v1.7*
+*End of PRD v1.10*

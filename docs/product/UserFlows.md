@@ -3,7 +3,7 @@
 **Version:** 1.3  
 **Status:** Draft for review  
 **Purpose:** Define what the user experiences — and **why it matters** — before implementation planning (`BuildPlan.md`)  
-**Source of truth:** [PRD.md](./PRD.md) (v1.8) · [Brand.md](./Brand.md) (approved) · [Architecture.md](./Architecture.md) (v1.4)  
+**Source of truth:** [PRD.md](./PRD.md) (v1.10) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v1.5)  
 **Scope:** Experience definition only — no code, no build tasks, no product redesign
 
 ---
@@ -802,7 +802,7 @@ When spending feels ordinary and safe, she is more likely to trust the whole sys
 
 - Insufficient available balance → decline at merchant; *Declined* in activity
 - Card frozen → spend blocked; user unfreezes on Card tab
-- Card unavailable in region → gated tab with plain-language explanation (geo limits)
+- Card unavailable (Gnosis Pay not available in user's region) → gated tab with plain-language explanation; availability is provider-driven, not US-only by default
 - CVV reveal fails auth → remain masked
 
 **Exit state:**
