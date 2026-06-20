@@ -375,7 +375,7 @@ Focused on freedom, growth, and financial confidence.
 2. Hero
 3. Product Preview
 4. Built Around Real Life
-5. Your Money Bestie (Pia — Coming Soon)
+5. Your Money Bestie (Pia — static preview)
 6. Trusted Infrastructure
 7. Features              ← Learn More scrolls here (#features)
 8. How It Works
@@ -526,9 +526,9 @@ Each card displays: goal name · target amount · progress bar · percentage · 
 
 **Anchor:** `id="pia"`
 
-**Purpose:** Introduce **Pia** as a future AI feature. Reinforce Olimpia’s supportive, educational personality.
+**Purpose:** Introduce **Pia** and sell the in-app coach experience. Reinforce Olimpia’s supportive, educational personality.
 
-> **Not MVP:** This section must **not** imply Pia ships at launch. Display a **Coming Soon** badge. Pia is **future scope** for the mobile app (see Architecture.md).
+> **MVP rule (founder confirmed):** The **marketing website** shows Pia as a **static preview only** — no live chat, no Anthropic API. The **mobile app** ships **fully functional Pia** at launch. The website sells the vision; the app delivers the experience.
 
 **Headline:**
 
@@ -536,12 +536,12 @@ Meet your money bestie.
 
 **Subheadline:**
 
-Coming soon: Pia, your AI guide for money, savings, investing, and financial confidence.
+Pia is your in-app AI guide for money, savings, investing, and financial confidence — supportive, never judgmental.
 
 #### Layout
 
-- Large **messaging-style conversation card**
-- **Coming Soon** badge (small, visible)
+- Large **messaging-style conversation card** (static — illustrative preview of the real in-app coach)
+- Optional small **Preview** or **In the app** label — not “Coming Soon” (Pia ships in mobile MVP)
 - Modern messaging UI — warm, encouraging, supportive (not instructional)
 - Olimpia brand colors and typography (Cormorant Garamond headings · Inter body)
 

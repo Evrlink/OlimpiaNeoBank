@@ -665,7 +665,7 @@ flowchart TB
 | 4 | **Receive deep links optional** | Without deep links, new payers must find Receive manually — acceptable for MVP if documented. |
 | 5 | **A11 success → A12** | User may not know how to return to A10 — back from A12 handles; OK. |
 | 6 | **Pia on multiple stacks** | Tab switch while in A15 may confuse — persist thread; back returns to entry. QA on iOS + Android. |
-| 7 | **Brand.md Pia section** | Still says "Coming Soon" on marketing — marketing nav OK; app has live Pia (content sync, not navigation). |
+| 7 | ~~**Brand.md Pia section**~~ | **Resolved:** Marketing = static Pia preview; app = live Pia MVP. Brand.md updated. |
 
 ---
 
