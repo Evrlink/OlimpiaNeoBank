@@ -405,39 +405,44 @@ function GoalsSection() {
           {items.map(({ icon: Icon, title, body, details }) => {
             const isFlipped = !!flipped[title];
             return (
-              <div key={title} className="perspective-1000 min-h-[340px]">
+              <div
+                key={title}
+                className="goal-card-shell group perspective-1000 min-h-[340px] md:transition-transform md:duration-300 md:ease-out md:hover:-translate-y-1.5"
+              >
                 <div
-                  className={`relative h-full w-full preserve-3d transition-transform duration-700 ${isFlipped ? "rotate-y-180" : ""}`}
+                  className={`goal-card-flip relative h-full w-full preserve-3d transition-transform duration-[650ms] ease-[cubic-bezier(0.33,1,0.68,1)] ${isFlipped ? "rotate-y-180" : ""}`}
                 >
                   {/* Front */}
-                  <div className="backface-hidden absolute inset-0 flex flex-col items-center rounded-[32px] border border-border/30 bg-background p-10 text-center shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)]">
+                  <button
+                    type="button"
+                    onClick={() => toggle(title)}
+                    aria-expanded={isFlipped}
+                    aria-label={`${title}. Learn more`}
+                    className="goal-card-face backface-hidden absolute inset-0 flex w-full cursor-pointer flex-col items-center rounded-[32px] border border-border/30 bg-background p-10 text-center font-inherit text-inherit shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)] transition-shadow duration-300 ease-out md:group-hover:shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)]"
+                  >
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rose/70">
                       <Icon className="h-7 w-7 text-raspberry" strokeWidth={1.5} />
                     </div>
                     <h3 className="mt-7 text-h3 font-semibold text-foreground">{title}</h3>
                     <p className="mt-2.5 text-body text-ink-muted">{body}</p>
-                    <button
-                      type="button"
-                      onClick={() => toggle(title)}
-                      aria-expanded={isFlipped}
-                      className="mt-auto pt-7 inline-flex items-center text-body-sm font-medium text-raspberry hover:underline"
-                    >
+                    <span className="goal-card-action mt-auto inline-flex items-center pt-7 text-body-sm font-medium text-raspberry">
                       Learn more
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                   {/* Back */}
-                  <div className="backface-hidden rotate-y-180 absolute inset-0 flex flex-col items-center justify-center rounded-[32px] border border-raspberry/20 bg-rose/30 p-8 text-center shadow-[0_2px_4px_rgba(47,47,47,0.03),0_28px_60px_-24px_rgba(229,75,122,0.22)]">
+                  <button
+                    type="button"
+                    onClick={() => toggle(title)}
+                    aria-expanded={isFlipped}
+                    aria-label={`${title}. Back`}
+                    className="goal-card-face backface-hidden rotate-y-180 absolute inset-0 flex w-full cursor-pointer flex-col items-center justify-center rounded-[32px] border border-raspberry/20 bg-rose/30 p-8 text-center font-inherit text-inherit shadow-[0_2px_4px_rgba(47,47,47,0.03),0_28px_60px_-24px_rgba(229,75,122,0.22)] transition-shadow duration-300 ease-out md:group-hover:shadow-[0_6px_14px_rgba(47,47,47,0.06),0_32px_64px_-16px_rgba(229,75,122,0.28)]"
+                  >
                     <h3 className="text-h3 font-semibold text-foreground">{title}</h3>
                     <p className="mt-3 text-body-sm text-ink-muted">{details}</p>
-                    <button
-                      type="button"
-                      onClick={() => toggle(title)}
-                      aria-expanded={isFlipped}
-                      className="mt-6 inline-flex items-center text-body-sm font-medium text-raspberry hover:underline"
-                    >
+                    <span className="goal-card-action mt-6 inline-flex items-center text-body-sm font-medium text-raspberry">
                       Back
-                    </button>
-                  </div>
+                    </span>
+                  </button>
                 </div>
               </div>
             );
@@ -550,7 +555,7 @@ function ConfidenceSection() {
             Learn about investing, USDC, savings, and modern money tools with simple explanations from Pia, your AI money guide.
           </p>
         </div>
-        <div className="overflow-hidden rounded-[32px] border border-border/50 bg-background p-8 md:order-2">
+        <div className="confidence-illo-card overflow-hidden rounded-[32px] border border-border/50 bg-background p-8 md:order-2">
           <img
             src={confidenceIllo}
             alt="A delicate plant growing from a stack of coins"

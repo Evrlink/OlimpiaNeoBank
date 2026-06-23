@@ -202,4 +202,53 @@
   .preserve-3d { transform-style: preserve-3d; }
   .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
   .rotate-y-180 { transform: rotateY(180deg); }
+
+  .goal-card-face:hover .goal-card-action,
+  .goal-card-face:focus-visible .goal-card-action {
+    text-decoration: underline;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .goal-card-shell {
+      transform: none !important;
+      transition: none !important;
+    }
+
+    .goal-card-flip {
+      transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
+    }
+
+    .confidence-illo-card {
+      animation: none !important;
+      transition: none !important;
+      transform: none !important;
+    }
+  }
+
+  @keyframes confidence-float {
+    0%,
+    100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-4px) scale(1.004);
+    }
+  }
+
+  .confidence-illo-card {
+    transform-origin: center center;
+    animation: confidence-float 6s ease-in-out infinite;
+  }
+
+  @media (min-width: 768px) and (hover: hover) {
+    .confidence-illo-card {
+      transition: transform 0.7s ease;
+    }
+
+    .confidence-illo-card:hover {
+      animation-play-state: paused;
+      transform: translateY(-5px) scale(1.005);
+    }
+  }
 }
