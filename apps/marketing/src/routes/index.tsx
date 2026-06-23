@@ -584,7 +584,7 @@ function ConfidenceChatSnippet() {
           </div>
           <div className="rounded-2xl rounded-tl-md bg-surface px-4 py-3 text-body-sm text-foreground">
             Great question. USDC is pegged to the dollar, so it stays close to $1. It can earn yield while
-            you save — I'll walk you through how it works so you decide with confidence.
+            you save. I'll walk you through how it works so you decide with confidence.
           </div>
         </div>
       </div>
