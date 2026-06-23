@@ -46,7 +46,8 @@ Each folder contains a `README.md` with scope details. See [`docs/README.md`](./
 ```bash
 npm install
 npm run dev:marketing    # http://localhost:3000
-npm run build:marketing  # static export → apps/marketing/out/
+npm run build:marketing  # Vite build → apps/marketing/dist/
+npm run start:marketing  # preview production build
 ```
 
 ---
