@@ -1,16 +1,6 @@
 # Marketing Website
 
-Public **Olimpia** website and landing page — Next.js static export.
-
-## Routes
-
-| Route | Purpose |
-|-------|---------|
-| `/` | Landing page (M1) |
-| `/learn/usdc` | USDC education (M2) |
-| `/llms.txt` | Agent/crawler summary |
-| `/privacy` | Privacy placeholder |
-| `/terms` | Terms placeholder |
+Official **Olimpia** marketing site — Lovable / TanStack Start + Vite + Tailwind v4.
 
 ## Development
 
@@ -23,28 +13,27 @@ npm run dev:marketing
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Build (static export)
+## Build
 
 ```bash
 npm run build:marketing
 ```
 
-Output: `apps/marketing/out/` — deploy to Vercel, Netlify, or any static host.
-
-Preview production build:
+## Preview production build
 
 ```bash
-cd apps/marketing && npx serve out
+npm run start:marketing
 ```
 
-## Waitlist
+## Stack
 
-Download CTAs open a waitlist modal. By default emails are stored in `localStorage` for demo.
+- TanStack Start (SSR) + TanStack Router
+- Vite 8
+- Tailwind CSS v4
+- shadcn/ui components (scaffold)
 
-Set `NEXT_PUBLIC_API_URL` in `.env.local` to POST to `{API_URL}/api/v1/waitlist` when the backend is ready.
+## Restore pre-Lovable site
 
-## Design sources
-
-- `docs/brand/Brand.md`
-- `docs/brand/DesignReferences.md`
-- `packages/design-system/tokens.css`
+```bash
+git checkout backup/pre-lovable-import -- apps/marketing
+```

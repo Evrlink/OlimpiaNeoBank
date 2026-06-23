@@ -2,8 +2,14 @@ node_modules
 .next
 out
 dist
+.output
+.vinxi
+.nitro
+.tanstack
 .env
 .env.local
 .DS_Store
 *.log
 *.tsbuildinfo
+.dev.vars
+.wrangler
