@@ -362,7 +362,7 @@ function GoalsSection() {
       title: "Savings Goals",
       body: "Build savings goals powered by USDC and modern money tools.",
       details:
-        "Your savings can earn while you work toward your goals. Olimpia connects you to trusted lending markets that currently allow you to earn 3–5% annually on USDC. Your money stays available whenever you need it and can be transferred back to your bank account. No lockups. No long-term commitments. Save for your goals while keeping access to your money.",
+        "Save toward your goals while your USDC can earn 3–5% in trusted lending markets. Your money stays available. Move it back to your bank whenever you need it. No lockups or long-term commitments.",
     },
     {
       icon: CreditCard,
@@ -383,7 +383,7 @@ function GoalsSection() {
       title: "Learn & Grow",
       body: "Learn with Pia, your AI money bestie.",
       details:
-        "You don't have to figure it out alone. Pia is your guide to modern money. Ask questions about saving, investing, USDC, yield, and other financial tools designed to help you build more freedom. Pia provides education and explanations so you can make informed decisions with confidence. Pia does not provide financial advice.",
+        "You're not on your own. Pia explains saving, USDC, yield, and modern money tools in plain language. Pia offers education to help you decide with confidence, not financial advice.",
     },
   ];
   const [flipped, setFlipped] = useState<Record<string, boolean>>({});
