@@ -1,20 +1,50 @@
 # Marketing Website
 
-Public **Olimpia** website and landing page.
+Public **Olimpia** website and landing page — Next.js static export.
 
-## What belongs here
+## Routes
 
-- Static or SSR marketing site (landing page, `/learn/usdc`, FAQ, waitlist)
-- SEO assets, Open Graph metadata, and JSON-LD
-- App Store / Google Play download CTAs
-- Public-facing copy aligned with `docs/brand/Brand.md`
+| Route | Purpose |
+|-------|---------|
+| `/` | Landing page (M1) |
+| `/learn/usdc` | USDC education (M2) |
+| `/llms.txt` | Agent/crawler summary |
+| `/privacy` | Privacy placeholder |
+| `/terms` | Terms placeholder |
 
-## Out of scope
+## Development
 
-- Mobile app UI (see `apps/mobile/`)
-- Authenticated product flows, wallets, or live balances
-- Backend API — see `apps/api/`
+From repo root:
 
-## Status
+```bash
+npm install
+npm run dev:marketing
+```
 
-Folder scaffold only — no dependencies or app code yet.
+Open [http://localhost:3000](http://localhost:3000).
+
+## Build (static export)
+
+```bash
+npm run build:marketing
+```
+
+Output: `apps/marketing/out/` — deploy to Vercel, Netlify, or any static host.
+
+Preview production build:
+
+```bash
+cd apps/marketing && npx serve out
+```
+
+## Waitlist
+
+Download CTAs open a waitlist modal. By default emails are stored in `localStorage` for demo.
+
+Set `NEXT_PUBLIC_API_URL` in `.env.local` to POST to `{API_URL}/api/v1/waitlist` when the backend is ready.
+
+## Design sources
+
+- `docs/brand/Brand.md`
+- `docs/brand/DesignReferences.md`
+- `packages/design-system/tokens.css`

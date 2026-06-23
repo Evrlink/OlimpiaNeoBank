@@ -41,6 +41,14 @@ Monorepo for **Olimpia** (Olympia Neobank) — planning docs in `docs/`, impleme
 
 Each folder contains a `README.md` with scope details. See [`docs/README.md`](./docs/README.md) for the full doc index.
 
+### Development
+
+```bash
+npm install
+npm run dev:marketing    # http://localhost:3000
+npm run build:marketing  # static export → apps/marketing/out/
+```
+
 ---
 
 # Women First

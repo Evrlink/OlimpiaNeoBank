@@ -1,0 +1,33 @@
+:root {
+  --olimpia-bg-primary: #faf9f6;
+  --olimpia-bg-secondary: #f3f0eb;
+  --olimpia-bg-card: #ffffff;
+  --olimpia-border-subtle: rgba(51, 51, 51, 0.06);
+  --olimpia-border-soft: rgba(109, 29, 56, 0.15);
+
+  --olimpia-text-primary: #333333;
+  --olimpia-text-muted: #6f6964;
+
+  --olimpia-plum: #6d1d38;
+  --olimpia-berry: #6d1d38;
+  --olimpia-raspberry: #d84c6f;
+  --olimpia-raspberry-hover: #c43d5f;
+  --olimpia-pink-soft: #fdf2f4;
+  --olimpia-gold: #c4a265;
+  --olimpia-success: #4a8f6a;
+
+  --olimpia-font-display: "Cormorant Garamond", Georgia, serif;
+  --olimpia-font-body: "Inter", system-ui, sans-serif;
+
+  --olimpia-section-y: clamp(5rem, 10vw, 7.5rem);
+  --olimpia-container: min(1180px, 100% - 4rem);
+
+  --olimpia-radius-sm: 8px;
+  --olimpia-radius-md: 14px;
+  --olimpia-radius-lg: 20px;
+  --olimpia-radius-xl: 24px;
+  --olimpia-radius-pill: 9999px;
+  --olimpia-shadow-soft: 0 16px 40px rgba(51, 51, 51, 0.07);
+  --olimpia-shadow-card: 0 2px 10px rgba(51, 51, 51, 0.04);
+  --olimpia-shadow-product: 0 24px 56px rgba(51, 51, 51, 0.11);
+}

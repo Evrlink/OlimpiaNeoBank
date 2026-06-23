@@ -90,6 +90,26 @@ The hero is the first trust moment. It should answer: *What is this? Who is it f
 - [ ] Is the primary action obvious (Download / waitlist)?
 - [ ] Does USDC link feel educational, not scary?
 
+### Structural reference: defied.money hero
+
+**File:** `references/hero/defied-money-hero-reference.png` (founder provided)
+
+| Take from defied.money | Apply with Olimpia |
+|------------------------|-------------------|
+| Centered hero, generous whitespace | Same layout rhythm |
+| Small brand pill above headline | Olimpia pill with plum dot |
+| Large bold headline + accent underline on key phrase | Plum + wavy raspberry underline on accent line |
+| Single centered subhead paragraph | Combined lead copy |
+| Primary + secondary CTA row, centered | Download + Learn More |
+| Gray stage with phone emerging below fold | `#ebe6e1` stage, phone crop |
+| Nav: logo left · links center · CTA right | Same grid nav |
+
+| Do NOT copy | Use instead |
+|-------------|-------------|
+| Blue palette | Plum `#6F2B46`, cream `#F7F4F1` |
+| Defied copy / euro messaging | Brand.md approved copy |
+| Defied logo | Olimpia wordmark |
+
 **Screenshot slots:** `references/hero-desktop.png` · `references/hero-mobile.png`
 
 ---
