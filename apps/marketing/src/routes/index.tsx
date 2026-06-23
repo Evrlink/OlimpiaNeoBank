@@ -24,7 +24,6 @@ import {
   Target as TargetIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import confidenceIllo from "@/assets/confidence-illustration.png";
 import piaIllo from "@/assets/pia-raspberry.png";
 import eiffel from "@/assets/eiffel.jpg";
 
@@ -555,18 +554,41 @@ function ConfidenceSection() {
             Learn about investing, USDC, savings, and modern money tools with simple explanations from Pia, your AI money guide.
           </p>
         </div>
-        <div className="confidence-illo-card overflow-hidden rounded-[32px] border border-border/50 bg-background p-8 md:order-2">
-          <img
-            src={confidenceIllo}
-            alt="A delicate plant growing from a stack of coins"
-            width={1024}
-            height={1024}
-            loading="lazy"
-            className="mx-auto w-full max-w-md"
-          />
+        <div className="mx-auto w-full max-w-md md:order-2 md:justify-self-center">
+          <ConfidenceChatSnippet />
         </div>
       </div>
     </section>
+  );
+}
+
+function ConfidenceChatSnippet() {
+  return (
+    <div
+      className="rounded-[28px] border border-border/50 bg-card p-5 shadow-soft"
+      aria-label="Example conversation with Pia about USDC savings"
+    >
+      <div className="flex items-center gap-2.5 pb-4">
+        <div className="h-8 w-8 overflow-hidden rounded-full bg-rose">
+          <img src={piaIllo} alt="" className="h-full w-full object-cover" />
+        </div>
+        <p className="text-body-sm font-medium text-ink-muted">I'm Pia, how can I help?</p>
+      </div>
+      <div className="space-y-3">
+        <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-raspberry px-4 py-3 text-body-sm text-background">
+          Is USDC safe for savings?
+        </div>
+        <div className="flex max-w-[92%] gap-2.5">
+          <div className="mt-1 h-7 w-7 shrink-0 overflow-hidden rounded-full bg-rose">
+            <img src={piaIllo} alt="" className="h-full w-full object-cover" />
+          </div>
+          <div className="rounded-2xl rounded-tl-md bg-surface px-4 py-3 text-body-sm text-foreground">
+            Great question. USDC is pegged to the dollar, so it stays close to $1. It can earn yield while
+            you save — I'll walk you through how it works so you decide with confidence.
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
