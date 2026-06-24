@@ -50,7 +50,7 @@ function Home() {
         <TrustStrip />
         <GoalsSection />
         <FeatureGrid />
-        <SimpleSection />
+        <WhyUsdcSection />
         <ConfidenceSection />
         <EmpoweringCards />
         <PiaSection />
@@ -514,24 +514,81 @@ function FeatureGrid() {
   );
 }
 
-/* ---------- SECTION 4: SIMPLE ---------- */
-function SimpleSection() {
+/* ---------- SECTION 4: WHY USDC ---------- */
+function WhyUsdcSection() {
+  const items = [
+    {
+      icon: Shield,
+      title: "Stable Value",
+      subtitle: "Your money stays connected to the U.S. dollar",
+      body: "USDC is a digital dollar designed to maintain a one-to-one value with the U.S. dollar. It gives you the familiarity of cash while helping you avoid the price swings often associated with cryptocurrencies.",
+    },
+    {
+      icon: TrendingUp,
+      title: "Grow While You Save",
+      subtitle: "Put your money to work",
+      body: "Unlike many traditional checking accounts, USDC can be used in trusted lending markets that help your savings earn yield. Your money remains accessible, giving you more flexibility while working toward your financial goals.",
+    },
+    {
+      icon: ArrowLeftRight,
+      title: "Move Money Faster",
+      subtitle: "Send money in seconds",
+      body: "USDC can be sent quickly without waiting days for traditional bank processing. It can also help reduce the cost of moving money compared to traditional payment and transfer networks.",
+    },
+  ];
+
+  const proofItems = ["Pegged to USD", "Earn Yield", "Send in Seconds"];
+
   return (
     <section className="py-16 md:py-24 lg:py-[120px]">
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
-            Simplicity
+            Smart Money
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
-            Financial freedom should feel simple
+            Why USDC?
           </h2>
-          <p className="mt-6 text-body text-ink-muted">
-            Save, spend, earn USDC yield, and learn with Pia, your AI money bestie.
+          <p className="mx-auto mt-6 max-w-xl text-body text-ink-muted">
+            More flexibility, faster access to your money, and new ways to grow your savings.
           </p>
-          <p className="mt-4 text-body text-ink-muted">
-            No confusing financial jargon. No overwhelming tools. Just a simpler way to build confidence and grow your money.
-          </p>
+        </div>
+
+        <div className="mt-16 bg-surface py-6 md:py-7 lg:mt-20">
+          <div className="mx-auto max-w-2xl px-2 text-center md:px-6">
+            <h3 className="text-h3 font-semibold text-foreground">What is USDC?</h3>
+            <p className="mt-2 text-body text-ink-muted">
+              USDC is a digital dollar designed to maintain a one-to-one value with the U.S. dollar.
+              Millions of people use it to save, send, and move money around the world.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5 md:gap-3">
+          {proofItems.map((label) => (
+            <span
+              key={label}
+              className="inline-flex items-center rounded-full bg-card px-3 py-1 text-body-sm font-medium text-ink-muted ring-1 ring-border/40"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-12 grid gap-6 md:grid-cols-3 lg:mt-14">
+          {items.map(({ icon: Icon, title, subtitle, body }) => (
+            <div
+              key={title}
+              className="rounded-[32px] border border-border/50 bg-card p-10 shadow-soft"
+            >
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-rose/70">
+                <Icon className="h-5 w-5 text-raspberry" />
+              </div>
+              <h3 className="mt-8 text-h3 font-semibold text-foreground">{title}</h3>
+              <p className="mt-2 text-body-sm font-medium text-ink-muted">{subtitle}</p>
+              <p className="mt-5 text-body text-ink-muted">{body}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
