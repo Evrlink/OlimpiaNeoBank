@@ -1,0 +1,5 @@
+[
+  { "path": "/", "priority": "1.0", "changefreq": "weekly" },
+  { "path": "/privacy", "priority": "0.3", "changefreq": "monthly" },
+  { "path": "/terms", "priority": "0.3", "changefreq": "monthly" }
+]

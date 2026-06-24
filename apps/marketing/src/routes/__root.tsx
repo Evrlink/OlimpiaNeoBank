@@ -77,17 +77,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Olympia. Financial freedom designed for women" },
+      { title: "Olimpia. Financial freedom designed for women" },
       {
         name: "description",
         content:
-          "Olympia is a modern financial app designed to help women save, spend, learn, and grow with confidence.",
+          "Olimpia is a financial app for women to save, spend, and grow money in dollars, with savings goals, optional yield on USDC, and Pia, your AI guide. It is not a bank. No crypto experience required.",
       },
-      { property: "og:title", content: "Olympia. Financial freedom designed for women" },
+      { property: "og:title", content: "Olimpia. Financial freedom designed for women" },
       {
         property: "og:description",
         content:
-          "Save, spend, and grow your money with confidence. Earn yield with your USDC.",
+          "Olimpia is a financial app for women to save, spend, and grow money in dollars, with savings goals, optional yield on USDC, and Pia, your AI guide. It is not a bank. No crypto experience required.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

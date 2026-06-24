@@ -1,10 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Target,
   CreditCard,
   TrendingUp,
   PiggyBank,
-  Sparkles,
   Globe2,
   GraduationCap,
   Heart,
@@ -26,18 +24,31 @@ import {
 import { useEffect, useState } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
 import eiffel from "@/assets/eiffel.jpg";
+import {
+  FAQ_ITEMS,
+  OLIMPIA_DEFINITION,
+  getHomepageStructuredData,
+  pageSeoHead,
+} from "@/lib/seo";
+import { SiteFooter } from "@/components/site-footer";
+import { submitWaitlistEmail } from "@/lib/waitlist";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Olimpia. Financial freedom designed for women" },
-      {
-        name: "description",
-        content:
-          "A modern financial app helping women save, spend, learn, and grow with confidence.",
-      },
-    ],
-  }),
+  head: () => {
+    const seo = pageSeoHead("/");
+    return {
+      meta: [
+        { title: "Olimpia. Financial freedom designed for women" },
+        {
+          name: "description",
+          content: OLIMPIA_DEFINITION,
+        },
+        { "script:ld+json": getHomepageStructuredData() },
+        ...seo.meta,
+      ],
+      links: [...seo.links],
+    };
+  },
   component: Home,
 });
 
@@ -58,7 +69,7 @@ function Home() {
         <Faq />
         <FinalCta />
       </main>
-      <Footer />
+      <SiteFooter />
       <WaitlistModal />
     </div>
   );
@@ -75,9 +86,9 @@ function Nav() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/40 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <a href="#" className="font-display text-h3 tracking-tight text-berry">
+        <Link to="/" className="font-display text-h3 tracking-tight text-berry">
           Olimpia
-        </a>
+        </Link>
         <nav className="hidden items-center gap-8 text-body-sm text-foreground/80 md:flex">
           <a href="#features" className="transition hover:text-foreground">Features</a>
           <a href="#how" className="transition hover:text-foreground">How It Works</a>
@@ -111,11 +122,11 @@ function Hero() {
             <span className="font-display italic text-raspberry">checking account</span>
           </h1>
           <p className="mt-8 max-w-md text-body-lg text-ink-muted">
-            More options than a traditional bank. Earn yield on{" "}
-            <a href="#faq" className="text-foreground underline decoration-raspberry/50 decoration-2 underline-offset-4 transition hover:decoration-raspberry">
-              USDC
-            </a>
-            , build savings goals, and learn with Pia, your AI money bestie.
+            More options than a traditional bank.
+          </p>
+          <p className="mt-4 max-w-md text-body-lg text-ink-muted">
+            Olimpia is a financial app for women to save, spend, and grow money in dollars, with savings
+            goals, optional yield on USDC, and learn with Pia, your AI money bestie.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <button
@@ -516,82 +527,76 @@ function FeatureGrid() {
 
 /* ---------- SECTION 4: WHY USDC ---------- */
 function WhyUsdcSection() {
-  const items = [
-    {
-      icon: Shield,
-      title: "Stable Value",
-      subtitle: "Your money stays connected to the U.S. dollar",
-      body: "USDC is a digital dollar designed to maintain a one-to-one value with the U.S. dollar. It gives you the familiarity of cash while helping you avoid the price swings often associated with cryptocurrencies.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Grow While You Save",
-      subtitle: "Put your money to work",
-      body: "Unlike many traditional checking accounts, USDC can be used in trusted lending markets that help your savings earn yield. Your money remains accessible, giving you more flexibility while working toward your financial goals.",
-    },
-    {
-      icon: ArrowLeftRight,
-      title: "Move Money Faster",
-      subtitle: "Send money in seconds",
-      body: "USDC can be sent quickly without waiting days for traditional bank processing. It can also help reduce the cost of moving money compared to traditional payment and transfer networks.",
-    },
-  ];
-
-  const proofItems = ["Pegged to USD", "Earn Yield", "Send in Seconds"];
-
   return (
-    <section className="py-16 md:py-24 lg:py-[120px]">
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="mx-auto max-w-3xl text-center">
+    <section className="relative overflow-hidden bg-gradient-to-b from-rose/20 via-rose/10 to-background py-16 md:py-24 lg:py-[120px]">
+      <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:px-12">
+        <div className="max-w-lg">
           <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
             Smart Money
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
             Why USDC?
           </h2>
-          <p className="mx-auto mt-6 max-w-xl text-body text-ink-muted">
+          <p className="mt-6 text-body text-ink-muted">
             More flexibility, faster access to your money, and new ways to grow your savings.
+          </p>
+          <p className="mt-4 text-body text-ink-muted">
+            USDC is a digital dollar designed to maintain a one-to-one value with the U.S. dollar.
+            Millions of people use it to save, send, and move money around the world.
           </p>
         </div>
 
-        <div className="mt-16 bg-surface py-6 md:py-7 lg:mt-20">
-          <div className="mx-auto max-w-2xl px-2 text-center md:px-6">
-            <h3 className="text-h3 font-semibold text-foreground">What is USDC?</h3>
-            <p className="mt-2 text-body text-ink-muted">
-              USDC is a digital dollar designed to maintain a one-to-one value with the U.S. dollar.
-              Millions of people use it to save, send, and move money around the world.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5 md:gap-3">
-          {proofItems.map((label) => (
-            <span
-              key={label}
-              className="inline-flex items-center rounded-full bg-card px-3 py-1 text-body-sm font-medium text-ink-muted ring-1 ring-border/40"
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-12 grid gap-6 md:grid-cols-3 lg:mt-14">
-          {items.map(({ icon: Icon, title, subtitle, body }) => (
-            <div
-              key={title}
-              className="rounded-[32px] border border-border/50 bg-card p-10 shadow-soft"
-            >
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-rose/70">
-                <Icon className="h-5 w-5 text-raspberry" />
-              </div>
-              <h3 className="mt-8 text-h3 font-semibold text-foreground">{title}</h3>
-              <p className="mt-2 text-body-sm font-medium text-ink-muted">{subtitle}</p>
-              <p className="mt-5 text-body text-ink-muted">{body}</p>
-            </div>
-          ))}
+        <div className="relative flex justify-center md:justify-end">
+          <UsdcProductPreview />
         </div>
       </div>
     </section>
+  );
+}
+
+/* Cropped Olimpia app UI — matches Hero phone styling at a smaller scale. */
+function UsdcProductPreview() {
+  return (
+    <div className="relative w-[300px] sm:w-[320px]">
+      <div className="absolute -inset-12 -z-10 rounded-full bg-rose/60 blur-3xl" />
+      <div className="relative rounded-[2.75rem] bg-[#111] p-[9px] shadow-[0_32px_64px_-18px_rgba(47,47,47,0.26),0_12px_32px_-12px_rgba(229,75,122,0.2)]">
+        <div className="overflow-hidden rounded-[2.25rem] bg-background">
+          <div className="relative flex h-10 items-center justify-between px-6 pt-2.5 text-[10px] font-semibold text-foreground">
+            <span>9:41</span>
+            <div className="absolute left-1/2 top-2 h-5 w-20 -translate-x-1/2 rounded-full bg-[#111]" />
+          </div>
+
+          <div className="px-5 pb-6 pt-1">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] text-ink-muted">Good morning</p>
+                <p className="text-[14px] font-semibold text-foreground">Jennifer</p>
+              </div>
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-rose to-raspberry/60 ring-2 ring-background" />
+            </div>
+
+            <div className="mt-5 rounded-2xl bg-[#111] p-4 text-background shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-background/60">
+                  USDC Savings
+                </p>
+                <span className="text-[10px] text-background/60">USDC</span>
+              </div>
+              <p className="mt-2 text-[26px] font-semibold tracking-tight">
+                $2,450<span className="text-background/50">.00</span>
+              </p>
+              <div className="mt-2.5 flex items-center gap-1.5 text-[10px]">
+                <span className="inline-flex items-center gap-1 rounded-full bg-background/10 px-2 py-0.5 font-medium">
+                  <ArrowUpRight className="h-3 w-3" strokeWidth={2.5} />
+                  4.2%
+                </span>
+                <span className="text-background/60">Pegged to $1 USD</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -649,58 +654,101 @@ function ConfidenceChatSnippet() {
   );
 }
 
-/* ---------- SECTION 6: EMPOWERING CARDS ---------- */
+/* ---------- SECTION 6: EMPOWERING ---------- */
 function EmpoweringCards() {
-  const items = [
-    {
-      icon: Target,
-      title: "Your Money, Organized",
-      body: "Create savings goals and track progress toward what matters.",
-    },
-    {
-      icon: Heart,
-      title: "Pia By Your Side",
-      body: "Get guidance, explanations, and support whenever you need it.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Earn While You Save",
-      body: "Put idle cash to work through yield opportunities.",
-    },
-    {
-      icon: Sparkles,
-      title: "Built Around Real Life",
-      body: "Travel, education, emergencies, investing, and future planning.",
-    },
-  ];
+  const highlights = ["Learn as you go", "Real-life planning"];
+
   return (
-    <section className="py-16 md:py-24 lg:py-[120px]">
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
-            Simpler than a bank account
+    <section className="relative overflow-hidden bg-gradient-to-b from-rose/20 via-rose/10 to-background py-16 md:py-24 lg:py-[120px]">
+      <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:px-12">
+        <div className="max-w-lg">
+          <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
+            Beyond banking
+          </p>
+          <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
+            <span className="whitespace-nowrap">Simpler than a bank account</span>
             <br />
-            <span className="text-raspberry">More empowering than one</span>
+            More <span className="font-display italic text-raspberry">empowering</span> than one
           </h2>
+          <p className="mt-6 text-body text-ink-muted">
+            Most banks help you store money. Olimpia helps you organize it around travel,
+            emergencies, and the goals that matter to you, while you earn on your balance and learn
+            as you go.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-2.5">
+            {highlights.map((label) => (
+              <span
+                key={label}
+                className="inline-flex items-center rounded-full bg-card px-3 py-1 text-body-sm font-medium text-ink-muted ring-1 ring-border/40"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="mt-16 grid gap-6 md:grid-cols-2 lg:mt-20">
-          {items.map(({ icon: Icon, title, body }) => (
-            <div
-              key={title}
-              className="rounded-[32px] border border-border/50 bg-card p-10 shadow-soft"
-            >
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-rose/70">
-                <Icon className="h-5 w-5 text-raspberry" />
-              </div>
-              <h3 className="mt-8 text-h3 font-semibold text-foreground">
-                {title}
-              </h3>
-              <p className="mt-3 text-body text-ink-muted">{body}</p>
-            </div>
-          ))}
+
+        <div className="relative flex justify-center md:justify-end">
+          <EmpoweringGoalsPreview />
         </div>
       </div>
     </section>
+  );
+}
+
+function EmpoweringGoalsPreview() {
+  return (
+    <div className="relative w-full max-w-md">
+      <div className="absolute -inset-12 -z-10 rounded-full bg-rose/60 blur-3xl" />
+      <div className="rounded-[32px] border border-border/50 bg-card p-6 shadow-soft md:p-7">
+        <p className="text-body-sm font-semibold text-foreground">Your goals</p>
+        <p className="mt-0.5 text-body-sm text-ink-muted">Track progress toward what matters</p>
+
+        <div className="mt-5 rounded-2xl border border-border/60 bg-background p-4">
+          <div className="flex items-start gap-3">
+            <img
+              src={eiffel}
+              alt=""
+              width={512}
+              height={512}
+              loading="lazy"
+              className="h-14 w-14 rounded-xl object-cover"
+            />
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <p className="text-body-sm font-semibold text-foreground">Europe Trip</p>
+                <span className="text-body-sm font-medium text-ink-muted">45%</span>
+              </div>
+              <p className="mt-0.5 text-body-sm text-ink-muted">
+                <span className="font-semibold text-foreground">$2,250</span> of $5,000
+              </p>
+              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface">
+                <div className="h-full w-[45%] rounded-full bg-raspberry" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 rounded-2xl border border-border/60 bg-background p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-rose/70">
+              <PiggyBank className="h-6 w-6 text-raspberry" strokeWidth={1.5} />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <p className="text-body-sm font-semibold text-foreground">Emergency Fund</p>
+                <span className="text-body-sm font-medium text-ink-muted">20%</span>
+              </div>
+              <p className="mt-0.5 text-body-sm text-ink-muted">
+                <span className="font-semibold text-foreground">$1,000</span> of $5,000
+              </p>
+              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface">
+                <div className="h-full w-[20%] rounded-full bg-raspberry" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -833,25 +881,9 @@ function HowItWorks() {
 }
 
 /* ---------- SECTION 9: FAQ ---------- */
-const faqItems = [
-  { q: "What is Olympia?", a: "Olympia is a financial app designed for women. It helps you save, spend, earn yield on USDC, create savings goals, and learn about modern money tools with guidance from Pia, your AI money guide." },
-  { q: "How is Olympia different from a traditional bank?", a: "Traditional banks primarily help you store and move money. Olympia helps you save, spend, earn yield on USDC, create savings goals, and learn about modern financial tools through Pia, your AI money guide." },
-  { q: "What is USDC?", a: "USDC is a digital dollar, also known as a stablecoin. One USDC is designed to maintain a value equal to one U.S. dollar, making it easier to save, spend, send money, and earn yield without the price swings associated with many cryptocurrencies." },
-  { q: "What is a stablecoin?", a: "A stablecoin is a digital currency designed to maintain a stable value by being linked to a real-world currency such as the U.S. dollar. Stablecoins like USDC make it possible to move money quickly online while maintaining a familiar dollar value." },
-  { q: "Do I need to know anything about crypto?", a: "No. Olympia is designed to be simple and beginner-friendly. You can save, spend, earn yield, and learn about modern money tools without needing prior crypto experience." },
-  { q: "Who is Pia?", a: "Pia is your AI money guide. She helps explain investing, USDC, savings goals, yield, and modern financial tools in simple language so you can make informed decisions with confidence." },
-  { q: "Who controls my money?", a: "You do. Olympia helps you access modern financial tools, but your money remains yours. Our goal is to give you more control, more transparency, and more choices when it comes to managing your finances." },
-  { q: "Can I withdraw at any time?", a: "Yes. Your money remains accessible and can be transferred back to your bank account whenever you need it. We believe financial tools should help you grow your money without locking it away." },
-  { q: "Is my money safe?", a: "Olympia uses trusted infrastructure providers, modern security practices, and established financial partners to help protect your account and transactions." },
-  { q: "Do I need to verify my identity?", a: "In some cases, yes. Identity verification may be required when connecting traditional banking services or moving money between your bank account and digital dollars. This helps our partners meet financial regulations and keep the platform secure." },
-  { q: "What are the risks?", a: "All financial products carry risk. While Olympia focuses on trusted providers and established protocols, yields are not guaranteed and market conditions can change. We believe in transparency and clearly explain how products work before you use them." },
-  { q: "Is Olympia safe if I'm not an expert?", a: "Yes. Olympia was designed for people who are new to modern money tools. Pia helps explain concepts step-by-step, and the app is built to make saving, spending, and learning feel approachable." },
-  { q: "What happens if Olympia shuts down?", a: "Your money remains yours. Olympia is designed around giving users ownership and access to their financial tools. Our goal is to help you maintain control over your finances, independent of any single company." },
-  { q: "Why was Olympia created?", a: "Many women were never taught how investing, saving, and modern money tools work. Olympia was created to make financial confidence more accessible through education, guidance, and better financial tools." },
-];
+const faqItems = FAQ_ITEMS;
 
 function Faq() {
-  const [open, setOpen] = useState<number | null>(0);
   return (
     <section id="faq" className="bg-surface py-16 md:py-24 lg:py-[120px]">
       <div className="mx-auto max-w-3xl px-6 md:px-12">
@@ -859,35 +891,15 @@ function Faq() {
           <span className="font-display italic">FAQ</span>
         </h2>
         <div className="mt-14 divide-y divide-border/60 overflow-hidden rounded-[32px] border border-border/60 bg-card">
-          {faqItems.map((item, i) => {
-            const isOpen = open === i;
-            return (
-              <div key={item.q}>
-                <button
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
-                >
-                  <span className="text-body font-medium text-foreground">
-                    {item.q}
-                  </span>
-                  <Plus
-                    className={`h-5 w-5 shrink-0 text-raspberry transition-transform duration-300 ${
-                      isOpen ? "rotate-45" : ""
-                    }`}
-                  />
-                </button>
-                <div
-                  className={`grid transition-all duration-300 ease-out ${
-                    isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                  }`}
-                >
-                  <div className="overflow-hidden">
-                    <p className="px-6 pb-6 text-body text-ink-muted">{item.a}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {faqItems.map((item, i) => (
+            <details key={item.q} open={i === 0} className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-left marker:content-none [&::-webkit-details-marker]:hidden">
+                <span className="text-body font-medium text-foreground">{item.q}</span>
+                <Plus className="h-5 w-5 shrink-0 text-raspberry transition-transform duration-300 group-open:rotate-45" />
+              </summary>
+              <p className="px-6 pb-6 text-body text-ink-muted">{item.a}</p>
+            </details>
+          ))}
         </div>
       </div>
     </section>
@@ -920,41 +932,21 @@ function FinalCta() {
   );
 }
 
-/* ---------- FOOTER ---------- */
-function Footer() {
-  return (
-    <footer id="about" className="border-t border-border/60 bg-background">
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 py-10 md:flex-row">
-        <a href="#" className="font-display text-h3 tracking-tight text-raspberry">
-          Olimpia
-        </a>
-        <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-body-sm text-ink-muted">
-          <a href="#" className="transition hover:text-foreground">About</a>
-          <a href="#faq" className="transition hover:text-foreground">FAQ</a>
-          <a href="#" className="transition hover:text-foreground">Privacy</a>
-          <a href="#" className="transition hover:text-foreground">Terms</a>
-          <a href="#" className="transition hover:text-foreground">Contact</a>
-        </nav>
-        <p className="text-body-sm text-ink-muted">
-          © {new Date().getFullYear()} Olimpia. All rights reserved.
-        </p>
-      </div>
-    </footer>
-  );
-}
 
 /* ---------- WAITLIST MODAL ---------- */
 function WaitlistModal() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "success">("idle");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const handler = () => {
       setStatus("idle");
       setError("");
       setEmail("");
+      setIsSubmitting(false);
       setOpen(true);
     };
     window.addEventListener("olimpia:open-waitlist", handler);
@@ -976,15 +968,27 @@ function WaitlistModal() {
 
   if (!open) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = email.trim();
     if (!trimmed || trimmed.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
       setError("Please enter a valid email address.");
       return;
     }
+
     setError("");
-    setStatus("success");
+    setIsSubmitting(true);
+
+    const result = await submitWaitlistEmail(trimmed);
+
+    setIsSubmitting(false);
+
+    if (result.ok) {
+      setStatus("success");
+      return;
+    }
+
+    setError(result.error);
   };
 
   return (
@@ -1051,6 +1055,7 @@ function WaitlistModal() {
                 autoComplete="email"
                 required
                 maxLength={255}
+                disabled={isSubmitting}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
@@ -1063,9 +1068,10 @@ function WaitlistModal() {
               )}
               <button
                 type="submit"
-                className="inline-flex h-[52px] w-full items-center justify-center rounded-full bg-raspberry px-6 text-body-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                disabled={isSubmitting}
+                className="inline-flex h-[52px] w-full items-center justify-center rounded-full bg-raspberry px-6 text-body-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:pointer-events-none disabled:opacity-60"
               >
-                Join the waitlist
+                {isSubmitting ? "Joining..." : "Join the waitlist"}
               </button>
             </form>
             <p className="mt-5 text-body-sm text-ink-muted">

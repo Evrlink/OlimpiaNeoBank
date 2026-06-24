@@ -1,12 +1,14 @@
 # Olimpia
 
-> Financial freedom, designed for women. Olimpia is a mobile financial app that helps women save, spend, and grow money with confidence. Crypto works invisibly in the background — users see dollars, not jargon.
+> Financial freedom, designed for women. Olimpia is a mobile financial app that helps women save, spend, and grow money with confidence. Crypto works invisibly in the background. Users see dollars, not jargon.
 
 ## What Olimpia is
 
+Olimpia is a financial app for women to save, spend, and grow money in dollars, with savings goals, optional yield on USDC, and Pia, your AI guide. It is not a bank. No crypto experience required.
+
 Olimpia is a consumer finance app (iOS and Android) for saving, spending, and growing money. It is not a licensed bank. It is a wrapper over trusted financial and crypto infrastructure, presented as a simple dollar-denominated experience.
 
-The product is about confidence, education, ownership, growth, and freedom — not crypto trading or speculation.
+The product is about confidence, education, ownership, growth, and freedom, not crypto trading or speculation.
 
 ## Who it is for
 
@@ -17,7 +19,7 @@ Women who want financial independence, more confidence with money, and a support
 - **Save** — Savings goals with clear progress (e.g. trip, business, home, freedom fund)
 - **Spend** — Virtual debit card and everyday money movement
 - **Grow** — Optional growth on savings (estimated earnings; variable, not guaranteed)
-- **Learn** — Plain-language education; USDC and stablecoins explained simply
+- **Learn** — Plain-language education; USDC and stablecoins explained simply via Pia and FAQ
 - **Own** — Confidence and ownership of your financial future
 
 ## Brand positioning
@@ -25,14 +27,12 @@ Women who want financial independence, more confidence with money, and a support
 - Tagline: More choices. More freedom.
 - Mission: Financial freedom gives women more choices.
 - Promise: Help women feel confident with money and build the life they choose.
-- Personality: The friend who finally makes money make sense — supportive, smart, encouraging, modern.
-- Crypto visibility: Minimal (1/10). Users interact in dollars; infrastructure is invisible.
+- Personality: The friend who finally makes money make sense. Supportive, smart, encouraging, modern.
+- Crypto visibility: Minimal. Users interact in dollars; infrastructure is invisible.
 
 ## Important URLs
 
 - Homepage: /
-- USDC overview: / (Why USDC section on homepage)
-- USDC questions: /#faq (see "What is USDC?" and "What is a stablecoin?")
 - Features: /#features
 - How it works: /#how
 - Meet Pia: /#pia
@@ -40,13 +40,14 @@ Women who want financial independence, more confidence with money, and a support
 - Download app / waitlist: /#download
 - Privacy Policy: /privacy
 - Terms of Service: /terms
-- About (footer): /#about
 - Sitemap: /sitemap.xml
 - Robots: /robots.txt
+- USDC overview: / (Why USDC section on homepage)
+- USDC questions: /#faq (see "What is USDC?" and "What is a stablecoin?")
 
 ## Contact / support
 
-- Support email: hello@olimpia.app
+- Support email: hello@olimpia.app (set `VITE_SUPPORT_EMAIL` in production)
 - Privacy Policy: /privacy
 - Terms of Service: /terms
 
@@ -56,4 +57,4 @@ Olimpia helps women save, spend, grow money, and earn yield with USDC through a 
 
 ## Technical note for agents
 
-This file is intended for LLM crawlers and AI search tools. Human-readable marketing copy lives on the homepage at /. USDC education is on the homepage and in FAQ at /#faq. Structured data (JSON-LD: Organization, WebSite, SoftwareApplication, FAQPage) is on the homepage. Full system design: docs/architecture/Architecture.md in the project repository.
+This file is intended for LLM crawlers and AI search tools. Human-readable marketing copy lives on the homepage at /. USDC education is on the homepage (Why USDC section) and in FAQ at /#faq. Structured data (JSON-LD: Organization, WebSite, SoftwareApplication, FAQPage) is on the homepage.
