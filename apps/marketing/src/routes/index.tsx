@@ -3,13 +3,11 @@ import {
   CreditCard,
   TrendingUp,
   PiggyBank,
-  Globe2,
   GraduationCap,
   Heart,
   MessageCircle,
   Plus,
   ArrowUpRight,
-  Apple,
   Send,
   ArrowLeftRight,
   MoreHorizontal,
@@ -20,6 +18,10 @@ import {
   Coffee,
   Briefcase,
   Target as TargetIcon,
+  Wallet,
+  Layers,
+  LayoutGrid,
+  Fuel,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
@@ -62,12 +64,11 @@ function Home() {
         <GoalsSection />
         <FeatureGrid />
         <WhyUsdcSection />
-        <ConfidenceSection />
         <EmpoweringCards />
         <PiaSection />
         <HowItWorks />
         <Faq />
-        <FinalCta />
+        <StayTunedSection />
       </main>
       <SiteFooter />
       <WaitlistModal />
@@ -111,24 +112,19 @@ function Nav() {
 /* ---------- HERO ---------- */
 function Hero() {
   return (
-    <section className="relative isolate overflow-hidden">
-      <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-16 px-6 pt-20 pb-16 md:grid-cols-2 md:gap-20 md:px-12 md:pt-32 md:pb-24 lg:pb-[120px]">
-        <div className="max-w-xl">
+    <section className="hero-section relative isolate overflow-hidden">
+      <div className="relative z-[1] mx-auto grid max-w-7xl items-center gap-16 px-6 pt-20 pb-12 md:grid-cols-2 md:items-start md:gap-20 md:px-12 md:pt-32 md:pb-16 lg:pb-20">
+        <div className="max-w-xl lg:max-w-2xl">
           <p className="text-body-sm font-semibold tracking-[0.18em] text-raspberry">
-            A financial app designed for women
+            A financial app designed exclusively for women
           </p>
           <h1 className="mt-8 text-h1 font-semibold text-foreground md:text-h1 lg:text-display-md">
-            Your money should do more than sit in a{" "}
-            <span className="font-display italic text-raspberry">checking account</span>
+            Your money can do more
           </h1>
-          <p className="mt-8 max-w-md text-body-lg text-ink-muted">
-            More options than a traditional bank.
+          <p className="mt-8 max-w-lg text-body-lg text-ink-muted">
+            Most banks give you a place to keep your money. Olimpia helps you save, spend, learn, and grow with financial tools. Set savings goals, explore optional yield on USDC, and learn with Pia, your AI money bestie.
           </p>
-          <p className="mt-4 max-w-md text-body-lg text-ink-muted">
-            Olimpia is a financial app for women to save, spend, and grow money in dollars, with savings
-            goals, optional yield on USDC, and learn with Pia, your AI money bestie.
-          </p>
-          <div className="mt-10 flex flex-wrap items-center gap-3">
+          <div className="mt-12 flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={openWaitlist}
@@ -145,9 +141,23 @@ function Hero() {
           </div>
         </div>
 
-        <div className="relative flex justify-center md:justify-end">
-          <div className="absolute -inset-16 -z-10 rounded-full bg-rose/70 blur-3xl" />
-          <PhoneMockup />
+        <div className="hero-phone-stage relative z-20 flex justify-center md:justify-end md:pt-10 lg:pt-12">
+          <div className="hero-phone-wrap relative">
+            <div className="hero-phone-shadow-contact" aria-hidden />
+            <div className="hero-phone-shadow-ambient" aria-hidden />
+            <div className="hero-phone-device">
+              <div className="hero-phone-float-accent" aria-hidden>
+                <div className="hero-phone-float-card">
+                  <img src={piaIllo} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-background" />
+                  <p className="text-body-sm leading-snug text-foreground">
+                    <span className="font-semibold text-raspberry">+4.2%</span>
+                    <span className="text-ink-muted"> yield on savings</span>
+                  </p>
+                </div>
+              </div>
+              <PhoneMockup variant="hero" />
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -162,12 +172,52 @@ function Hero() {
  * Intentional exception to the design type scale:
  * the arbitrary text-[Npx] sizes below simulate a real phone UI at fixed scale.
  * Do not migrate them to the marketing type tokens. */
-function PhoneMockup() {
+function PhoneMockup({ variant = "full" }: { variant?: "hero" | "full" }) {
+  const isHero = variant === "hero";
+
+  const tabItems = [
+    { Icon: HomeIcon, label: "Home", active: true },
+    { Icon: CreditCard, label: "Card" },
+    { Icon: SaveIcon, label: "Save" },
+    { Icon: User, label: "Pia" },
+    { Icon: Shield, label: "Learn" },
+  ];
+
   return (
-    <div className="relative w-[352px] sm:w-[396px]">
+    <div className="relative w-full">
       {/* Phone frame */}
-      <div className="relative rounded-[3.25rem] bg-[#111] p-[10px] shadow-[0_40px_80px_-20px_rgba(47,47,47,0.28),0_15px_40px_-15px_rgba(229,75,122,0.22)]">
-        <div className="relative overflow-hidden rounded-[2.75rem] bg-background">
+      <div
+        className={`relative rounded-[3.25rem] bg-[#111] p-[10px] ${
+          isHero
+            ? "shadow-[0_14px_28px_-12px_rgba(47,47,47,0.5),0_36px_64px_-24px_rgba(47,47,47,0.28),0_22px_48px_-20px_rgba(229,75,122,0.16)]"
+            : "shadow-[0_40px_80px_-20px_rgba(47,47,47,0.28),0_15px_40px_-15px_rgba(229,75,122,0.22)]"
+        }`}
+      >
+        {isHero && (
+          <>
+            <div
+              className="pointer-events-none absolute -left-[2px] top-[28%] h-8 w-[3px] rounded-l-sm bg-[#2a2a2a]"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute -left-[2px] top-[36%] h-12 w-[3px] rounded-l-sm bg-[#2a2a2a]"
+              aria-hidden
+            />
+            <div
+              className="pointer-events-none absolute -right-[2px] top-[22%] h-16 w-[3px] rounded-r-sm bg-[#2a2a2a]"
+              aria-hidden
+            />
+          </>
+        )}
+        <div
+          className="pointer-events-none absolute inset-0 rounded-[3.25rem] ring-1 ring-inset ring-white/[0.12]"
+          aria-hidden
+        />
+        <div
+          className={`relative overflow-hidden rounded-[2.75rem] bg-background ${
+            isHero ? "hero-phone-screen flex flex-col" : ""
+          }`}
+        >
           {/* Status bar */}
           <div className="relative flex h-11 items-center justify-between px-7 pt-3 text-[11px] font-semibold text-foreground">
             <span>9:41</span>
@@ -180,7 +230,7 @@ function PhoneMockup() {
           </div>
 
           {/* Screen content */}
-          <div className="px-6 pb-5 pt-3">
+          <div className="relative px-6 pt-3 pb-5">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
@@ -204,13 +254,13 @@ function PhoneMockup() {
               <div className="mt-3 flex items-center gap-1.5 text-[11px]">
                 <span className="inline-flex items-center gap-1 rounded-full bg-background/10 px-2 py-0.5 font-medium">
                   <ArrowUpRight className="h-3 w-3" strokeWidth={2.5} />
-                  6.9%
+                  4.2%
                 </span>
                 <span className="text-background/60">+$280.00 this month</span>
               </div>
             </div>
 
-            {/* Quick actions */}
+            {!isHero && (
             <div className="mt-5 grid grid-cols-4 gap-2.5">
               {[
                 { Icon: Plus, label: "Add" },
@@ -229,9 +279,14 @@ function PhoneMockup() {
                 </div>
               ))}
             </div>
+            )}
 
             {/* Savings goal card */}
-            <div className="mt-5 rounded-2xl border border-border/60 bg-card p-4">
+            <div
+              className={`rounded-2xl border border-border/60 bg-card p-4 ${
+                isHero ? "hero-phone-goal-peek mt-5" : "mt-5"
+              }`}
+            >
               <div className="flex items-start gap-3">
                 <img
                   src={eiffel}
@@ -258,7 +313,7 @@ function PhoneMockup() {
               </div>
             </div>
 
-            {/* Recent activity */}
+            {!isHero && (
             <div className="mt-5">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Recent activity</p>
@@ -270,17 +325,16 @@ function PhoneMockup() {
                 <TxRow Icon={Coffee} title="Blue Bottle Coffee" sub="Today · Cafe" amount="−$5.45" />
               </div>
             </div>
+            )}
           </div>
 
-          {/* Tab bar */}
+          {isHero && (
+            <div className="hero-phone-screen-fade pointer-events-none absolute inset-x-0 bottom-0 z-10" aria-hidden />
+          )}
+
+          {!isHero && (
           <div className="grid grid-cols-5 border-t border-border/50 bg-background px-3 pb-5 pt-3">
-            {[
-              { Icon: HomeIcon, label: "Home", active: true },
-              { Icon: CreditCard, label: "Card" },
-              { Icon: SaveIcon, label: "Save" },
-              { Icon: User, label: "Pia" },
-              { Icon: Shield, label: "Learn" },
-            ].map(({ Icon, label, active }) => (
+            {tabItems.map(({ Icon, label, active }) => (
               <div key={label} className="flex flex-col items-center gap-1">
                 <Icon
                   className={`h-[18px] w-[18px] ${active ? "text-raspberry" : "text-ink-muted/70"}`}
@@ -296,6 +350,7 @@ function PhoneMockup() {
               </div>
             ))}
           </div>
+          )}
         </div>
       </div>
     </div>
@@ -403,12 +458,12 @@ function GoalsSection() {
     <section className="bg-background py-16 md:py-24 lg:py-[120px]">
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
-            Build around real-life{" "}
+          <h2 className="whitespace-nowrap text-h1 font-semibold text-foreground md:text-display-md">
+            Built around your real life{" "}
             <span className="font-display italic text-raspberry">money goals</span>
           </h2>
           <p className="mt-6 text-body text-ink-muted">
-            Whether you're planning a girls trip, building an emergency fund, or starting a business, Olimpia helps you make progress.
+            Whether you&apos;re saving for travel, building an emergency fund, or investing in your future, Olimpia helps you build financial confidence through educational guidance and access to modern financial tools.
           </p>
         </div>
         <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:mt-24 lg:grid-cols-4 lg:gap-7">
@@ -464,71 +519,72 @@ function GoalsSection() {
 }
 
 
-/* ---------- SECTION 3: FEATURE GRID ---------- */
+/* ---------- SECTION 3: INVESTING OPTIONS ---------- */
 function FeatureGrid() {
-  const items = [
-    {
-      icon: PiggyBank,
-      title: "Your Money Earns",
-      body: "Instead of sitting idle in a checking account, your balance can earn USDC yield.",
-    },
-    {
-      icon: TrendingUp,
-      title: "You Have a Guide",
-      body: "You're never alone. Pia, your AI guide, helps you understand modern money tools without feeling overwhelmed.",
-    },
-    {
-      icon: Globe2,
-      title: "Access Decentralized Finance",
-      body: "Access decentralized finance. Create savings goals that leverage the best tools available.",
-    },
-    {
-      icon: GraduationCap,
-      title: "Send USDC",
-      body: "Send USDC to anyone, anywhere in seconds.",
-    },
-  ];
   return (
     <section id="features" className="bg-surface py-16 md:py-24 lg:py-[120px]">
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="mx-auto max-w-3xl text-center">
+      <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:px-12">
+        <div className="max-w-lg">
           <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
-            More options than a traditional bank
+            Options your bank doesn&apos;t offer
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
-            Designed for you
+            Curious about investing?
           </h2>
-          <p className="mx-auto mt-6 max-w-xl text-body text-ink-muted">
-            Most banks help you store money. Olimpia helps you grow it, learn, and put it to work.
+          <p className="mt-6 text-body text-ink-muted">
+            Olimpia helps you explore investing options most banks do not offer, with USDC,
+            decentralized finance tools, and educational guidance from Pia.
           </p>
         </div>
-        <div className="mt-16 grid gap-6 md:grid-cols-2 lg:mt-20">
-          {items.map(({ icon: Icon, title, body }) => (
-            <div
-              key={title}
-              className="rounded-[32px] border border-border/50 bg-card p-10 shadow-soft"
-            >
-              <div className="flex items-start justify-between">
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-rose/70">
-                  <Icon className="h-5 w-5 text-raspberry" />
-                </div>
-              </div>
-              <h3 className="mt-8 text-h3 font-semibold text-foreground">
-                {title}
-              </h3>
-              <p className="mt-3 max-w-md text-body text-ink-muted">{body}</p>
-            </div>
-          ))}
+        <div className="mx-auto w-full max-w-md md:justify-self-end">
+          <InvestingExploreSnippet />
         </div>
       </div>
     </section>
   );
 }
 
+function InvestingExploreSnippet() {
+  return (
+    <div className="relative w-full">
+      <div
+        className="pointer-events-none absolute -inset-10 -z-10 rounded-full bg-rose/45 blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="relative rounded-[28px] border border-border/50 bg-card p-5 shadow-[0_4px_14px_rgba(47,47,47,0.05),0_24px_52px_-18px_rgba(229,75,122,0.24)]"
+        aria-label="Example conversation with Pia about exploring investing options"
+      >
+      <div className="flex items-center gap-2.5 pb-4">
+        <div className="h-8 w-8 overflow-hidden rounded-full bg-rose">
+          <img src={piaIllo} alt="" className="h-full w-full object-cover" />
+        </div>
+        <p className="text-body-sm font-medium text-ink-muted">I&apos;m Pia, how can I help?</p>
+      </div>
+      <div className="space-y-3">
+        <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-raspberry px-4 py-3 text-body-sm text-background">
+          What investing options do banks usually miss?
+        </div>
+        <div className="flex max-w-[92%] gap-2.5">
+          <div className="mt-1 h-7 w-7 shrink-0 overflow-hidden rounded-full bg-rose">
+            <img src={piaIllo} alt="" className="h-full w-full object-cover" />
+          </div>
+          <div className="rounded-2xl rounded-tl-md bg-surface px-4 py-3 text-body-sm text-foreground">
+            Many banks stop at savings and checking. Olimpia helps you explore USDC and
+            decentralized finance tools with educational guidance, so you can learn how they work
+            and choose with confidence.
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  );
+}
+
 /* ---------- SECTION 4: WHY USDC ---------- */
 function WhyUsdcSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-rose/20 via-rose/10 to-background py-16 md:py-24 lg:py-[120px]">
+    <section className="relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 py-16 md:py-24 lg:py-[120px] md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28">
       <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:px-12">
         <div className="max-w-lg">
           <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
@@ -541,9 +597,16 @@ function WhyUsdcSection() {
             More flexibility, faster access to your money, and new ways to grow your savings.
           </p>
           <p className="mt-4 text-body text-ink-muted">
-            USDC is a digital dollar designed to maintain a one-to-one value with the U.S. dollar.
-            Millions of people use it to save, send, and move money around the world.
+            Millions of people use USDC to save, send, and move money around the world.
           </p>
+          <div className="mt-8 flex flex-wrap gap-2.5">
+            <span className="inline-flex items-center rounded-full bg-card px-3 py-1 text-body-sm font-medium text-ink-muted ring-1 ring-border/40">
+              Pegged to $1 USD
+            </span>
+            <span className="inline-flex items-center rounded-full bg-card px-3 py-1 text-body-sm font-medium text-ink-muted ring-1 ring-border/40">
+              Digital dollar
+            </span>
+          </div>
         </div>
 
         <div className="relative flex justify-center md:justify-end">
@@ -554,112 +617,52 @@ function WhyUsdcSection() {
   );
 }
 
-/* Cropped Olimpia app UI — matches Hero phone styling at a smaller scale. */
+/* Official USDC symbol geometry with Olimpia raspberry fill. */
 function UsdcProductPreview() {
   return (
-    <div className="relative w-[300px] sm:w-[320px]">
-      <div className="absolute -inset-12 -z-10 rounded-full bg-rose/60 blur-3xl" />
-      <div className="relative rounded-[2.75rem] bg-[#111] p-[9px] shadow-[0_32px_64px_-18px_rgba(47,47,47,0.26),0_12px_32px_-12px_rgba(229,75,122,0.2)]">
-        <div className="overflow-hidden rounded-[2.25rem] bg-background">
-          <div className="relative flex h-10 items-center justify-between px-6 pt-2.5 text-[10px] font-semibold text-foreground">
-            <span>9:41</span>
-            <div className="absolute left-1/2 top-2 h-5 w-20 -translate-x-1/2 rounded-full bg-[#111]" />
-          </div>
-
-          <div className="px-5 pb-6 pt-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] text-ink-muted">Good morning</p>
-                <p className="text-[14px] font-semibold text-foreground">Jennifer</p>
-              </div>
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-rose to-raspberry/60 ring-2 ring-background" />
-            </div>
-
-            <div className="mt-5 rounded-2xl bg-[#111] p-4 text-background shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-background/60">
-                  USDC Savings
-                </p>
-                <span className="text-[10px] text-background/60">USDC</span>
-              </div>
-              <p className="mt-2 text-[26px] font-semibold tracking-tight">
-                $2,450<span className="text-background/50">.00</span>
-              </p>
-              <div className="mt-2.5 flex items-center gap-1.5 text-[10px]">
-                <span className="inline-flex items-center gap-1 rounded-full bg-background/10 px-2 py-0.5 font-medium">
-                  <ArrowUpRight className="h-3 w-3" strokeWidth={2.5} />
-                  4.2%
-                </span>
-                <span className="text-background/60">Pegged to $1 USD</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- SECTION 5: CONFIDENCE ---------- */
-function ConfidenceSection() {
-  return (
-    <section className="bg-surface py-16 md:py-24 lg:py-[120px]">
-      <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:px-12">
-        <div className="max-w-lg md:order-1">
-          <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
-            Confidence
-          </p>
-          <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
-            Feel in control of your financial future
-          </h2>
-          <p className="mt-6 text-body text-ink-muted">
-            Learn about investing, USDC, savings, and modern money tools with simple explanations from Pia, your AI money guide.
-          </p>
-        </div>
-        <div className="mx-auto w-full max-w-md md:order-2 md:justify-self-center">
-          <ConfidenceChatSnippet />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ConfidenceChatSnippet() {
-  return (
     <div
-      className="rounded-[28px] border border-border/50 bg-card p-5 shadow-soft"
-      aria-label="Example conversation with Pia about USDC savings"
+      className="relative flex w-[300px] items-center justify-center sm:w-[320px]"
+      aria-hidden
     >
-      <div className="flex items-center gap-2.5 pb-4">
-        <div className="h-8 w-8 overflow-hidden rounded-full bg-rose">
-          <img src={piaIllo} alt="" className="h-full w-full object-cover" />
-        </div>
-        <p className="text-body-sm font-medium text-ink-muted">I'm Pia, how can I help?</p>
-      </div>
-      <div className="space-y-3">
-        <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-raspberry px-4 py-3 text-body-sm text-background">
-          Is USDC safe for savings?
-        </div>
-        <div className="flex max-w-[92%] gap-2.5">
-          <div className="mt-1 h-7 w-7 shrink-0 overflow-hidden rounded-full bg-rose">
-            <img src={piaIllo} alt="" className="h-full w-full object-cover" />
-          </div>
-          <div className="rounded-2xl rounded-tl-md bg-surface px-4 py-3 text-body-sm text-foreground">
-            Great question. USDC is pegged to the dollar, so it stays close to $1. It can earn yield while
-            you save. I'll walk you through how it works so you decide with confidence.
-          </div>
-        </div>
+      <div className="pointer-events-none absolute left-[56%] top-[57%] -z-10 h-7 w-[74%] -translate-x-1/2 rounded-full bg-berry/14 blur-[28px]" />
+      <div className="pointer-events-none absolute left-1/2 top-[55%] -z-10 h-4 w-[62%] -translate-x-1/2 rounded-full bg-berry/22 blur-lg" />
+      <div className="pointer-events-none absolute left-[46%] top-1/2 -z-10 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose/18 blur-2xl" />
+      <div className="usdc-coin-tilt relative">
+        <svg
+          viewBox="0 0 96 96"
+          fill="none"
+          className="relative h-60 w-60 drop-shadow-[0_22px_44px_-14px_rgba(111,43,70,0.36)] sm:h-64 sm:w-64"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden
+        >
+        <path
+          d="M48 95C73.9574 95 95 73.9574 95 48C95 22.0426 73.9574 1 48 1C22.0426 1 1 22.0426 1 48C1 73.9574 22.0426 95 48 95Z"
+          fill="#E54B7A"
+        />
+        <path
+          d="M56.4609 13.7778V19.8291C68.5341 23.4716 77.3759 34.6928 77.3759 47.9997C77.3759 61.3066 68.5341 72.5278 56.4609 76.1703V82.2216C71.8534 78.4616 83.2509 64.5672 83.2509 47.9997C83.2509 31.4322 71.8534 17.5378 56.4609 13.7778Z"
+          fill="white"
+        />
+        <path
+          d="M18.625 47.9997C18.625 34.6928 27.4669 23.4716 39.54 19.8291V13.7778C24.1475 17.5378 12.75 31.4322 12.75 47.9997C12.75 64.5672 24.1475 78.4616 39.54 82.2216V76.1703C27.4669 72.5572 18.625 61.3066 18.625 47.9997Z"
+          fill="white"
+        />
+        <path
+          d="M60.6319 54.5506C60.6319 42.5362 41.8025 47.4713 41.8025 40.8325C41.8025 38.4531 43.7119 36.9256 47.3544 36.9256C51.7019 36.9256 53.2 39.0406 53.67 41.89H59.6625C59.1279 36.5426 56.0588 33.1662 50.9382 32.1604V27.4375H45.0632V31.9918C39.4534 32.7062 35.9275 35.973 35.9275 40.8325C35.9275 52.9056 54.7863 48.3819 54.7863 54.9031C54.7863 57.3706 52.4069 59.0156 48.3825 59.0156C43.1244 59.0156 41.3913 56.695 40.745 53.4931H34.8994C35.2781 59.3502 38.8897 63.0159 45.0632 63.9307V68.5625H50.9382V63.9923C56.9633 63.2139 60.6319 59.7089 60.6319 54.5506Z"
+          fill="white"
+        />
+      </svg>
       </div>
     </div>
   );
 }
 
-/* ---------- SECTION 6: EMPOWERING ---------- */
+/* ---------- SECTION 5: EMPOWERING ---------- */
 function EmpoweringCards() {
-  const highlights = ["Learn as you go", "Real-life planning"];
+  const highlights = ["Set goals", "Invest", "Earn yield", "Learn"];
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-rose/20 via-rose/10 to-background py-16 md:py-24 lg:py-[120px]">
+    <section className="relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 py-16 md:py-24 lg:py-[120px] md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28">
       <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:px-12">
         <div className="max-w-lg">
           <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
@@ -672,14 +675,13 @@ function EmpoweringCards() {
           </h2>
           <p className="mt-6 text-body text-ink-muted">
             Most banks help you store money. Olimpia helps you organize it around travel,
-            emergencies, and the goals that matter to you, while you earn on your balance and learn
-            as you go.
+            emergencies, and the goals that matter to you, while you earn on your balance.
           </p>
-          <div className="mt-8 flex flex-wrap gap-2.5">
+          <div className="mt-8 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:gap-x-3 sm:gap-y-2.5">
             {highlights.map((label) => (
               <span
                 key={label}
-                className="inline-flex items-center rounded-full bg-card px-3 py-1 text-body-sm font-medium text-ink-muted ring-1 ring-border/40"
+                className="inline-flex items-center justify-center rounded-full bg-card px-3 py-1 text-body-sm font-medium text-ink-muted ring-1 ring-border/40 sm:justify-start"
               >
                 {label}
               </span>
@@ -698,7 +700,7 @@ function EmpoweringCards() {
 function EmpoweringGoalsPreview() {
   return (
     <div className="relative w-full max-w-md">
-      <div className="absolute -inset-12 -z-10 rounded-full bg-rose/60 blur-3xl" />
+      <div className="pointer-events-none absolute -inset-10 -z-10 rounded-full bg-rose/30 blur-3xl" />
       <div className="rounded-[32px] border border-border/50 bg-card p-6 shadow-soft md:p-7">
         <p className="text-body-sm font-semibold text-foreground">Your goals</p>
         <p className="mt-0.5 text-body-sm text-ink-muted">Track progress toward what matters</p>
@@ -847,31 +849,50 @@ function ChatPreview() {
 
 /* ---------- SECTION 8: HOW IT WORKS ---------- */
 function HowItWorks() {
-  const steps = [
-    { n: "01", t: "Sign Up", b: "Download app and create account." },
-    { n: "02", t: "Set Goals", b: "Create meaningful savings goals." },
-    { n: "03", t: "Grow Your Money", b: "Access yield opportunities and track progress." },
+  const items = [
+    {
+      icon: Wallet,
+      t: "Your money stays yours.",
+      b: "When you sign up, Olimpia automatically creates your personal digital wallet. It's protected by modern cryptography, and only you control it. Olimpia can't access, freeze, or move your money.",
+    },
+    {
+      icon: Layers,
+      t: "Modern finance without the complexity.",
+      b: "Olimpia connects you to trusted financial technology behind the scenes, so you can save, spend, and grow your money without needing to understand blockchain or crypto.",
+    },
+    {
+      icon: LayoutGrid,
+      t: "Access DeFI.",
+      b: "You'll get access to decentralized finance (DeFi), a new generation of financial tools that help people save, earn, and grow their money.",
+    },
+    {
+      icon: Fuel,
+      t: "We handle the technical details.",
+      b: "When you send supported transactions, Olimpia covers the network fees, so your experience feels as simple as using your favorite financial app.",
+    },
   ];
   return (
-    <section id="how" className="py-16 md:py-24 lg:py-[120px]">
+    <section id="how" className="relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 py-16 md:py-24 lg:py-[120px] md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28">
       <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
-            Getting Started
-          </p>
-          <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
-            How it works
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
+            Everything you need, made simple.
           </h2>
+          <p className="mt-6 text-body text-ink-muted">
+            Access to modern financial tools without the complexity. Your money stays in your control while we make saving, learning and growing your money feel simple.
+          </p>
         </div>
-        <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3 lg:mt-20">
-          {steps.map((s) => (
+        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-20 lg:gap-8">
+          {items.map(({ icon: Icon, t, b }) => (
             <div
-              key={s.n}
-              className="rounded-[32px] border border-border/50 bg-card p-8 shadow-soft"
+              key={t}
+              className="rounded-[32px] border border-border/50 bg-card p-9 text-left shadow-soft transition-[transform,box-shadow] duration-300 ease-out motion-reduce:transition-none lg:p-10 md:hover:-translate-y-0.5 md:hover:shadow-[0_12px_32px_-16px_rgba(47,47,47,0.12),0_20px_48px_-20px_rgba(229,75,122,0.1)] motion-reduce:hover:transform-none"
             >
-              <div className="font-display text-h1 text-raspberry">{s.n}</div>
-              <h3 className="mt-6 text-h3 font-semibold text-foreground">{s.t}</h3>
-              <p className="mt-2 text-body text-ink-muted">{s.b}</p>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-soft">
+                <Icon className="h-6 w-6 text-raspberry/80" strokeWidth={1.5} />
+              </div>
+              <h3 className="mt-6 text-h3 font-semibold text-foreground">{t}</h3>
+              <p className="mt-3 text-body text-ink-muted">{b}</p>
             </div>
           ))}
         </div>
@@ -885,12 +906,12 @@ const faqItems = FAQ_ITEMS;
 
 function Faq() {
   return (
-    <section id="faq" className="bg-surface py-16 md:py-24 lg:py-[120px]">
+    <section id="faq" className="bg-background py-16 md:py-24 lg:py-[120px]">
       <div className="mx-auto max-w-3xl px-6 md:px-12">
         <h2 className="text-center text-h1 font-semibold text-foreground md:text-display-md">
           <span className="font-display italic">FAQ</span>
         </h2>
-        <div className="mt-14 divide-y divide-border/60 overflow-hidden rounded-[32px] border border-border/60 bg-card">
+        <div className="mt-14 overflow-hidden rounded-[32px] border border-border/50 bg-card shadow-soft divide-y divide-border/60">
           {faqItems.map((item, i) => (
             <details key={item.q} open={i === 0} className="group">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-left marker:content-none [&::-webkit-details-marker]:hidden">
@@ -906,27 +927,106 @@ function Faq() {
   );
 }
 
-/* ---------- SECTION 10: FINAL CTA ---------- */
-function FinalCta() {
+/* ---------- SECTION 10: STAY TUNED ---------- */
+function StayTunedSection() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "success">("idle");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed || trimmed.length > 255 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setError("");
+    setIsSubmitting(true);
+
+    const result = await submitWaitlistEmail(trimmed);
+
+    setIsSubmitting(false);
+
+    if (result.ok) {
+      setStatus("success");
+      return;
+    }
+
+    setError(result.error);
+  };
+
   return (
-    <section id="download" className="py-16 md:py-24 lg:py-[120px]">
-      <div className="mx-auto max-w-4xl px-6 text-center md:px-12">
-        <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
-          More choices.
-          <br />
-          <span className="text-raspberry">More freedom.</span>
-        </h2>
-        <p className="mx-auto mt-8 max-w-xl text-body text-ink-muted">
-          The future of money designed specifically for women.
-        </p>
-        <button
-          type="button"
-          onClick={openWaitlist}
-          className="mt-10 inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-berry px-6 text-body-sm font-semibold text-white shadow-soft transition hover:opacity-90"
-        >
-          <Apple className="h-4 w-4 fill-current" />
-          Download App
-        </button>
+    <section id="download" className="border-t border-border/40 bg-background py-12 md:py-16 lg:py-20">
+      <div className="mx-auto max-w-7xl px-6 md:px-12">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
+          <div className="max-w-md shrink-0">
+            <h2 className="font-display text-h1 italic text-foreground md:text-display-md">
+              Stay tuned
+            </h2>
+            <p className="mt-3 text-body text-ink-muted">
+              Be first to know when Olimpia launches.
+            </p>
+          </div>
+
+          {status === "success" ? (
+            <div className="flex flex-1 items-center gap-3 rounded-[32px] border border-border/50 bg-card px-6 py-5 shadow-soft lg:max-w-2xl">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-soft text-raspberry">
+                <Heart className="h-5 w-5 fill-current" />
+              </div>
+              <div>
+                <p className="text-body font-semibold text-foreground">You&apos;re on the list.</p>
+                <p className="mt-0.5 text-body-sm text-ink-muted">
+                  We&apos;ll email you the moment Olimpia is ready.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 lg:max-w-2xl">
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col gap-3 sm:flex-row sm:items-start"
+                noValidate
+              >
+                <label htmlFor="stay-tuned-email" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="stay-tuned-email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  required
+                  maxLength={255}
+                  disabled={isSubmitting}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="min-w-0 flex-1 rounded-full border border-foreground/15 bg-card px-5 py-3.5 text-body text-foreground shadow-soft placeholder:text-ink-muted/70 focus:border-raspberry focus:outline-none focus:ring-2 focus:ring-raspberry/30"
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex h-[52px] shrink-0 items-center justify-center rounded-full bg-berry px-6 text-body-sm font-semibold text-white shadow-soft transition hover:opacity-90 disabled:pointer-events-none disabled:opacity-60 sm:px-8"
+                >
+                  {isSubmitting ? "Joining..." : "Join the waitlist"}
+                </button>
+              </form>
+              {error && (
+                <p className="mt-3 px-2 text-body-sm text-raspberry" role="alert">
+                  {error}
+                </p>
+              )}
+              <p className="mt-4 text-body-sm text-ink-muted">
+                We&apos;ll only email you about Olimpia.{" "}
+                <Link to="/privacy" className="text-raspberry transition hover:opacity-80">
+                  Privacy Policy
+                </Link>
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

@@ -219,5 +219,224 @@
       transition-delay: 0ms !important;
     }
 
+    .hero-phone-stage,
+    .hero-phone-device {
+      animation: none !important;
+      transform: none !important;
+    }
+
+    .usdc-coin-tilt {
+      transform: none !important;
+    }
+
+    .hero-phone-shadow-contact,
+    .hero-phone-shadow-ambient {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .hero-phone-float-card {
+      backdrop-filter: none;
+    }
+  }
+
+  .hero-section {
+    background-color: var(--background);
+  }
+
+  .hero-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        ellipse 80% 70% at 88% 20%,
+        rgb(252 238 242 / 0.7) 0%,
+        rgb(251 221 230 / 0.2) 40%,
+        transparent 68%
+      ),
+      linear-gradient(
+        155deg,
+        rgb(247 244 241 / 1) 0%,
+        rgb(252 238 242 / 0.34) 48%,
+        rgb(247 244 241 / 1) 100%
+      );
+  }
+
+  .hero-phone-stage {
+    padding-top: 0.5rem;
+    isolation: isolate;
+    overflow: visible;
+  }
+
+  .hero-phone-wrap {
+    position: relative;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .hero-phone-device {
+    position: relative;
+  }
+
+  .hero-phone-float-accent {
+    position: absolute;
+    z-index: 30;
+    top: 57%;
+    right: -6%;
+    display: none;
+    pointer-events: none;
+  }
+
+  .hero-phone-float-card {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 9.75rem;
+    border-radius: 1rem;
+    border-bottom-right-radius: 0.35rem;
+    border: 1px solid rgb(47 47 47 / 0.08);
+    background: rgb(251 221 230 / 0.88);
+    padding: 0.5rem 0.625rem;
+    box-shadow: 0 8px 22px -10px rgb(111 43 70 / 0.2);
+    backdrop-filter: blur(6px);
+  }
+
+  .hero-phone-screen {
+    width: 15.5rem;
+    height: 18.25rem;
+    overflow: hidden;
+  }
+
+  @media (min-width: 768px) {
+    .hero-phone-screen {
+      width: 16.75rem;
+      height: 19.5rem;
+    }
+
+    .hero-phone-float-accent {
+      display: block;
+      top: 58%;
+      right: -8%;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero-phone-screen {
+      width: 17.5rem;
+      height: 20rem;
+    }
+
+    .hero-phone-float-accent {
+      top: 59%;
+      right: -9%;
+    }
+  }
+
+  .hero-phone-screen-fade {
+    height: 50%;
+    background: linear-gradient(
+      to bottom,
+      rgb(247 244 241 / 0) 0%,
+      rgb(247 244 241 / 0.55) 32%,
+      rgb(247 244 241 / 0.92) 68%,
+      rgb(247 244 241 / 1) 100%
+    );
+  }
+
+  .hero-phone-goal-peek {
+    margin-bottom: -2rem;
+  }
+
+  .usdc-coin-tilt {
+    transform: perspective(1200px) rotateY(-7deg);
+    transform-origin: center center;
+  }
+
+  .hero-phone-shadow-contact {
+    position: absolute;
+    pointer-events: none;
+    z-index: -1;
+    bottom: 6%;
+    left: 56%;
+    height: 2.5rem;
+    width: 48%;
+    border-radius: 50%;
+    background: rgb(111 43 70 / 0.07);
+    filter: blur(28px);
+    transform: translateX(-50%);
+  }
+
+  .hero-phone-shadow-ambient {
+    position: absolute;
+    pointer-events: none;
+    z-index: -1;
+    bottom: 2%;
+    left: 58%;
+    height: 5rem;
+    width: 58%;
+    border-radius: 50%;
+    background: rgb(229 75 122 / 0.06);
+    filter: blur(40px);
+    transform: translateX(-50%);
+  }
+
+  @media (min-width: 768px) {
+    .hero-phone-stage {
+      padding-top: 0.5rem;
+      transform: translateX(-0.5rem);
+    }
+
+    .hero-phone-shadow-contact {
+      bottom: 7%;
+      left: 57%;
+      height: 2.75rem;
+      width: 46%;
+      filter: blur(30px);
+    }
+
+    .hero-phone-shadow-ambient {
+      bottom: 3%;
+      left: 59%;
+      height: 5.25rem;
+      width: 56%;
+      filter: blur(44px);
+    }
+
+    .hero-phone-device {
+      transform: perspective(1300px) rotateY(-16deg);
+      transform-origin: 58% 52%;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero-phone-stage {
+      transform: translateX(-0.75rem);
+    }
+
+    .hero-phone-device {
+      transform: perspective(1300px) rotateY(-16deg);
+      transform-origin: 58% 52%;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-phone-stage {
+      animation: hero-phone-enter 700ms cubic-bezier(0.33, 1, 0.68, 1) both;
+    }
+  }
+
+  @keyframes hero-phone-enter {
+    from {
+      opacity: 0;
+      translate: 0 18px;
+    }
+
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
   }
 }

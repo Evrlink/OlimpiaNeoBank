@@ -57,11 +57,11 @@ export const FAQ_ITEMS = [
   },
   {
     q: "What are the risks?",
-    a: "All financial products carry risk. While Olimpia focuses on trusted providers and established protocols, yields are not guaranteed and market conditions can change. We believe in transparency and clearly explain how products work before you use them.",
+    a: "If someone gains access to your email account, they could gain access to your wallet. We recommend enabling two-factor authentication. Decentralized protocols carry smart contract risk, the possibility of a bug or exploit.",
   },
   {
     q: "Is Olimpia safe if I'm not an expert?",
-    a: "Yes. Olimpia was designed for people who are new to modern money tools. Pia helps explain concepts step-by-step, and the app is built to make saving, spending, and learning feel approachable.",
+    a: "Yes. Olimpia is designed to make DeFI simple without taking control away from you. Sign up with your email, we'll handle the technical details behind the scenes, while you stay in control of your money. For added protection, we recommend enabling two-factor authentication.",
   },
   {
     q: "What happens if Olimpia shuts down?",
@@ -69,7 +69,7 @@ export const FAQ_ITEMS = [
   },
   {
     q: "Why was Olimpia created?",
-    a: "Many women were never taught how investing, saving, and modern money tools work. Olimpia was created to make financial confidence more accessible through education, guidance, and better financial tools.",
+    a: "Olimpia was created to help women build financial confidence through education and access to decentralized finance (DeFi).",
   },
 ] as const;
 
