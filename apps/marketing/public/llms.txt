@@ -16,11 +16,11 @@ Women who want financial independence, more confidence with money, and a support
 
 ## Core features
 
-- **Save** — Savings goals with clear progress (e.g. trip, business, home, freedom fund)
-- **Spend** — Virtual debit card and everyday money movement
-- **Grow** — Optional growth on savings (estimated earnings; variable, not guaranteed)
-- **Learn** — Plain-language education; USDC and stablecoins explained simply via Pia and FAQ
-- **Own** — Confidence and ownership of your financial future
+- **Save**, Savings goals with clear progress (e.g. trip, business, home, freedom fund)
+- **Spend**, Virtual debit card and everyday money movement
+- **Grow**, Optional growth on savings (estimated earnings; variable, not guaranteed)
+- **Learn**, Plain-language education; USDC and stablecoins explained simply via Pia and FAQ
+- **Own**, Confidence and ownership of your financial future
 
 ## Brand positioning
 

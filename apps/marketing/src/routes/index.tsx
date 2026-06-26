@@ -624,7 +624,7 @@ function EmpoweringCards() {
     {
       icon: Wallet,
       t: "You stay in charge",
-      b: "When you join with your email, Olimpia creates a personal digital wallet that belongs to you — not us. Your balance is protected by modern encryption, and only you can move, spend, or withdraw it. Olimpia can't touch your funds, freeze them, or act on your behalf. We make the tools easy to use; you keep full control.",
+      b: "When you join with your email, Olimpia creates a personal digital wallet that belongs to you, not us. Your balance is protected by modern encryption, and only you can move, spend, or withdraw it. Olimpia can't touch your funds, freeze them, or act on your behalf. We make the tools easy to use; you keep full control.",
     },
     {
       icon: Layers,
