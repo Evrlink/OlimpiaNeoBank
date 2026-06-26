@@ -623,8 +623,8 @@ function EmpoweringCards() {
   const items = [
     {
       icon: Wallet,
-      t: "Your money stays yours",
-      b: "When you sign up with your email, Olimpia automatically creates your personal digital wallet. It is secured by modern cryptography and controlled entirely by you. This is a non-custodial wallet: Olimpia cannot access your funds, move them, freeze them, or recover them on your behalf. Think of it this way: we help you open the safe. You hold the only key.",
+      t: "You stay in charge",
+      b: "When you join with your email, Olimpia creates a personal digital wallet that belongs to you — not us. Your balance is protected by modern encryption, and only you can move, spend, or withdraw it. Olimpia can't touch your funds, freeze them, or act on your behalf. We make the tools easy to use; you keep full control.",
     },
     {
       icon: Layers,
@@ -651,17 +651,17 @@ function EmpoweringCards() {
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
-            Built to give you options
+            How it works
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
             Simpler than a bank account
             <br />
-            More <span className="font-display italic text-raspberry">empowering</span> than one
+            More empowering than one
           </h2>
           <p className="mt-6 text-body text-ink-muted">
-            Most banks help you store money. Olimpia helps you save, grow, and explore decentralized
-            finance with a digital wallet you control, modern financial tools, and guidance when you
-            need it.
+            Olimpia helps you save, grow, and explore decentralized finance with a digital wallet you
+            control, financial tools, and guidance when you need it. Your bank helps you store money.
+            Olimpia helps you do more with it.
           </p>
         </div>
         <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-20 lg:gap-8">
