@@ -130,7 +130,7 @@ function Hero() {
               onClick={openWaitlist}
               className="inline-flex h-14 min-w-[11.5rem] items-center justify-center gap-2 rounded-full bg-berry px-8 text-body font-semibold text-white shadow-soft transition hover:opacity-90"
             >
-              Sign Up
+              Download App
             </button>
             <a
               href="#features"
@@ -544,7 +544,7 @@ function WhyUsdcSection() {
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-16 md:px-12 lg:gap-20">
         <div className="max-w-xl">
           <p className="marketing-eyebrow">
-            Money, made a little better
+            Money, only a little faster and more flexible
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
             USDC
@@ -553,8 +553,8 @@ function WhyUsdcSection() {
             If your dollars could do more, wouldn&apos;t you want to know how?
           </p>
           <p className="mt-4 text-body text-ink-muted">
-            USDC is the digital dollar pegged to USD, with faster ways to move money and access to
-            optional yield through DeFi.
+            USDC is a stablecoin pegged 1:1 to the US dollar. Send and receive it within
+            seconds, every day, 24/7.
           </p>
           <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {benefits.map(({ title, body }) => (
