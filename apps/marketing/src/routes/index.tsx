@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   CreditCard,
   TrendingUp,
-  PiggyBank,
   GraduationCap,
   Heart,
   MessageCircle,
@@ -62,11 +61,9 @@ function Home() {
         <Hero />
         <TrustStrip />
         <GoalsSection />
-        <FeatureGrid />
-        <WhyUsdcSection />
         <EmpoweringCards />
         <PiaSection />
-        <HowItWorks />
+        <WhyUsdcSection />
         <Faq />
         <StayTunedSection />
       </main>
@@ -116,13 +113,16 @@ function Hero() {
       <div className="relative z-[1] mx-auto grid max-w-7xl items-center gap-16 px-6 pt-20 pb-12 md:grid-cols-2 md:items-start md:gap-20 md:px-12 md:pt-32 md:pb-16 lg:pb-20">
         <div className="max-w-xl lg:max-w-2xl">
           <p className="text-body-sm font-semibold tracking-[0.18em] text-raspberry">
-            A financial app designed exclusively for women
+            Helping women participate in DeFi
           </p>
           <h1 className="mt-8 text-h1 font-semibold text-foreground md:text-h1 lg:text-display-md">
-            Your money can do more
+            You belong here
           </h1>
           <p className="mt-8 max-w-lg text-body-lg text-ink-muted">
-            Most banks give you a place to keep your money. Olimpia helps you save, spend, learn, and grow with financial tools. Set savings goals, explore optional yield on USDC, and learn with Pia, your AI money bestie.
+            DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created to help women participate in decentralized finance. Discover new opportunities beyond a traditional bank. Set savings goals, explore optional yield on USDC, and learn with Pia, your AI money bestie.
+          </p>
+          <p className="mt-6 max-w-lg text-body-sm font-semibold tracking-[0.18em] text-raspberry">
+            More choices. More freedom.
           </p>
           <div className="mt-12 flex flex-wrap items-center gap-3">
             <button
@@ -455,7 +455,7 @@ function GoalsSection() {
   const toggle = (title: string) =>
     setFlipped((p) => ({ ...p, [title]: !p[title] }));
   return (
-    <section className="bg-background py-16 md:py-24 lg:py-[120px]">
+    <section id="features" className="bg-background py-16 md:py-24 lg:py-[120px]">
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="whitespace-nowrap text-h1 font-semibold text-foreground md:text-display-md">
@@ -463,7 +463,7 @@ function GoalsSection() {
             <span className="font-display italic text-raspberry">money goals</span>
           </h2>
           <p className="mt-6 text-body text-ink-muted">
-            Whether you&apos;re saving for travel, building an emergency fund, or investing in your future, Olimpia helps you build financial confidence through educational guidance and access to modern financial tools.
+            Whether you&apos;re saving, investing, or planning for the future, Olimpia helps you access decentralized finance (DeFi) so you can make confident financial decisions.
           </p>
         </div>
         <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:mt-24 lg:grid-cols-4 lg:gap-7">
@@ -519,93 +519,54 @@ function GoalsSection() {
 }
 
 
-/* ---------- SECTION 3: INVESTING OPTIONS ---------- */
-function FeatureGrid() {
-  return (
-    <section id="features" className="bg-surface py-16 md:py-24 lg:py-[120px]">
-      <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:px-12">
-        <div className="max-w-lg">
-          <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
-            Options your bank doesn&apos;t offer
-          </p>
-          <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
-            Curious about investing?
-          </h2>
-          <p className="mt-6 text-body text-ink-muted">
-            Olimpia helps you explore investing options most banks do not offer, with USDC,
-            decentralized finance tools, and educational guidance from Pia.
-          </p>
-        </div>
-        <div className="mx-auto w-full max-w-md md:justify-self-end">
-          <InvestingExploreSnippet />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function InvestingExploreSnippet() {
-  return (
-    <div className="relative w-full">
-      <div
-        className="pointer-events-none absolute -inset-10 -z-10 rounded-full bg-rose/45 blur-3xl"
-        aria-hidden
-      />
-      <div
-        className="relative rounded-[28px] border border-border/50 bg-card p-5 shadow-[0_4px_14px_rgba(47,47,47,0.05),0_24px_52px_-18px_rgba(229,75,122,0.24)]"
-        aria-label="Example conversation with Pia about exploring investing options"
-      >
-      <div className="flex items-center gap-2.5 pb-4">
-        <div className="h-8 w-8 overflow-hidden rounded-full bg-rose">
-          <img src={piaIllo} alt="" className="h-full w-full object-cover" />
-        </div>
-        <p className="text-body-sm font-medium text-ink-muted">I&apos;m Pia, how can I help?</p>
-      </div>
-      <div className="space-y-3">
-        <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-raspberry px-4 py-3 text-body-sm text-background">
-          What investing options do banks usually miss?
-        </div>
-        <div className="flex max-w-[92%] gap-2.5">
-          <div className="mt-1 h-7 w-7 shrink-0 overflow-hidden rounded-full bg-rose">
-            <img src={piaIllo} alt="" className="h-full w-full object-cover" />
-          </div>
-          <div className="rounded-2xl rounded-tl-md bg-surface px-4 py-3 text-body-sm text-foreground">
-            Many banks stop at savings and checking. Olimpia helps you explore USDC and
-            decentralized finance tools with educational guidance, so you can learn how they work
-            and choose with confidence.
-          </div>
-        </div>
-      </div>
-    </div>
-    </div>
-  );
-}
-
-/* ---------- SECTION 4: WHY USDC ---------- */
+/* ---------- SECTION 3: WHY USDC ---------- */
 function WhyUsdcSection() {
+  const benefits = [
+    {
+      title: "Pegged one-to-one to USD",
+      body: "One USDC is designed to equal one U.S. dollar.",
+    },
+    {
+      title: "Move money 24/7",
+      body: "Send and receive globally within seconds, anytime.",
+    },
+    {
+      title: "Optional yield through DeFi",
+      body: "Access optional yield opportunities through DeFi.",
+    },
+    {
+      title: "Digital dollar you can use online",
+      body: "Save, send, and spend in the digital economy.",
+    },
+  ];
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 py-16 md:py-24 lg:py-[120px] md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28">
-      <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:px-12">
-        <div className="max-w-lg">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-16 md:px-12 lg:gap-20">
+        <div className="max-w-xl">
           <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
-            Smart Money
+            Money, made a little better
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
-            Why USDC?
+            USDC
           </h2>
-          <p className="mt-6 text-body text-ink-muted">
-            More flexibility, faster access to your money, and new ways to grow your savings.
+          <p className="mt-6 text-body font-medium text-foreground">
+            If your dollars could do more, wouldn&apos;t you want to know how?
           </p>
           <p className="mt-4 text-body text-ink-muted">
-            Millions of people use USDC to save, send, and move money around the world.
+            USDC is the digital dollar pegged to USD, with faster ways to move money and access to
+            optional yield through DeFi.
           </p>
-          <div className="mt-8 flex flex-wrap gap-2.5">
-            <span className="inline-flex items-center rounded-full bg-card px-3 py-1 text-body-sm font-medium text-ink-muted ring-1 ring-border/40">
-              Pegged to $1 USD
-            </span>
-            <span className="inline-flex items-center rounded-full bg-card px-3 py-1 text-body-sm font-medium text-ink-muted ring-1 ring-border/40">
-              Digital dollar
-            </span>
+          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {benefits.map(({ title, body }) => (
+              <div
+                key={title}
+                className="rounded-2xl border border-border/40 bg-card p-4 shadow-soft"
+              >
+                <h3 className="text-body-sm font-semibold text-foreground">{title}</h3>
+                <p className="mt-1.5 text-body-sm text-ink-muted">{body}</p>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -621,17 +582,17 @@ function WhyUsdcSection() {
 function UsdcProductPreview() {
   return (
     <div
-      className="relative flex w-[300px] items-center justify-center sm:w-[320px]"
+      className="relative flex w-[340px] items-center justify-center md:w-[360px]"
       aria-hidden
     >
-      <div className="pointer-events-none absolute left-[56%] top-[57%] -z-10 h-7 w-[74%] -translate-x-1/2 rounded-full bg-berry/14 blur-[28px]" />
-      <div className="pointer-events-none absolute left-1/2 top-[55%] -z-10 h-4 w-[62%] -translate-x-1/2 rounded-full bg-berry/22 blur-lg" />
-      <div className="pointer-events-none absolute left-[46%] top-1/2 -z-10 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose/18 blur-2xl" />
+      <div className="pointer-events-none absolute left-[56%] top-[57%] -z-10 h-8 w-[74%] -translate-x-1/2 rounded-full bg-berry/14 blur-[32px]" />
+      <div className="pointer-events-none absolute left-1/2 top-[55%] -z-10 h-5 w-[62%] -translate-x-1/2 rounded-full bg-berry/22 blur-lg" />
+      <div className="pointer-events-none absolute left-[46%] top-1/2 -z-10 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose/18 blur-2xl" />
       <div className="usdc-coin-tilt relative">
         <svg
           viewBox="0 0 96 96"
           fill="none"
-          className="relative h-60 w-60 drop-shadow-[0_22px_44px_-14px_rgba(111,43,70,0.36)] sm:h-64 sm:w-64"
+          className="relative h-72 w-72 drop-shadow-[0_24px_48px_-14px_rgba(111,43,70,0.36)] md:h-80 md:w-80"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden
         >
@@ -657,104 +618,72 @@ function UsdcProductPreview() {
   );
 }
 
-/* ---------- SECTION 5: EMPOWERING ---------- */
+/* ---------- SECTION 5: BEYOND BANKING ---------- */
 function EmpoweringCards() {
-  const highlights = ["Set goals", "Invest", "Earn yield", "Learn"];
+  const items = [
+    {
+      icon: Wallet,
+      t: "Your money stays yours",
+      b: "When you sign up with your email, Olimpia automatically creates your personal digital wallet. It is secured by modern cryptography and controlled entirely by you. This is a non-custodial wallet: Olimpia cannot access your funds, move them, freeze them, or recover them on your behalf. Think of it this way: we help you open the safe. You hold the only key.",
+    },
+    {
+      icon: Layers,
+      t: "Modern finance without the complexity",
+      b: "Olimpia is a friendly front end to trusted financial technology. Behind the scenes, you connect to established protocols and partners that power saving, spending, and optional yield on USDC. Olimpia simplifies the experience, but your money stays in your control. You do not need to understand blockchain or crypto to get started.",
+    },
+    {
+      icon: LayoutGrid,
+      t: "Access DeFI",
+      b: "Olimpia gives you access to decentralized finance (DeFi) in one place. Explore lending, savings, and yield opportunities without juggling multiple apps or learning complicated software. You can save, earn, and grow on your own timeline, with full custody of your wallet throughout.",
+    },
+    {
+      icon: Fuel,
+      t: "We handle the technical details",
+      b: "Olimpia covers network fees when you send supported transactions or interact with supported protocols. The blockchain stays in the background. The experience stays as simple as using your favorite financial app.",
+    },
+  ];
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 py-16 md:py-24 lg:py-[120px] md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28">
-      <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:grid-cols-2 md:px-12">
-        <div className="max-w-lg">
+    <section
+      id="how"
+      className="relative overflow-hidden bg-surface/40 py-16 md:py-24 lg:py-[120px]"
+    >
+      <div className="mx-auto max-w-7xl px-6 md:px-12">
+        <div className="mx-auto max-w-3xl text-center">
           <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
-            Beyond banking
+            Built to give you options
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
-            <span className="whitespace-nowrap">Simpler than a bank account</span>
+            Simpler than a bank account
             <br />
             More <span className="font-display italic text-raspberry">empowering</span> than one
           </h2>
           <p className="mt-6 text-body text-ink-muted">
-            Most banks help you store money. Olimpia helps you organize it around travel,
-            emergencies, and the goals that matter to you, while you earn on your balance.
+            Most banks help you store money. Olimpia helps you save, grow, and explore decentralized
+            finance with a digital wallet you control, modern financial tools, and guidance when you
+            need it.
           </p>
-          <div className="mt-8 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:gap-x-3 sm:gap-y-2.5">
-            {highlights.map((label) => (
-              <span
-                key={label}
-                className="inline-flex items-center justify-center rounded-full bg-card px-3 py-1 text-body-sm font-medium text-ink-muted ring-1 ring-border/40 sm:justify-start"
-              >
-                {label}
-              </span>
-            ))}
-          </div>
         </div>
-
-        <div className="relative flex justify-center md:justify-end">
-          <EmpoweringGoalsPreview />
+        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-20 lg:gap-8">
+          {items.map(({ icon: Icon, t, b }) => (
+            <div
+              key={t}
+              className="rounded-[32px] border border-border/50 bg-card p-9 text-left shadow-soft transition-[transform,box-shadow] duration-300 ease-out motion-reduce:transition-none lg:p-10 md:hover:-translate-y-0.5 md:hover:shadow-[0_12px_32px_-16px_rgba(47,47,47,0.12),0_20px_48px_-20px_rgba(229,75,122,0.1)] motion-reduce:hover:transform-none"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-soft">
+                <Icon className="h-6 w-6 text-raspberry/80" strokeWidth={1.5} />
+              </div>
+              <h3 className="mt-6 text-h3 font-semibold text-foreground">{t}</h3>
+              <p className="mt-3 text-body text-ink-muted">{b}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-function EmpoweringGoalsPreview() {
-  return (
-    <div className="relative w-full max-w-md">
-      <div className="pointer-events-none absolute -inset-10 -z-10 rounded-full bg-rose/30 blur-3xl" />
-      <div className="rounded-[32px] border border-border/50 bg-card p-6 shadow-soft md:p-7">
-        <p className="text-body-sm font-semibold text-foreground">Your goals</p>
-        <p className="mt-0.5 text-body-sm text-ink-muted">Track progress toward what matters</p>
-
-        <div className="mt-5 rounded-2xl border border-border/60 bg-background p-4">
-          <div className="flex items-start gap-3">
-            <img
-              src={eiffel}
-              alt=""
-              width={512}
-              height={512}
-              loading="lazy"
-              className="h-14 w-14 rounded-xl object-cover"
-            />
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <p className="text-body-sm font-semibold text-foreground">Europe Trip</p>
-                <span className="text-body-sm font-medium text-ink-muted">45%</span>
-              </div>
-              <p className="mt-0.5 text-body-sm text-ink-muted">
-                <span className="font-semibold text-foreground">$2,250</span> of $5,000
-              </p>
-              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface">
-                <div className="h-full w-[45%] rounded-full bg-raspberry" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-3 rounded-2xl border border-border/60 bg-background p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-rose/70">
-              <PiggyBank className="h-6 w-6 text-raspberry" strokeWidth={1.5} />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <p className="text-body-sm font-semibold text-foreground">Emergency Fund</p>
-                <span className="text-body-sm font-medium text-ink-muted">20%</span>
-              </div>
-              <p className="mt-0.5 text-body-sm text-ink-muted">
-                <span className="font-semibold text-foreground">$1,000</span> of $5,000
-              </p>
-              <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface">
-                <div className="h-full w-[20%] rounded-full bg-raspberry" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- SECTION 7: MEET PIA ---------- */
+/* ---------- SECTION 6: MEET PIA ---------- */
 function PiaSection() {
   return (
     <section id="pia" className="relative overflow-hidden bg-gradient-to-b from-rose/30 via-rose/20 to-background py-16 md:py-24 lg:py-[120px]">
@@ -847,61 +776,7 @@ function ChatPreview() {
   );
 }
 
-/* ---------- SECTION 8: HOW IT WORKS ---------- */
-function HowItWorks() {
-  const items = [
-    {
-      icon: Wallet,
-      t: "Your money stays yours.",
-      b: "When you sign up, Olimpia automatically creates your personal digital wallet. It's protected by modern cryptography, and only you control it. Olimpia can't access, freeze, or move your money.",
-    },
-    {
-      icon: Layers,
-      t: "Modern finance without the complexity.",
-      b: "Olimpia connects you to trusted financial technology behind the scenes, so you can save, spend, and grow your money without needing to understand blockchain or crypto.",
-    },
-    {
-      icon: LayoutGrid,
-      t: "Access DeFI.",
-      b: "You'll get access to decentralized finance (DeFi), a new generation of financial tools that help people save, earn, and grow their money.",
-    },
-    {
-      icon: Fuel,
-      t: "We handle the technical details.",
-      b: "When you send supported transactions, Olimpia covers the network fees, so your experience feels as simple as using your favorite financial app.",
-    },
-  ];
-  return (
-    <section id="how" className="relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 py-16 md:py-24 lg:py-[120px] md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28">
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
-            Everything you need, made simple.
-          </h2>
-          <p className="mt-6 text-body text-ink-muted">
-            Access to modern financial tools without the complexity. Your money stays in your control while we make saving, learning and growing your money feel simple.
-          </p>
-        </div>
-        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-20 lg:gap-8">
-          {items.map(({ icon: Icon, t, b }) => (
-            <div
-              key={t}
-              className="rounded-[32px] border border-border/50 bg-card p-9 text-left shadow-soft transition-[transform,box-shadow] duration-300 ease-out motion-reduce:transition-none lg:p-10 md:hover:-translate-y-0.5 md:hover:shadow-[0_12px_32px_-16px_rgba(47,47,47,0.12),0_20px_48px_-20px_rgba(229,75,122,0.1)] motion-reduce:hover:transform-none"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-soft">
-                <Icon className="h-6 w-6 text-raspberry/80" strokeWidth={1.5} />
-              </div>
-              <h3 className="mt-6 text-h3 font-semibold text-foreground">{t}</h3>
-              <p className="mt-3 text-body text-ink-muted">{b}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------- SECTION 9: FAQ ---------- */
+/* ---------- SECTION 8: FAQ ---------- */
 const faqItems = FAQ_ITEMS;
 
 function Faq() {
