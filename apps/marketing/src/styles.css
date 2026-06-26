@@ -167,6 +167,14 @@
 }
 
 @layer utilities {
+  .marketing-eyebrow {
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: var(--raspberry);
+  }
+
   .marquee {
     overflow: hidden;
     -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);

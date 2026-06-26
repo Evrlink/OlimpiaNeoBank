@@ -112,7 +112,7 @@ function Hero() {
     <section className="hero-section relative isolate overflow-hidden">
       <div className="relative z-[1] mx-auto grid max-w-7xl items-center gap-16 px-6 pt-20 pb-12 md:grid-cols-2 md:items-start md:gap-20 md:px-12 md:pt-32 md:pb-16 lg:pb-20">
         <div className="max-w-xl lg:max-w-2xl">
-          <p className="text-body-sm font-semibold tracking-[0.18em] text-raspberry">
+          <p className="marketing-eyebrow">
             Helping women participate in DeFi
           </p>
           <h1 className="mt-8 text-h1 font-semibold text-foreground md:text-h1 lg:text-display-md">
@@ -121,20 +121,20 @@ function Hero() {
           <p className="mt-8 max-w-lg text-body-lg text-ink-muted">
             DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created to help women participate in decentralized finance. Discover new opportunities beyond a traditional bank. Set savings goals, explore optional yield on USDC, and learn with Pia, your AI money bestie.
           </p>
-          <p className="mt-6 max-w-lg text-body-sm font-semibold tracking-[0.18em] text-raspberry">
+          <p className="mt-6 max-w-lg marketing-eyebrow">
             More choices. More freedom.
           </p>
-          <div className="mt-12 flex flex-wrap items-center gap-3">
+          <div className="mt-12 flex flex-wrap items-center gap-4">
             <button
               type="button"
               onClick={openWaitlist}
-              className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-berry px-6 text-body-sm font-semibold text-white shadow-soft transition hover:opacity-90"
+              className="inline-flex h-14 min-w-[11.5rem] items-center justify-center gap-2 rounded-full bg-berry px-8 text-body font-semibold text-white shadow-soft transition hover:opacity-90"
             >
               Sign Up
             </button>
             <a
               href="#features"
-              className="inline-flex h-[52px] items-center justify-center gap-2 rounded-full border border-foreground/15 bg-transparent px-6 text-body-sm font-semibold text-foreground transition hover:border-foreground/30"
+              className="inline-flex h-14 min-w-[11.5rem] items-center justify-center gap-2 rounded-full border border-foreground/15 bg-card px-8 text-body font-semibold text-foreground shadow-soft transition hover:border-foreground/30"
             >
               Learn More
             </a>
@@ -543,7 +543,7 @@ function WhyUsdcSection() {
     <section className="relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 py-16 md:py-24 lg:py-[120px] md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-16 md:px-12 lg:gap-20">
         <div className="max-w-xl">
-          <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
+          <p className="marketing-eyebrow">
             Money, made a little better
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
@@ -649,7 +649,7 @@ function EmpoweringCards() {
     >
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
+          <p className="marketing-eyebrow">
             How it works
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
@@ -664,15 +664,21 @@ function EmpoweringCards() {
           </p>
         </div>
         <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-20 lg:gap-8">
-          {items.map(({ icon: Icon, t, b }) => (
+          {items.map(({ icon: Icon, t, b }, i) => (
             <div
               key={t}
-              className="rounded-[32px] border border-border/50 bg-card p-9 text-left shadow-soft transition-[transform,box-shadow] duration-300 ease-out motion-reduce:transition-none lg:p-10 md:hover:-translate-y-0.5 md:hover:shadow-[0_12px_32px_-16px_rgba(47,47,47,0.12),0_20px_48px_-20px_rgba(229,75,122,0.1)] motion-reduce:hover:transform-none"
+              className="group relative rounded-[32px] border border-border/30 bg-gradient-to-br from-card via-card to-rose-soft/35 p-9 text-left shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)] transition-[transform,box-shadow] duration-300 ease-out motion-reduce:transition-none lg:p-10 md:group-hover:-translate-y-1.5 md:group-hover:shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)] motion-reduce:hover:transform-none"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-soft">
-                <Icon className="h-6 w-6 text-raspberry/80" strokeWidth={1.5} />
+              <span
+                className="pointer-events-none absolute right-8 top-8 font-display text-h3 text-raspberry/35"
+                aria-hidden
+              >
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rose/70">
+                <Icon className="h-7 w-7 text-raspberry" strokeWidth={1.5} />
               </div>
-              <h3 className="mt-6 text-h3 font-semibold text-foreground">{t}</h3>
+              <h3 className="mt-7 text-h3 font-semibold text-foreground">{t}</h3>
               <p className="mt-3 text-body text-ink-muted">{b}</p>
             </div>
           ))}
@@ -714,7 +720,7 @@ function PiaSection() {
         </div>
 
         <div className="text-center lg:text-left">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1 text-body-sm font-medium text-raspberry ring-1 ring-raspberry/20">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1 text-body font-semibold text-raspberry ring-1 ring-raspberry/20">
             <Heart className="h-3 w-3 fill-current text-raspberry" />
             Your money bestie
           </span>
@@ -1009,7 +1015,7 @@ function WaitlistModal() {
           </div>
         ) : (
           <>
-            <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
+            <p className="marketing-eyebrow">
               Coming soon
             </p>
             <h3 id="waitlist-title" className="mt-4 text-h3 font-semibold text-foreground">
