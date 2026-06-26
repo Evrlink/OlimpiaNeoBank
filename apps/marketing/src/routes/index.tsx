@@ -458,9 +458,8 @@ function GoalsSection() {
     <section id="features" className="bg-background py-16 md:py-24 lg:py-[120px]">
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="whitespace-nowrap text-h1 font-semibold text-foreground md:text-display-md">
-            Built around your real life{" "}
-            <span className="font-display italic text-raspberry">money goals</span>
+          <h2 className="text-balance text-h1 font-semibold text-foreground md:text-display-md">
+            A financial ecosystem designed to empower you
           </h2>
           <p className="mt-6 text-body text-ink-muted">
             Whether you&apos;re saving, investing, or planning for the future, Olimpia helps you access decentralized finance (DeFi) so you can make confident financial decisions.
@@ -649,7 +648,7 @@ function EmpoweringCards() {
       className="relative overflow-hidden bg-surface/40 py-16 md:py-24 lg:py-[120px]"
     >
       <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="mx-auto max-w-3xl text-center">
+        <div className="mx-auto max-w-2xl text-center">
           <p className="text-body-sm font-semibold uppercase tracking-[0.18em] text-raspberry">
             How it works
           </p>
