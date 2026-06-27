@@ -451,10 +451,10 @@
   @media (prefers-reduced-motion: no-preference) {
     .scroll-reveal {
       opacity: 0;
-      translate: 0 22px;
+      translate: 0 36px;
       transition:
-        opacity 520ms cubic-bezier(0.33, 1, 0.68, 1),
-        translate 520ms cubic-bezier(0.33, 1, 0.68, 1);
+        opacity 680ms cubic-bezier(0.33, 1, 0.68, 1),
+        translate 680ms cubic-bezier(0.33, 1, 0.68, 1);
       transition-delay: var(--reveal-delay, 0ms);
     }
 

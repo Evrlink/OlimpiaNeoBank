@@ -425,7 +425,7 @@ function TrustStrip() {
             Powered by industry-leading providers in security, compliance, and payments.
           </p>
         </ScrollReveal>
-        <ScrollReveal delay={80} className="marquee mt-12">
+        <ScrollReveal delay={110} className="marquee mt-12">
           <div className="marquee-track gap-x-16 md:gap-x-24 opacity-70">
             {loop.map((p, i) => (
               <span
@@ -493,7 +493,7 @@ function GoalsSection() {
           {items.map(({ icon: Icon, title, body, details }, index) => {
             const isFlipped = !!flipped[title];
             return (
-              <ScrollReveal key={title} delay={index * 70} className="h-full">
+              <ScrollReveal key={title} delay={index * 100} className="h-full">
               <div
                 className="goal-card-shell group relative h-full perspective-1000 md:transition-transform md:duration-300 md:ease-out md:hover:-translate-y-1.5"
               >
@@ -619,7 +619,7 @@ function WhyUsdcSection() {
           </div>
         </ScrollReveal>
 
-        <ScrollReveal delay={120} className="relative flex justify-center md:justify-end">
+        <ScrollReveal delay={160} className="relative flex justify-center md:justify-end">
           <UsdcProductPreview />
         </ScrollReveal>
       </div>
@@ -713,7 +713,7 @@ function EmpoweringCards() {
         </ScrollReveal>
         <div className="mx-auto mt-16 grid max-w-5xl auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-20 lg:gap-8">
           {items.map(({ icon: Icon, t, b }, index) => (
-            <ScrollReveal key={t} delay={index * 70} className="h-full">
+            <ScrollReveal key={t} delay={index * 100} className="h-full">
               <div className="group relative h-full">
                 <div
                   className="pointer-events-none invisible flex flex-col p-9 text-left lg:p-10"
@@ -772,7 +772,7 @@ function PiaSection() {
           </p>
         </ScrollReveal>
 
-        <ScrollReveal delay={90} className="relative mx-auto mt-10 w-full md:mt-12">
+        <ScrollReveal delay={120} className="relative mx-auto mt-10 w-full md:mt-12">
           <div
             className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-72 w-[92%] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose/55 blur-[72px]"
             aria-hidden
@@ -790,7 +790,7 @@ function PiaSection() {
           </div>
         </ScrollReveal>
 
-        <ScrollReveal delay={160} className="mt-8 flex justify-center">
+        <ScrollReveal delay={200} className="mt-8 flex justify-center">
           <a
             href="#download"
             className="inline-flex h-14 min-w-[11.5rem] items-center justify-center gap-2 rounded-full bg-raspberry px-8 text-body font-semibold text-primary-foreground shadow-soft transition hover:opacity-90"
@@ -841,7 +841,7 @@ function Faq() {
             <span className="font-display italic">FAQ</span>
           </h2>
         </ScrollReveal>
-        <ScrollReveal delay={80}>
+        <ScrollReveal delay={110}>
           <div className="mt-14 overflow-hidden rounded-[32px] border border-border/50 bg-card shadow-soft divide-y divide-border/60">
             {faqItems.map((item, i) => (
               <details key={item.q} open={i === 0} className="group">
