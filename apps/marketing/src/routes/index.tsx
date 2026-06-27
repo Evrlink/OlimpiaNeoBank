@@ -22,9 +22,10 @@ import {
   LayoutGrid,
   Fuel,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
 import eiffel from "@/assets/eiffel.jpg";
+import { ScrollReveal } from "@/components/scroll-reveal";
 import {
   FAQ_ITEMS,
   OLIMPIA_DEFINITION,
@@ -33,6 +34,8 @@ import {
 } from "@/lib/seo";
 import { SiteFooter } from "@/components/site-footer";
 import { submitWaitlistEmail } from "@/lib/waitlist";
+import { useActiveSection } from "@/hooks/use-active-section";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -80,19 +83,38 @@ function openWaitlist() {
 }
 
 /* ---------- NAV ---------- */
+const NAV_SECTIONS = ["features", "how", "pia", "faq", "about"] as const;
+
+const navLinks = [
+  { href: "#features", label: "Features", id: "features" },
+  { href: "#how", label: "How It Works", id: "how" },
+  { href: "#pia", label: "Pia", id: "pia" },
+  { href: "#about", label: "About", id: "about" },
+  { href: "#faq", label: "FAQ", id: "faq" },
+] as const;
+
 function Nav() {
+  const activeSection = useActiveSection(NAV_SECTIONS);
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/40 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12">
         <Link to="/" className="font-display text-[1.65rem] leading-[1.3] tracking-tight text-berry">
           Olimpia
         </Link>
         <nav className="hidden items-center gap-8 text-body-sm text-foreground/80 md:flex">
-          <a href="#features" className="transition hover:text-foreground">Features</a>
-          <a href="#how" className="transition hover:text-foreground">How It Works</a>
-          <a href="#pia" className="transition hover:text-foreground">Pia</a>
-          <a href="#about" className="transition hover:text-foreground">About</a>
-          <a href="#faq" className="transition hover:text-foreground">FAQ</a>
+          {navLinks.map(({ href, label, id }) => (
+            <a
+              key={id}
+              href={href}
+              className={cn(
+                "relative transition hover:text-foreground",
+                activeSection === id && "nav-link-active",
+              )}
+            >
+              {label}
+            </a>
+          ))}
         </nav>
         <button
           type="button"
@@ -395,13 +417,15 @@ function TrustStrip() {
   return (
     <section className="border-y border-border/50 bg-surface/60 py-16 md:py-24 lg:py-[120px]">
       <div className="mx-auto max-w-7xl px-6 text-center md:px-12">
-        <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
-          Built on trusted infrastructure
-        </h2>
-        <p className="mx-auto mt-6 max-w-2xl text-body text-ink-muted">
-          Powered by industry-leading providers in security, compliance, and payments.
-        </p>
-        <div className="marquee mt-12">
+        <ScrollReveal>
+          <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
+            Built on trusted infrastructure
+          </h2>
+          <p className="mx-auto mt-6 max-w-2xl text-body text-ink-muted">
+            Powered by industry-leading providers in security, compliance, and payments.
+          </p>
+        </ScrollReveal>
+        <ScrollReveal delay={80} className="marquee mt-12">
           <div className="marquee-track gap-x-16 md:gap-x-24 opacity-70">
             {loop.map((p, i) => (
               <span
@@ -413,7 +437,7 @@ function TrustStrip() {
               </span>
             ))}
           </div>
-        </div>
+        </ScrollReveal>
       </div>
     </section>
   );
@@ -455,22 +479,22 @@ function GoalsSection() {
   const toggle = (title: string) =>
     setFlipped((p) => ({ ...p, [title]: !p[title] }));
   return (
-    <section id="features" className="relative overflow-hidden bg-gradient-to-b from-background via-rose-soft/18 to-background py-16 md:py-24 lg:py-[120px]">
+    <section id="features" className="section-bridge-out relative overflow-hidden bg-gradient-to-b from-background via-rose-soft/18 to-background py-16 md:py-24 lg:py-[120px]">
       <div className="relative mx-auto max-w-7xl px-6 md:px-12">
-        <div className="mx-auto max-w-3xl text-center">
+        <ScrollReveal className="mx-auto max-w-3xl text-center">
           <h2 className="text-balance text-h2 font-semibold text-foreground md:text-h1">
             A financial ecosystem, offering more opportunity than your bank
           </h2>
           <p className="mt-6 text-body text-ink-muted">
             Stablecoin payments, virtual debit card, yield on USDC, and learning tools to support your growth.
           </p>
-        </div>
+        </ScrollReveal>
         <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:mt-24 lg:grid-cols-4 lg:gap-7">
-          {items.map(({ icon: Icon, title, body, details }) => {
+          {items.map(({ icon: Icon, title, body, details }, index) => {
             const isFlipped = !!flipped[title];
             return (
+              <ScrollReveal key={title} delay={index * 70} className="h-full">
               <div
-                key={title}
                 className="goal-card-shell group relative h-full perspective-1000 md:transition-transform md:duration-300 md:ease-out md:hover:-translate-y-1.5"
               >
                 <div
@@ -526,6 +550,7 @@ function GoalsSection() {
                   </button>
                 </div>
               </div>
+              </ScrollReveal>
             );
           })}
         </div>
@@ -557,17 +582,25 @@ function WhyUsdcSection() {
   ];
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 py-16 md:py-24 lg:py-[120px] md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28">
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-16 md:px-12 lg:gap-20">
-        <div className="max-w-xl">
+    <section
+      className="section-bridge-in section-bridge-out relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 pt-16 pb-12 md:pt-24 md:pb-16 lg:pt-[120px] lg:pb-16 md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28"
+      style={
+        {
+          "--bridge-in-opacity": "0.22",
+          "--bridge-out-opacity": "0.16",
+        } as CSSProperties
+      }
+    >
+      <div className="relative z-[2] mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-16 md:px-12 lg:gap-20">
+        <ScrollReveal className="max-w-xl">
           <p className="marketing-eyebrow">
-            Money, only a little faster and more flexible
+            Money, faster and more flexible
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
             USDC
           </h2>
           <p className="mt-6 text-body font-medium text-foreground">
-            If your dollars could do more, wouldn&apos;t you want to know how?
+            Your dollars can do more as USDC.
           </p>
           <p className="mt-4 text-body text-ink-muted">
             USDC is a stablecoin pegged 1:1 to the US dollar. Send and receive it within
@@ -584,11 +617,11 @@ function WhyUsdcSection() {
               </div>
             ))}
           </div>
-        </div>
+        </ScrollReveal>
 
-        <div className="relative flex justify-center md:justify-end">
+        <ScrollReveal delay={120} className="relative flex justify-center md:justify-end">
           <UsdcProductPreview />
-        </div>
+        </ScrollReveal>
       </div>
     </section>
   );
@@ -640,60 +673,71 @@ function EmpoweringCards() {
     {
       icon: Wallet,
       t: "You stay in charge",
-      b: "When you join with your email, Olimpia creates a personal digital wallet that belongs to you, not us. Your balance is protected by modern encryption, and only you can move, spend, or withdraw it. Olimpia can't touch your funds, freeze them, or act on your behalf. We make the tools easy to use; you keep full control.",
+      b: "Your wallet belongs to you. When you sign up, Olimpia creates a secure digital wallet only you control. Olimpia can't access, freeze, or move your funds.",
     },
     {
       icon: Layers,
-      t: "Modern finance without the complexity",
-      b: "Olimpia is a friendly front end to trusted financial technology. Behind the scenes, you connect to established protocols and partners that power saving, spending, and optional yield on USDC. Olimpia simplifies the experience, but your money stays in your control. You do not need to understand blockchain or crypto to get started.",
+      t: "Complexity Removed",
+      b: "Olimpia makes decentralized finance simple. Trusted protocols power saving, spending, and optional USDC yield. No blockchain expertise required.",
     },
     {
       icon: LayoutGrid,
-      t: "Access DeFI",
-      b: "Olimpia gives you access to decentralized finance (DeFi) in one place. Explore lending, savings, and yield opportunities without juggling multiple apps or learning complicated software. You can save, earn, and grow on your own timeline, with full custody of your wallet throughout.",
+      t: "Everything in one place",
+      b: "Save, spend, and explore optional yield from a single app. No juggling wallets, exchanges, or extra tools.",
     },
     {
       icon: Fuel,
-      t: "We handle the technical details",
-      b: "Olimpia covers network fees when you send supported transactions or interact with supported protocols. The blockchain stays in the background. The experience stays as simple as using your favorite financial app.",
+      t: "We cover network fees",
+      b: "For supported transactions, Olimpia covers network fees so you don't have to. The blockchain stays in the background.",
     },
   ];
+
+  const sizeTemplate = items.reduce((longest, item) =>
+    item.b.length > longest.b.length ? item : longest,
+  );
 
   return (
     <section
       id="how"
-      className="relative overflow-hidden bg-surface/40 py-16 md:py-24 lg:py-[120px]"
+      className="section-bridge-in relative overflow-hidden bg-gradient-to-b from-surface/40 via-rose-soft/10 to-surface/40 py-16 md:py-24 lg:py-[120px]"
     >
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="marketing-eyebrow">
-            How it works
-          </p>
-          <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
-            Simple to use, built to do more
+      <div className="relative z-[2] mx-auto max-w-7xl px-6 md:px-12">
+        <ScrollReveal className="mx-auto max-w-2xl text-center">
+          <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
+            The upside is yours
           </h2>
           <p className="mt-6 text-body text-ink-muted">
-            Easy access to decentralized finance.
+            More growth, less complexity, with you in charge. Simple tools that give you easy access
+            to decentralized finance (DeFi)
           </p>
-        </div>
-        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-20 lg:gap-8">
-          {items.map(({ icon: Icon, t, b }, i) => (
-            <div
-              key={t}
-              className="group relative rounded-[32px] border border-border/30 bg-gradient-to-br from-card via-card to-rose-soft/35 p-9 text-left shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)] transition-[transform,box-shadow] duration-300 ease-out motion-reduce:transition-none lg:p-10 md:group-hover:-translate-y-1.5 md:group-hover:shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)] motion-reduce:hover:transform-none"
-            >
-              <span
-                className="pointer-events-none absolute right-8 top-8 font-display text-h3 text-raspberry/35"
-                aria-hidden
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rose/70">
-                <Icon className="h-7 w-7 text-raspberry" strokeWidth={1.5} />
+        </ScrollReveal>
+        <div className="mx-auto mt-16 grid max-w-5xl auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-20 lg:gap-8">
+          {items.map(({ icon: Icon, t, b }, index) => (
+            <ScrollReveal key={t} delay={index * 70} className="h-full">
+              <div className="group relative h-full">
+                <div
+                  className="pointer-events-none invisible flex flex-col p-9 text-left lg:p-10"
+                  aria-hidden="true"
+                >
+                  <div className="h-16 w-16 shrink-0" />
+                  <div className="mt-7 h-[4.5rem] w-full shrink-0">
+                    <h3 className="text-h3 font-semibold text-foreground line-clamp-2">
+                      {sizeTemplate.t}
+                    </h3>
+                  </div>
+                  <p className="mt-3 text-body text-ink-muted">{sizeTemplate.b}</p>
+                </div>
+                <div className="absolute inset-0 flex flex-col rounded-[32px] border border-border/30 bg-gradient-to-br from-card via-card to-rose-soft/35 p-9 text-left shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)] transition-[transform,box-shadow] duration-300 ease-out motion-reduce:transition-none lg:p-10 md:group-hover:-translate-y-1.5 md:group-hover:shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)] motion-reduce:hover:transform-none">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-card ring-2 ring-raspberry/25 shadow-soft">
+                    <Icon className="h-7 w-7 text-berry" strokeWidth={1.5} />
+                  </div>
+                  <div className="mt-7 flex h-[4.5rem] w-full shrink-0 items-start">
+                    <h3 className="text-h3 font-semibold text-foreground line-clamp-2">{t}</h3>
+                  </div>
+                  <p className="mt-3 text-body text-ink-muted">{b}</p>
+                </div>
               </div>
-              <h3 className="mt-7 text-h3 font-semibold text-foreground">{t}</h3>
-              <p className="mt-3 text-body text-ink-muted">{b}</p>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
       </div>
@@ -704,61 +748,57 @@ function EmpoweringCards() {
 /* ---------- SECTION 6: MEET PIA ---------- */
 function PiaSection() {
   return (
-    <section id="pia" className="relative overflow-hidden bg-gradient-to-b from-rose/30 via-rose/20 to-background py-16 md:py-24 lg:py-[120px]">
-      <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 md:px-12 lg:grid-cols-3 lg:gap-12">
-        <div className="relative flex justify-center lg:justify-start">
-          <div className="relative">
-            <div className="absolute -inset-8 -z-10 rounded-full bg-rose/60 blur-3xl" />
-            <div className="overflow-hidden rounded-[32px] bg-background shadow-[0_30px_60px_-25px_rgba(229,75,122,0.25)] ring-1 ring-border/40">
-              <img
-                src={piaIllo}
-                alt="Pia, your money bestie"
-                width={1024}
-                height={1024}
-                loading="lazy"
-                className="h-80 w-80 object-cover"
-              />
-            </div>
-            <div className="absolute -bottom-5 -right-3 flex items-center gap-2.5 rounded-2xl bg-card px-3.5 py-2.5 shadow-[0_12px_32px_-12px_rgba(47,47,47,0.18)] ring-1 ring-border/40">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-              </span>
-              <div>
-                <p className="text-body-sm font-semibold text-foreground">Pia is online</p>
-                <p className="text-body-sm text-ink-muted">Usually replies in seconds</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="text-center lg:text-left">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1 text-body font-semibold text-raspberry ring-1 ring-raspberry/20">
-            <Heart className="h-3 w-3 fill-current text-raspberry" />
+    <section
+      id="pia"
+      className="section-bridge-out relative overflow-hidden bg-gradient-to-b from-rose-soft/40 via-rose/25 to-rose-soft/20 py-14 md:bg-gradient-to-br md:from-rose-soft/35 md:via-rose/30 md:to-rose-soft/45 md:py-20 lg:py-24"
+      style={{ "--bridge-out-opacity": "0.38" } as CSSProperties}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(229,75,122,0.14),transparent_58%)]"
+        aria-hidden
+      />
+      <div className="relative z-[2] mx-auto w-full max-w-3xl px-6 md:px-8">
+        <ScrollReveal className="flex w-full flex-col items-center text-center">
+          <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-card/95 px-4 py-1.5 text-body font-semibold text-raspberry shadow-soft ring-1 ring-raspberry/25">
+            <Heart className="h-3.5 w-3.5 shrink-0 fill-current text-raspberry" />
             Your money bestie
           </span>
-          <h2 className="mt-5 text-h1 font-semibold text-foreground md:text-display-md">
+          <h2 className="mt-5 w-full text-h1 font-semibold text-foreground md:text-display-md">
             Meet Pia
-            <br />
-            <span className="text-raspberry">
-              Always in your corner
-            </span>
           </h2>
-          <p className="mx-auto mt-6 max-w-md text-body text-ink-muted lg:mx-0">
-            A warm, judgment-free guide that explains, encourages, and cheers you on, whether you're saving your first $100 or planning your next big move.
+          <p className="mt-5 w-full text-body-lg text-ink-muted">
+            A warm guide that explains, encourages, and cheers you on, whether you&apos;re saving
+            your first $100 or planning your next big move.
           </p>
+        </ScrollReveal>
+
+        <ScrollReveal delay={90} className="relative mx-auto mt-10 w-full md:mt-12">
+          <div
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-72 w-[92%] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose/55 blur-[72px]"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-56 w-[78%] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-full bg-raspberry/28 blur-[56px]"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-40 w-[65%] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-full bg-berry/18 blur-[40px]"
+            aria-hidden
+          />
+          <div className="relative z-[1]">
+            <ChatPreview />
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal delay={160} className="mt-8 flex justify-center">
           <a
             href="#download"
-            className="mt-9 inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-raspberry px-6 text-body-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-90"
+            className="inline-flex h-14 min-w-[11.5rem] items-center justify-center gap-2 rounded-full bg-raspberry px-8 text-body font-semibold text-primary-foreground shadow-soft transition hover:opacity-90"
           >
             <MessageCircle className="h-4 w-4" />
             Chat with Pia
           </a>
-        </div>
-
-        <div className="lg:justify-self-end">
-          <ChatPreview />
-        </div>
+        </ScrollReveal>
       </div>
     </section>
   );
@@ -766,28 +806,19 @@ function PiaSection() {
 
 function ChatPreview() {
   return (
-    <div className="w-full max-w-sm rounded-[32px] border border-border/50 bg-card p-5 shadow-card">
-      <div className="flex items-center justify-between border-b border-border/50 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 overflow-hidden rounded-full bg-rose">
-            <img src={piaIllo} alt="" className="h-full w-full object-cover" />
-          </div>
-          <p className="text-body-sm font-semibold text-foreground">Pia</p>
+    <div className="w-full rounded-[32px] border border-border/40 bg-card/95 p-6 shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)] backdrop-blur-sm md:p-7">
+      <div className="flex items-center gap-3 border-b border-border/50 pb-5">
+        <div className="h-11 w-11 overflow-hidden rounded-full bg-rose ring-2 ring-background">
+          <img src={piaIllo} alt="" className="h-full w-full object-cover" />
         </div>
-        <MoreHorizontal className="h-4 w-4 text-ink-muted" />
+        <p className="text-body font-semibold text-foreground">Pia</p>
       </div>
-      <div className="space-y-3 pt-4">
-        <div className="max-w-[85%] rounded-2xl rounded-tl-md bg-surface px-4 py-3 text-body-sm text-foreground">
-          Hi Jennifer! <span aria-hidden>✨</span>
-          <br />
+      <div className="space-y-4 pt-5">
+        <div className="max-w-[88%] rounded-2xl rounded-tl-md bg-surface px-5 py-3.5 text-body text-foreground">
           What can I help you with today?
         </div>
-        <p className="text-body-sm text-ink-muted">9:45 AM</p>
-        <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-md bg-raspberry px-4 py-3 text-body-sm text-background">
+        <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-raspberry px-5 py-3.5 text-body text-background">
           How can I start saving for a trip?
-        </div>
-        <div className="max-w-[85%] rounded-2xl rounded-tl-md bg-surface px-4 py-3 text-body-sm text-foreground">
-          Love that! Let's set up a goal. Even $40 a week gets you to $2,000 in a year. ✨
         </div>
       </div>
     </div>
@@ -799,22 +830,30 @@ const faqItems = FAQ_ITEMS;
 
 function Faq() {
   return (
-    <section id="faq" className="bg-background py-16 md:py-24 lg:py-[120px]">
-      <div className="mx-auto max-w-3xl px-6 md:px-12">
-        <h2 className="text-center text-h1 font-semibold text-foreground md:text-display-md">
-          <span className="font-display italic">FAQ</span>
-        </h2>
-        <div className="mt-14 overflow-hidden rounded-[32px] border border-border/50 bg-card shadow-soft divide-y divide-border/60">
-          {faqItems.map((item, i) => (
-            <details key={item.q} open={i === 0} className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-left marker:content-none [&::-webkit-details-marker]:hidden">
-                <span className="text-body font-medium text-foreground">{item.q}</span>
-                <Plus className="h-5 w-5 shrink-0 text-raspberry transition-transform duration-300 group-open:rotate-45" />
-              </summary>
-              <p className="px-6 pb-6 text-body text-ink-muted">{item.a}</p>
-            </details>
-          ))}
-        </div>
+    <section
+      id="faq"
+      className="section-bridge-in bg-background pt-12 pb-16 md:pt-16 md:pb-24 lg:pt-16 lg:pb-[120px]"
+      style={{ "--bridge-in-opacity": "0.14" } as CSSProperties}
+    >
+      <div className="relative z-[2] mx-auto max-w-3xl px-6 md:px-12">
+        <ScrollReveal>
+          <h2 className="text-center text-h1 font-semibold text-foreground md:text-display-md">
+            <span className="font-display italic">FAQ</span>
+          </h2>
+        </ScrollReveal>
+        <ScrollReveal delay={80}>
+          <div className="mt-14 overflow-hidden rounded-[32px] border border-border/50 bg-card shadow-soft divide-y divide-border/60">
+            {faqItems.map((item, i) => (
+              <details key={item.q} open={i === 0} className="group">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-left marker:content-none [&::-webkit-details-marker]:hidden">
+                  <span className="text-body font-medium text-foreground">{item.q}</span>
+                  <Plus className="h-5 w-5 shrink-0 text-raspberry transition-transform duration-300 group-open:rotate-45" />
+                </summary>
+                <p className="px-6 pb-6 text-body text-ink-muted">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </ScrollReveal>
       </div>
     </section>
   );
