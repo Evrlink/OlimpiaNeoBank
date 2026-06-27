@@ -423,25 +423,25 @@ function TrustStrip() {
 function GoalsSection() {
   const items = [
     {
-      icon: Briefcase,
-      title: "Savings Goals",
-      body: "Build savings goals powered by USDC and modern money tools.",
+      icon: Send,
+      title: "Send USDC",
+      body: "Send USDC in seconds to anyone anywhere in the world.",
       details:
-        "Save toward your goals while your USDC can earn 3–5% in trusted lending markets. Your money stays available. Move it back to your bank whenever you need it. No lockups or long-term commitments.",
+        "Send USDC in seconds to anyone anywhere in the world.",
     },
     {
       icon: CreditCard,
-      title: "Virtual Card",
-      body: "Spend anywhere Visa is accepted.",
+      title: "Virtual Debit Card",
+      body: "Spend anywhere Visa is accepted, earn cash back rewards.",
       details:
         "Spend your stablecoin balance anywhere Visa is accepted. Top up your card from your wallet with a single tap. Use your card for everyday purchases online and in stores.",
     },
     {
       icon: TrendingUp,
-      title: "Earn on Your Balance",
-      body: "Grow your money with USDC yield.",
+      title: "Earn Yield",
+      body: "Hold USDC and earn yield. Swap between USDC and USD easily.",
       details:
-        "Your balance earns USDC yield while it sits. Olimpia connects you to the same lending markets used by professional investors, currently paying 3–5% a year on USDC. No lockups. Withdraw anytime.",
+        "Your balance earns USDC yield while it sits. Olimpia connects you to the same lending markets used by professional investors. No lockups. Withdraw anytime.",
     },
     {
       icon: GraduationCap,
@@ -455,14 +455,14 @@ function GoalsSection() {
   const toggle = (title: string) =>
     setFlipped((p) => ({ ...p, [title]: !p[title] }));
   return (
-    <section id="features" className="bg-background py-16 md:py-24 lg:py-[120px]">
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-balance text-h1 font-semibold text-foreground md:text-display-md">
-            A financial ecosystem designed to empower you
+    <section id="features" className="relative overflow-hidden bg-gradient-to-b from-background via-rose-soft/18 to-background py-16 md:py-24 lg:py-[120px]">
+      <div className="relative mx-auto max-w-7xl px-6 md:px-12">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-balance text-h2 font-semibold text-foreground md:text-h1">
+            A financial ecosystem, offering more opportunity than your bank
           </h2>
           <p className="mt-6 text-body text-ink-muted">
-            Whether you&apos;re saving, investing, or planning for the future, Olimpia helps you access decentralized finance (DeFi) so you can make confident financial decisions.
+            Stablecoin payments, virtual debit card, yield on USDC, and learning tools to support your growth.
           </p>
         </div>
         <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:mt-24 lg:grid-cols-4 lg:gap-7">
@@ -471,10 +471,23 @@ function GoalsSection() {
             return (
               <div
                 key={title}
-                className="goal-card-shell group perspective-1000 min-h-[340px] md:transition-transform md:duration-300 md:ease-out md:hover:-translate-y-1.5"
+                className="goal-card-shell group relative h-full perspective-1000 md:transition-transform md:duration-300 md:ease-out md:hover:-translate-y-1.5"
               >
                 <div
-                  className={`goal-card-flip relative h-full w-full preserve-3d transition-transform duration-[650ms] ease-[cubic-bezier(0.33,1,0.68,1)] ${isFlipped ? "rotate-y-180" : ""}`}
+                  className="pointer-events-none invisible flex flex-col items-center px-8 pt-8 pb-9"
+                  aria-hidden="true"
+                >
+                  <div className="h-16 w-16 shrink-0" />
+                  <div className="mt-6 h-16 w-full shrink-0 px-1">
+                    <h3 className="text-balance text-h3 font-semibold text-foreground line-clamp-2">
+                      {title}
+                    </h3>
+                  </div>
+                  <p className="mt-3 text-body text-ink-muted">{body}</p>
+                  <span className="mt-6 text-body-sm font-medium">Learn more</span>
+                </div>
+                <div
+                  className={`goal-card-flip absolute inset-0 h-full w-full preserve-3d transition-transform duration-[650ms] ease-[cubic-bezier(0.33,1,0.68,1)] ${isFlipped ? "rotate-y-180" : ""}`}
                 >
                   {/* Front */}
                   <button
@@ -482,14 +495,18 @@ function GoalsSection() {
                     onClick={() => toggle(title)}
                     aria-expanded={isFlipped}
                     aria-label={`${title}. Learn more`}
-                    className="goal-card-face backface-hidden absolute inset-0 flex w-full cursor-pointer flex-col items-center rounded-[32px] border border-border/30 bg-background p-10 text-center font-inherit text-inherit shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)] transition-shadow duration-300 ease-out md:group-hover:shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)]"
+                    className="goal-card-face backface-hidden absolute inset-0 flex h-full w-full cursor-pointer flex-col items-center px-8 pt-8 pb-9 text-center font-inherit text-inherit rounded-[32px] border border-border/30 bg-gradient-to-br from-card via-card to-rose-soft/25 shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)] transition-shadow duration-300 ease-out md:group-hover:shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)]"
                   >
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rose/70">
-                      <Icon className="h-7 w-7 text-raspberry" strokeWidth={1.5} />
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-card ring-2 ring-raspberry/25 shadow-soft">
+                      <Icon className="h-7 w-7 text-berry" strokeWidth={1.5} />
                     </div>
-                    <h3 className="mt-7 text-h3 font-semibold text-foreground">{title}</h3>
-                    <p className="mt-2.5 text-body text-ink-muted">{body}</p>
-                    <span className="goal-card-action mt-auto inline-flex items-center pt-7 text-body-sm font-medium text-raspberry">
+                    <div className="mt-6 flex h-16 w-full shrink-0 items-start justify-center px-1">
+                      <h3 className="text-balance text-h3 font-semibold text-foreground line-clamp-2">
+                        {title}
+                      </h3>
+                    </div>
+                    <p className="mt-3 text-body text-ink-muted">{body}</p>
+                    <span className="goal-card-action mt-auto inline-flex shrink-0 items-center pt-6 text-body-sm font-medium text-raspberry">
                       Learn more
                     </span>
                   </button>
