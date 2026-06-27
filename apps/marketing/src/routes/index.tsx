@@ -670,14 +670,10 @@ function EmpoweringCards() {
             How it works
           </p>
           <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
-            Simpler than a bank account
-            <br />
-            More empowering than one
+            Simple to use, built to do more
           </h2>
           <p className="mt-6 text-body text-ink-muted">
-            Olimpia helps you save, grow, and explore decentralized finance with a digital wallet you
-            control, financial tools, and guidance when you need it. Your bank helps you store money.
-            Olimpia helps you do more with it.
+            Easy access to decentralized finance.
           </p>
         </div>
         <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-20 lg:gap-8">
