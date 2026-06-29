@@ -383,6 +383,10 @@
     transform-origin: 58% 52%;
   }
 
+  .hero-phone-device.hero-phone-device--interactive {
+    will-change: transform;
+  }
+
   .hero-phone-float-accent {
     position: absolute;
     z-index: 30;
@@ -535,6 +539,10 @@
     .hero-phone-device {
       animation-name: hero-phone-sway-tilt;
     }
+
+    .hero-phone-device.hero-phone-device--interactive {
+      animation: none;
+    }
   }
 
   @keyframes hero-phone-enter {
@@ -568,6 +576,58 @@
 
     50% {
       transform: perspective(1300px) rotateY(-14deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-phone-pia-bubble {
+      opacity: 0;
+      transform: translate3d(0, 6px, 0);
+      animation: hero-phone-bubble-in 0.65s cubic-bezier(0.33, 1, 0.68, 1) 0.85s forwards;
+    }
+
+    .hero-phone-yield-badge {
+      animation: hero-phone-yield-pulse 2.5s ease-in-out 2s infinite;
+    }
+
+    .hero-phone-month-gain {
+      opacity: 0;
+      animation: hero-phone-fade-in 0.55s ease-out 1.75s forwards;
+    }
+
+    .hero-phone-progress-bar {
+      width: 0;
+      animation: hero-phone-progress-fill 1.35s cubic-bezier(0.33, 1, 0.68, 1) 1.05s forwards;
+    }
+  }
+
+  @keyframes hero-phone-bubble-in {
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes hero-phone-yield-pulse {
+    0%,
+    100% {
+      background-color: rgb(255 255 255 / 0.1);
+    }
+
+    50% {
+      background-color: rgb(255 255 255 / 0.2);
+    }
+  }
+
+  @keyframes hero-phone-fade-in {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes hero-phone-progress-fill {
+    to {
+      width: 45%;
     }
   }
 

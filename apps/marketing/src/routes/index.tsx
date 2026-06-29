@@ -27,6 +27,7 @@ import piaIllo from "@/assets/pia-raspberry.png";
 import eiffel from "@/assets/eiffel.jpg";
 import { ScrollReveal } from "@/components/scroll-reveal";
 import { HeroPaperBackground } from "@/components/hero-paper-background";
+import { HeroPhoneDevice, useHeroPhoneBalanceCount } from "@/components/hero-phone-device";
 import {
   FAQ_ITEMS,
   OLIMPIA_DEFINITION,
@@ -169,7 +170,7 @@ function Hero() {
           <div className="hero-phone-wrap relative">
             <div className="hero-phone-shadow-contact" aria-hidden />
             <div className="hero-phone-shadow-ambient" aria-hidden />
-            <div className="hero-phone-device">
+            <HeroPhoneDevice>
               <div className="hero-phone-float-accent" aria-hidden>
                 <div className="hero-phone-float-card">
                   <img src={piaIllo} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-background" />
@@ -180,7 +181,7 @@ function Hero() {
                 </div>
               </div>
               <PhoneMockup variant="hero" />
-            </div>
+            </HeroPhoneDevice>
           </div>
         </div>
       </div>
@@ -198,6 +199,12 @@ function Hero() {
  * Do not migrate them to the marketing type tokens. */
 function PhoneMockup({ variant = "full" }: { variant?: "hero" | "full" }) {
   const isHero = variant === "hero";
+  const [motionEnabled, setMotionEnabled] = useState(false);
+  const heroBalance = useHeroPhoneBalanceCount(isHero && motionEnabled);
+
+  useEffect(() => {
+    setMotionEnabled(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
 
   const tabItems = [
     { Icon: HomeIcon, label: "Home", active: true },
@@ -264,23 +271,38 @@ function PhoneMockup({ variant = "full" }: { variant?: "hero" | "full" }) {
               <div className="h-9 w-9 rounded-full bg-gradient-to-br from-rose to-raspberry/60 ring-2 ring-background" />
             </div>
 
+            {isHero ? (
+              <div className="hero-phone-pia-bubble mt-3 flex items-start gap-2 rounded-2xl rounded-bl-md border border-border/40 bg-card/95 px-2.5 py-2 shadow-soft">
+                <img
+                  src={piaIllo}
+                  alt=""
+                  className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-background"
+                />
+                <p className="text-[10px] leading-snug text-foreground">
+                  <span className="font-semibold text-raspberry">Pia</span>
+                  <span className="text-ink-muted"> · You&apos;re on track for Europe!</span>
+                </p>
+              </div>
+            ) : null}
+
             {/* Balance card */}
-            <div className="mt-6 rounded-2xl bg-[#111] p-5 text-background shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <div className={`rounded-2xl bg-[#111] p-5 text-background shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${isHero ? "mt-4" : "mt-6"}`}>
               <div className="flex items-center justify-between">
                 <p className="text-[10px] uppercase tracking-[0.18em] text-background/60">
                   Total balance
                 </p>
                 <span className="text-[10px] text-background/60">USD</span>
               </div>
-              <p className="mt-2 text-[28px] font-semibold tracking-tight">
-                $4,280<span className="text-background/50">.00</span>
+              <p className="hero-phone-balance mt-2 text-[28px] font-semibold tracking-tight">
+                ${isHero ? heroBalance.toLocaleString("en-US") : "4,280"}
+                <span className="text-background/50">.00</span>
               </p>
               <div className="mt-3 flex items-center gap-1.5 text-[11px]">
-                <span className="inline-flex items-center gap-1 rounded-full bg-background/10 px-2 py-0.5 font-medium">
+                <span className="hero-phone-yield-badge inline-flex items-center gap-1 rounded-full bg-background/10 px-2 py-0.5 font-medium">
                   <ArrowUpRight className="h-3 w-3" strokeWidth={2.5} />
                   4.2%
                 </span>
-                <span className="text-background/60">+$280.00 this month</span>
+                <span className="text-background/60 hero-phone-month-gain">+$280.00 this month</span>
               </div>
             </div>
 
@@ -331,7 +353,9 @@ function PhoneMockup({ variant = "full" }: { variant?: "hero" | "full" }) {
                     <span className="font-semibold text-foreground">$2,250</span> of $5,000
                   </p>
                   <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface">
-                    <div className="h-full w-[45%] rounded-full bg-raspberry" />
+                    <div
+                      className={`h-full rounded-full bg-raspberry ${isHero ? "hero-phone-progress-bar w-[45%]" : "w-[45%]"}`}
+                    />
                   </div>
                 </div>
               </div>
@@ -714,7 +738,7 @@ function EmpoweringCards() {
           </h2>
           <p className="mt-6 text-body text-ink-muted">
             More growth, less complexity, with you in charge. Simple tools that give you easy access
-            to decentralized finance (DeFi)
+            to decentralized finance (DeFi).
           </p>
         </ScrollReveal>
         <div className="mx-auto mt-12 grid max-w-5xl auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-14 lg:gap-8">
