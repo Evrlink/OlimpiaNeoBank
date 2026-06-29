@@ -368,7 +368,6 @@
   }
 
   .hero-phone-stage {
-    padding-top: 0.5rem;
     isolation: isolate;
     overflow: visible;
   }
@@ -487,8 +486,7 @@
 
   @media (min-width: 768px) {
     .hero-phone-stage {
-      padding-top: 0.5rem;
-      transform: translateX(-0.5rem);
+      transform: translate(-0.5rem, -10px);
     }
 
     .hero-phone-shadow-contact {
@@ -515,7 +513,7 @@
 
   @media (min-width: 1024px) {
     .hero-phone-stage {
-      transform: translateX(-0.75rem);
+      transform: translate(-0.75rem, -10px);
     }
 
     .hero-phone-device {

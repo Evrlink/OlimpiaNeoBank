@@ -134,7 +134,7 @@ function Hero() {
   return (
     <section className="hero-section relative isolate overflow-hidden">
       <HeroPaperBackground />
-      <div className="relative z-[1] mx-auto grid max-w-7xl items-center gap-10 px-6 pt-14 pb-8 md:grid-cols-2 md:items-start md:gap-14 md:px-12 md:pt-20 md:pb-10 lg:pb-12">
+      <div className="relative z-[1] mx-auto grid max-w-7xl items-center gap-10 px-6 pt-14 pb-8 md:grid-cols-2 md:items-center md:gap-14 md:px-12 md:pt-20 md:pb-10 lg:pb-12">
         <div className="max-w-xl lg:max-w-2xl">
           <p className="marketing-eyebrow hero-eyebrow">
             Helping women participate in DeFi
@@ -165,7 +165,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hero-phone-stage relative z-20 flex justify-center md:justify-end md:pt-4 lg:pt-6">
+        <div className="hero-phone-stage relative z-20 flex justify-center max-md:py-10 md:justify-end">
           <div className="hero-phone-wrap relative">
             <div className="hero-phone-shadow-contact" aria-hidden />
             <div className="hero-phone-shadow-ambient" aria-hidden />
