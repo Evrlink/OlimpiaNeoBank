@@ -441,9 +441,12 @@ function TrustStrip() {
   const partners = ["Circle", "Bridge", "Plaid", "Visa", "MoonPay", "Stripe"];
   const loop = [...partners, ...partners];
   return (
-    <section className="section-pad border-y border-border/50 bg-surface/60">
+    <section
+      className="section-pad section-bridge-in relative overflow-hidden border-y border-border/50 bg-surface/60"
+      style={{ "--bridge-in-opacity": "0.26" } as CSSProperties}
+    >
       <div className="mx-auto max-w-7xl px-6 text-center md:px-12">
-        <ScrollReveal>
+        <ScrollReveal emphasis>
           <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
             Built on trusted infrastructure
           </h2>
@@ -451,7 +454,7 @@ function TrustStrip() {
             Powered by industry-leading providers in security, compliance, and payments.
           </p>
         </ScrollReveal>
-        <ScrollReveal delay={110} className="marquee mt-12">
+        <ScrollReveal emphasis delay={110} className="marquee mt-12">
           <div className="marquee-track gap-x-16 md:gap-x-24 opacity-70">
             {loop.map((p, i) => (
               <span
@@ -507,7 +510,7 @@ function GoalsSection() {
   return (
     <section id="features" className="section-pad section-bridge-out relative overflow-hidden bg-gradient-to-b from-background via-rose-soft/18 to-background">
       <div className="relative mx-auto max-w-7xl px-6 md:px-12">
-        <ScrollReveal className="mx-auto max-w-3xl text-center">
+        <ScrollReveal emphasis className="mx-auto max-w-3xl text-center">
           <h2 className="text-balance text-h2 font-semibold text-foreground md:text-h1">
             A financial ecosystem, offering more opportunity than your bank
           </h2>
@@ -519,7 +522,7 @@ function GoalsSection() {
           {items.map(({ icon: Icon, title, body, details }, index) => {
             const isFlipped = !!flipped[title];
             return (
-              <ScrollReveal key={title} delay={index * 100} className="h-full">
+              <ScrollReveal emphasis key={title} delay={index * 50} className="h-full">
               <div
                 className="goal-card-shell group relative h-full perspective-1000 md:transition-transform md:duration-300 md:ease-out md:hover:-translate-y-1.5"
               >
@@ -612,13 +615,13 @@ function WhyUsdcSection() {
       className="section-pad section-bridge-in section-bridge-out relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28"
       style={
         {
-          "--bridge-in-opacity": "0.22",
-          "--bridge-out-opacity": "0.16",
+          "--bridge-in-opacity": "0.28",
+          "--bridge-out-opacity": "0.22",
         } as CSSProperties
       }
     >
       <div className="relative z-[2] mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-16 md:px-12 lg:gap-20">
-        <ScrollReveal className="max-w-xl">
+        <ScrollReveal emphasis className="max-w-xl">
           <p className="marketing-eyebrow">
             Money, faster and more flexible
           </p>
@@ -645,7 +648,7 @@ function WhyUsdcSection() {
           </div>
         </ScrollReveal>
 
-        <ScrollReveal delay={160} className="relative flex justify-center md:justify-end">
+        <ScrollReveal emphasis delay={160} className="relative flex justify-center md:justify-end">
           <UsdcProductPreview />
         </ScrollReveal>
       </div>
@@ -732,7 +735,7 @@ function EmpoweringCards() {
         aria-hidden
       />
       <div className="relative z-[2] mx-auto max-w-7xl px-6 md:px-12">
-        <ScrollReveal className="mx-auto max-w-2xl text-center">
+        <ScrollReveal emphasis className="mx-auto max-w-2xl text-center">
           <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
             The upside is yours
           </h2>
@@ -743,7 +746,7 @@ function EmpoweringCards() {
         </ScrollReveal>
         <div className="mx-auto mt-12 grid max-w-5xl auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-14 lg:gap-8">
           {items.map(({ icon: Icon, t, b }, index) => (
-            <ScrollReveal key={t} delay={index * 100} className="h-full">
+            <ScrollReveal emphasis key={t} delay={index * 50} className="h-full">
               <div className="group relative h-full">
                 <div
                   className="pointer-events-none invisible flex flex-col p-9 text-left lg:p-10"
@@ -781,14 +784,14 @@ function PiaSection() {
     <section
       id="pia"
       className="section-pad section-bridge-out relative overflow-hidden bg-gradient-to-b from-rose-soft/40 via-rose/25 to-rose-soft/20 md:bg-gradient-to-br md:from-rose-soft/35 md:via-rose/30 md:to-rose-soft/45"
-      style={{ "--bridge-out-opacity": "0.38" } as CSSProperties}
+      style={{ "--bridge-out-opacity": "0.44" } as CSSProperties}
     >
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(229,75,122,0.14),transparent_58%)]"
         aria-hidden
       />
       <div className="relative z-[2] mx-auto w-full max-w-3xl px-6 md:px-8">
-        <ScrollReveal className="flex w-full flex-col items-center text-center">
+        <ScrollReveal emphasis className="flex w-full flex-col items-center text-center">
           <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-card/95 px-4 py-1.5 text-body font-semibold text-raspberry shadow-soft ring-1 ring-raspberry/25">
             <Heart className="h-3.5 w-3.5 shrink-0 fill-current text-raspberry" />
             Your money bestie
@@ -802,7 +805,7 @@ function PiaSection() {
           </p>
         </ScrollReveal>
 
-        <ScrollReveal delay={120} className="relative mx-auto mt-10 w-full md:mt-12">
+        <ScrollReveal emphasis delay={120} className="relative mx-auto mt-10 w-full md:mt-12">
           <div
             className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-72 w-[92%] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose/55 blur-[72px]"
             aria-hidden
@@ -820,7 +823,7 @@ function PiaSection() {
           </div>
         </ScrollReveal>
 
-        <ScrollReveal delay={200} className="mt-8 flex justify-center">
+        <ScrollReveal emphasis delay={200} className="mt-8 flex justify-center">
           <a
             href="#download"
             className="inline-flex h-14 min-w-[11.5rem] items-center justify-center gap-2 rounded-full bg-raspberry px-8 text-body font-semibold text-primary-foreground shadow-soft transition hover:opacity-90"
@@ -863,15 +866,15 @@ function Faq() {
     <section
       id="faq"
       className="section-pad section-bridge-in bg-background"
-      style={{ "--bridge-in-opacity": "0.14" } as CSSProperties}
+      style={{ "--bridge-in-opacity": "0.2" } as CSSProperties}
     >
       <div className="relative z-[2] mx-auto max-w-3xl px-6 md:px-12">
-        <ScrollReveal>
+        <ScrollReveal emphasis>
           <h2 className="text-center text-h1 font-semibold text-foreground md:text-display-md">
             <span className="font-display italic">FAQ</span>
           </h2>
         </ScrollReveal>
-        <ScrollReveal delay={110}>
+        <ScrollReveal emphasis delay={110}>
           <div className="mt-14 overflow-hidden rounded-[32px] border border-border/50 bg-card shadow-soft divide-y divide-border/60">
             {faqItems.map((item, i) => (
               <details key={item.q} open={i === 0} className="group">

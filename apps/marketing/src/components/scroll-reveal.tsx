@@ -6,9 +6,11 @@ type ScrollRevealProps = {
   className?: string;
   /** Stagger delay in milliseconds */
   delay?: number;
+  /** Slightly stronger motion for main content sections */
+  emphasis?: boolean;
 };
 
-export function ScrollReveal({ children, className, delay = 0 }: ScrollRevealProps) {
+export function ScrollReveal({ children, className, delay = 0, emphasis = false }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -28,17 +30,21 @@ export function ScrollReveal({ children, className, delay = 0 }: ScrollRevealPro
           observer.disconnect();
         }
       },
-      { threshold: 0.08, rootMargin: "0px 0px 5% 0px" },
+      {
+        threshold: emphasis ? 0.14 : 0.08,
+        // Negative bottom margin: animate as the block enters the viewport, not before.
+        rootMargin: emphasis ? "0px 0px -10% 0px" : "0px 0px 12% 0px",
+      },
     );
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [emphasis]);
 
   return (
     <div
       ref={ref}
-      className={cn("scroll-reveal", visible && "is-visible", className)}
+      className={cn("scroll-reveal", emphasis && "scroll-reveal--emphasis", visible && "is-visible", className)}
       style={{ "--reveal-delay": `${delay}ms` } as CSSProperties}
     >
       {children}
