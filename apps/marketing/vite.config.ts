@@ -21,5 +21,8 @@ export default defineConfig({
       port: 3000,
       strictPort: true,
     },
+    optimizeDeps: {
+      include: ["@paper-design/shaders-react", "@paper-design/shaders"],
+    },
   },
 });

@@ -26,6 +26,7 @@ import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
 import eiffel from "@/assets/eiffel.jpg";
 import { ScrollReveal } from "@/components/scroll-reveal";
+import { HeroPaperBackground } from "@/components/hero-paper-background";
 import {
   FAQ_ITEMS,
   OLIMPIA_DEFINITION,
@@ -97,7 +98,7 @@ function Nav() {
   const activeSection = useActiveSection(NAV_SECTIONS);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/40 bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 bg-background">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12">
         <Link to="/" className="font-display text-[1.65rem] leading-[1.3] tracking-tight text-berry">
           Olimpia
@@ -132,21 +133,22 @@ function Nav() {
 function Hero() {
   return (
     <section className="hero-section relative isolate overflow-hidden">
-      <div className="relative z-[1] mx-auto grid max-w-7xl items-center gap-16 px-6 pt-20 pb-12 md:grid-cols-2 md:items-start md:gap-20 md:px-12 md:pt-32 md:pb-16 lg:pb-20">
+      <HeroPaperBackground />
+      <div className="relative z-[1] mx-auto grid max-w-7xl items-center gap-10 px-6 pt-14 pb-8 md:grid-cols-2 md:items-start md:gap-14 md:px-12 md:pt-20 md:pb-10 lg:pb-12">
         <div className="max-w-xl lg:max-w-2xl">
-          <p className="marketing-eyebrow">
+          <p className="marketing-eyebrow hero-eyebrow">
             Helping women participate in DeFi
           </p>
-          <h1 className="mt-8 text-h1 font-semibold text-foreground md:text-h1 lg:text-display-md">
+          <h1 className="mt-6 text-h1 font-medium tracking-normal text-berry md:text-h1 lg:text-display-md">
             You belong here
           </h1>
-          <p className="mt-8 max-w-lg text-body-lg text-ink-muted">
+          <p className="mt-6 max-w-lg hero-copy">
             DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created to help women participate in decentralized finance. Discover new opportunities beyond a traditional bank. Set savings goals, explore optional yield on USDC, and learn with Pia, your AI money bestie.
           </p>
-          <p className="mt-6 max-w-lg marketing-eyebrow">
+          <p className="mt-6 max-w-lg marketing-eyebrow hero-eyebrow">
             More choices. More freedom.
           </p>
-          <div className="mt-12 flex flex-wrap items-center gap-4">
+          <div className="mt-8 flex flex-wrap items-center gap-4">
             <button
               type="button"
               onClick={openWaitlist}
@@ -163,7 +165,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hero-phone-stage relative z-20 flex justify-center md:justify-end md:pt-10 lg:pt-12">
+        <div className="hero-phone-stage relative z-20 flex justify-center md:justify-end md:pt-4 lg:pt-6">
           <div className="hero-phone-wrap relative">
             <div className="hero-phone-shadow-contact" aria-hidden />
             <div className="hero-phone-shadow-ambient" aria-hidden />
@@ -415,7 +417,7 @@ function TrustStrip() {
   const partners = ["Circle", "Bridge", "Plaid", "Visa", "MoonPay", "Stripe"];
   const loop = [...partners, ...partners];
   return (
-    <section className="border-y border-border/50 bg-surface/60 py-16 md:py-24 lg:py-[120px]">
+    <section className="section-pad border-y border-border/50 bg-surface/60">
       <div className="mx-auto max-w-7xl px-6 text-center md:px-12">
         <ScrollReveal>
           <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
@@ -479,7 +481,7 @@ function GoalsSection() {
   const toggle = (title: string) =>
     setFlipped((p) => ({ ...p, [title]: !p[title] }));
   return (
-    <section id="features" className="section-bridge-out relative overflow-hidden bg-gradient-to-b from-background via-rose-soft/18 to-background py-16 md:py-24 lg:py-[120px]">
+    <section id="features" className="section-pad section-bridge-out relative overflow-hidden bg-gradient-to-b from-background via-rose-soft/18 to-background">
       <div className="relative mx-auto max-w-7xl px-6 md:px-12">
         <ScrollReveal className="mx-auto max-w-3xl text-center">
           <h2 className="text-balance text-h2 font-semibold text-foreground md:text-h1">
@@ -489,7 +491,7 @@ function GoalsSection() {
             Stablecoin payments, virtual debit card, yield on USDC, and learning tools to support your growth.
           </p>
         </ScrollReveal>
-        <div className="mt-20 grid gap-6 sm:grid-cols-2 lg:mt-24 lg:grid-cols-4 lg:gap-7">
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:mt-16 lg:grid-cols-4 lg:gap-7">
           {items.map(({ icon: Icon, title, body, details }, index) => {
             const isFlipped = !!flipped[title];
             return (
@@ -583,7 +585,7 @@ function WhyUsdcSection() {
 
   return (
     <section
-      className="section-bridge-in section-bridge-out relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 pt-16 pb-12 md:pt-24 md:pb-16 lg:pt-[120px] lg:pb-16 md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28"
+      className="section-pad section-bridge-in section-bridge-out relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28"
       style={
         {
           "--bridge-in-opacity": "0.22",
@@ -699,8 +701,12 @@ function EmpoweringCards() {
   return (
     <section
       id="how"
-      className="section-bridge-in relative overflow-hidden bg-gradient-to-b from-surface/40 via-rose-soft/10 to-surface/40 py-16 md:py-24 lg:py-[120px]"
+      className="section-pad section-bridge-in relative overflow-hidden bg-gradient-to-b from-rose-soft/40 via-rose/25 to-rose-soft/20 md:bg-gradient-to-br md:from-rose-soft/35 md:via-rose/30 md:to-rose-soft/45"
     >
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(229,75,122,0.14),transparent_58%)]"
+        aria-hidden
+      />
       <div className="relative z-[2] mx-auto max-w-7xl px-6 md:px-12">
         <ScrollReveal className="mx-auto max-w-2xl text-center">
           <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
@@ -711,7 +717,7 @@ function EmpoweringCards() {
             to decentralized finance (DeFi)
           </p>
         </ScrollReveal>
-        <div className="mx-auto mt-16 grid max-w-5xl auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-20 lg:gap-8">
+        <div className="mx-auto mt-12 grid max-w-5xl auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-14 lg:gap-8">
           {items.map(({ icon: Icon, t, b }, index) => (
             <ScrollReveal key={t} delay={index * 100} className="h-full">
               <div className="group relative h-full">
@@ -750,7 +756,7 @@ function PiaSection() {
   return (
     <section
       id="pia"
-      className="section-bridge-out relative overflow-hidden bg-gradient-to-b from-rose-soft/40 via-rose/25 to-rose-soft/20 py-14 md:bg-gradient-to-br md:from-rose-soft/35 md:via-rose/30 md:to-rose-soft/45 md:py-20 lg:py-24"
+      className="section-pad section-bridge-out relative overflow-hidden bg-gradient-to-b from-rose-soft/40 via-rose/25 to-rose-soft/20 md:bg-gradient-to-br md:from-rose-soft/35 md:via-rose/30 md:to-rose-soft/45"
       style={{ "--bridge-out-opacity": "0.38" } as CSSProperties}
     >
       <div
@@ -832,7 +838,7 @@ function Faq() {
   return (
     <section
       id="faq"
-      className="section-bridge-in bg-background pt-12 pb-16 md:pt-16 md:pb-24 lg:pt-16 lg:pb-[120px]"
+      className="section-pad section-bridge-in bg-background"
       style={{ "--bridge-in-opacity": "0.14" } as CSSProperties}
     >
       <div className="relative z-[2] mx-auto max-w-3xl px-6 md:px-12">
@@ -890,7 +896,7 @@ function StayTunedSection() {
   };
 
   return (
-    <section id="download" className="border-t border-border/40 bg-background py-12 md:py-16 lg:py-20">
+    <section id="download" className="section-pad border-t border-border/40 bg-background">
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
           <div className="max-w-md shrink-0">
