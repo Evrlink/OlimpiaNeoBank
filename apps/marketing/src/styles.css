@@ -380,6 +380,7 @@
 
   .hero-phone-device {
     position: relative;
+    transform-origin: 58% 52%;
   }
 
   .hero-phone-float-accent {
@@ -506,7 +507,6 @@
     }
 
     .hero-phone-device {
-      transform: perspective(1300px) rotateY(-16deg);
       transform-origin: 58% 52%;
     }
   }
@@ -517,7 +517,6 @@
     }
 
     .hero-phone-device {
-      transform: perspective(1300px) rotateY(-16deg);
       transform-origin: 58% 52%;
     }
   }
@@ -525,6 +524,16 @@
   @media (prefers-reduced-motion: no-preference) {
     .hero-phone-stage {
       animation: hero-phone-enter 700ms cubic-bezier(0.33, 1, 0.68, 1) both;
+    }
+
+    .hero-phone-device {
+      animation: hero-phone-sway 5s ease-in-out 700ms infinite;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+    .hero-phone-device {
+      animation-name: hero-phone-sway-tilt;
     }
   }
 
@@ -537,6 +546,28 @@
     to {
       opacity: 1;
       translate: 0 0;
+    }
+  }
+
+  @keyframes hero-phone-sway {
+    0%,
+    100% {
+      transform: perspective(1200px) rotateY(3deg);
+    }
+
+    50% {
+      transform: perspective(1200px) rotateY(-3deg);
+    }
+  }
+
+  @keyframes hero-phone-sway-tilt {
+    0%,
+    100% {
+      transform: perspective(1300px) rotateY(-18deg);
+    }
+
+    50% {
+      transform: perspective(1300px) rotateY(-14deg);
     }
   }
 
