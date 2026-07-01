@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { SectionScrollReveal } from "@/components/scroll-reveal";
 import { SUPPORT_EMAIL } from "@/lib/seo";
 
 export function SiteFooter() {
@@ -6,7 +7,7 @@ export function SiteFooter() {
     <footer id="about" className="border-t border-border/60 bg-surface/80">
       <div className="mx-auto max-w-7xl px-6 py-12 md:px-12 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-12">
-          <div className="lg:col-span-5">
+          <SectionScrollReveal className="lg:col-span-5">
             <Link to="/" className="font-display text-h3 tracking-tight text-raspberry">
               Olimpia
             </Link>
@@ -14,9 +15,9 @@ export function SiteFooter() {
               Olimpia was created to help women build financial confidence and learn about
               decentralized finance.
             </p>
-          </div>
+          </SectionScrollReveal>
 
-          <div className="lg:col-span-3">
+          <SectionScrollReveal delay={80} className="lg:col-span-3">
             <p className="text-body-sm font-semibold uppercase tracking-[0.14em] text-foreground">
               Contact
             </p>
@@ -26,9 +27,9 @@ export function SiteFooter() {
             >
               {SUPPORT_EMAIL}
             </a>
-          </div>
+          </SectionScrollReveal>
 
-          <div className="lg:col-span-4">
+          <SectionScrollReveal delay={160} className="lg:col-span-4">
             <p className="text-body-sm font-semibold uppercase tracking-[0.14em] text-foreground">
               Resources
             </p>
@@ -49,7 +50,7 @@ export function SiteFooter() {
             <p className="mt-8 text-body-sm text-ink-muted">
               © {new Date().getFullYear()} Olimpia. All rights reserved.
             </p>
-          </div>
+          </SectionScrollReveal>
         </div>
       </div>
     </footer>

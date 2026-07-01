@@ -270,6 +270,59 @@
     isolation: isolate;
   }
 
+  .hero-inner {
+    gap: 2rem;
+    padding-top: 2.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .hero-inner {
+      gap: 2.5rem;
+      padding-top: 3.25rem;
+      padding-bottom: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero-inner {
+      padding-bottom: 2rem;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .hero-phone-stage {
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+  }
+
+  .trust-strip {
+    padding-top: 3.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .trust-strip {
+      padding-top: 4rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .trust-strip {
+      padding-top: 4.5rem;
+    }
+  }
+
+  /* Paper shader fades in once WebGL mounts (data-paper-shader set by @paper-design/shaders-react). */
+  .hero-paper-texture {
+    opacity: 0;
+    transition: opacity 420ms ease;
+  }
+
+  .hero-paper-texture[data-paper-shader] {
+    opacity: 1;
+  }
+
   /* Tighter vertical rhythm — lets the next section peek on scroll */
   .section-pad {
     padding-top: 3rem;
@@ -352,6 +405,11 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .hero-paper-texture {
+      opacity: 1;
+      transition: none;
+    }
+
     .hero-bg-gradient-drift,
     .hero-bg-sparkle {
       animation: none !important;
@@ -662,6 +720,18 @@
       scale: 1;
       filter: blur(0);
       will-change: auto;
+    }
+
+    @media (max-width: 767px) {
+      .scroll-reveal {
+        translate: 0 36px;
+      }
+
+      .scroll-reveal--emphasis {
+        translate: 0 48px;
+        scale: 0.97;
+        filter: blur(3px);
+      }
     }
   }
 
