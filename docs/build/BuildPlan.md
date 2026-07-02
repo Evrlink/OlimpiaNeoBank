@@ -14,11 +14,11 @@
 | **Marketing website** | Static site (e.g. Astro / Next static export) | `/`, `/learn/usdc`, `/llms.txt`, waitlist |
 | **Mobile app** | React Native monorepo | **iOS + Android simultaneous** — same codebase |
 | **Backend** | Node.js orchestrator | REST API, webhooks, provider integrations |
-| **Pia AI coach** | Anthropic API (server-side) | In-app chat — education, guidance, coaching only |
+| **Pia preview** | Static UI (mobile + marketing) | Coming Soon card — no live chat in MVP |
 
-**Wrapper model unchanged:** Integrate Privy, Base, Bridge, Gnosis Pay, LI.FI, yield layer (single provider), Resend, Anthropic. Do not build custom rails.
+**Wrapper model unchanged:** Integrate Privy, Base, Bridge, Gnosis Pay, LI.FI, yield layer (single provider), Resend. Do not build custom rails.
 
-**Explicitly out of MVP:** Base App · AI Financial Advisor · request money · multi-provider yield · physical card · push notifications · full transaction history screen · Your Growth progression system · trading / investment advice.
+**Explicitly out of MVP:** Base App · **functional Pia AI coach (live chat)** · Anthropic API · AI Financial Advisor · request money · multi-provider yield · physical card · push notifications · full transaction history screen · Your Growth progression system · trading / investment advice.
 
 ---
 
@@ -28,9 +28,8 @@
 2. **Backend before provider complexity** — ledger and auth first; external integrations in dependency order.
 3. **Parallel marketing** — static site does not block mobile; start early for waitlist and SEO.
 4. **Ledger-first features before chain-heavy features** — goals before P2P; P2P before card.
-5. **Pia after auth + goals** — coach needs user context; Anthropic integration is isolated and can ship without blocking money rails.
-6. **Single yield provider** — Architecture §11A Option A (e.g. Aave on Base).
-7. **UserFlows is acceptance** — each phase maps to flows in [UserFlows.md](../product/UserFlows.md); copy and outcomes from Brand.md.
+5. **Single yield provider** — Architecture §11A Option A (e.g. Aave on Base).
+6. **UserFlows is acceptance** — each phase maps to flows in [UserFlows.md](../product/UserFlows.md); copy and outcomes from Brand.md.
 
 ---
 
@@ -40,15 +39,16 @@
 |-------|------|-----------------|
 | **0** | [Foundation](#phase-0-foundation) | Runnable repo, API skeleton, RN on iOS + Android |
 | **1** | [Marketing website](#phase-1-marketing-website) | Public landing, education, waitlist live |
-| **2** | [Auth, shell & onboarding](#phase-2-auth-shell--onboarding) | Sign up, Pia intro, tab navigation, empty Home |
+| **2** | [Auth, shell & onboarding](#phase-2-auth-shell--onboarding) | Sign up, tab navigation, empty Home |
 | **3** | [Dashboard & activity](#phase-3-dashboard--activity) | Encouraging Home, balance, activity, transaction detail |
 | **4** | [Add money](#phase-4-add-money) | Bridge on-ramp end-to-end |
 | **5** | [Savings goals](#phase-5-savings-goals) | Create goals, allocate, progress UI |
 | **6** | [Send & receive](#phase-6-send--receive) | Olimpia-to-Olimpia P2P |
-| **7** | [Pia AI chat agent](#phase-7-pia-ai-chat-agent) | Coach chat with guardrails |
 | **8** | [Growth account](#phase-8-growth-account) | Single-provider yield deposit/withdraw |
 | **9** | [Withdraw & virtual card](#phase-9-withdraw--virtual-card) | Off-ramp + Gnosis Pay virtual card |
 | **10** | [MVP hardening & release](#phase-10-mvp-hardening--release) | Polish, parity, store submission |
+
+> **Phase 7 (Pia AI chat) is Future — not MVP.** MVP includes static Pia preview only (Phase 2 Profile card + Phase 1 marketing section). See [Future — Pia AI chat agent](#future--pia-ai-chat-agent).
 
 **Parallel track:** Phase **1** can start as soon as Phase **0** repo exists — it does not wait for mobile money flows.
 
@@ -126,7 +126,7 @@ Ship a conversion-ready public site — acquisition, trust, education, and waitl
 
 ### Goal
 
-A new user can sign up on **iOS and Android**, meet Pia briefly, and land on an empty Home with working navigation.
+A new user can sign up on **iOS and Android** and land on an empty Home with working navigation.
 
 ### Deliverables
 
@@ -136,10 +136,10 @@ A new user can sign up on **iOS and Android**, meet Pia briefly, and land on an 
 - Privy server SDK integration
 - `GET /me` (read profile)
 
-**Mobile (12-screen scaffold)**
+**Mobile (11-screen scaffold)**
 
 - Welcome, Auth (Privy RN SDK: email/phone + OTP/passkey)
-- Pia introduction moment (inline card after signup — UserFlows §2)
+- Pia **Coming Soon** preview card inline on Profile screen (static — no API, no input; not a separate screen or stack flow)
 - Bottom tabs + stack flows wired (empty content OK)
 - Profile tab (read-only `GET /me`)
 
@@ -151,7 +151,7 @@ A new user can sign up on **iOS and Android**, meet Pia briefly, and land on an 
 ### Acceptance criteria
 
 - [ ] UserFlows §2 and §3: register and login on **both iOS and Android**
-- [ ] Pia greeting shown once after registration; skipped on login
+- [ ] Pia Coming Soon preview visible inline on Profile; no separate Pia screen; no chat input or AI responses
 - [ ] User reaches Home in &lt; 3 minutes; **zero crypto vocabulary** on onboarding screens
 - [ ] `POST /auth/sync` creates user + wallet records; wallet address not shown in UI
 - [ ] Sign out returns to Welcome
@@ -175,7 +175,7 @@ Home answers *"How am I doing?"* — encouraging, outcome-driven dashboard with 
 **Mobile**
 
 - Home dashboard per UserFlows §4 example (greeting, progress headline, featured goal slot, growth earnings slot, money available)
-- Quick actions: Add · Send · Receive · Ask Pia (Pia opens empty state until Phase 7)
+- Quick actions: Add · Send · Receive
 - Transaction Detail screen
 - Empty states for new users (friendly, not transactional)
 - Inline `pending` / `processing` / `completed` / `failed` components
@@ -248,7 +248,6 @@ User creates named goals and moves money into progress envelopes — intentions 
 
 - Savings tab: goals list, total saved, New Goal bottom sheet
 - Goal Detail: progress bar, add/remove funds, goal activity
-- **Ask Pia** entry on Savings and Goal Detail (navigates to Pia — functional in Phase 7)
 - Inline celebration on first goal (Brand.md)
 
 ### Dependencies
@@ -303,7 +302,9 @@ Olimpia-to-Olimpia P2P works — send by handle; receive via share link / QR / u
 
 ---
 
-## Phase 7: Pia AI chat agent
+## Future — Pia AI chat agent (not MVP)
+
+> **MVP ships Pia as a static Coming Soon preview only** (Profile card + marketing `#pia` section). This phase is for the **full functional coach** after MVP.
 
 ### Goal
 
@@ -311,35 +312,33 @@ In-app Pia coach — education, product guidance, goal coaching, progress reinfo
 
 ### Deliverables
 
-**Backend** (Architecture §12B)
+**Backend** (Architecture §12B Future)
 
 - `pia/` module: Anthropic Messages API client
 - `GET /pia/thread`, `POST /pia/messages`
 - `pia_threads`, `pia_messages` tables
 - Context snapshot: displayName, balanceSummary, goals[], growthSummary, productFacts
 - System prompt + output guardrails + rate limits
-- API key server-only
+- `ANTHROPIC_API_KEY` server-only
 
 **Mobile**
 
 - Pia screen: thread, input, suggested prompts, disclaimer footer
-- Entry points: Home, Profile, Savings, Goal Detail, Growth (Growth UI may ship Phase 8 — entry wired here)
+- Entry points: Profile, Savings, Goal Detail, Growth
 - Context-aware suggested prompts per UserFlows cross-flow table
 
 ### Dependencies
 
-- Phase 2 (auth)
-- Phase 5 recommended (goal context for coaching demos)
+- MVP complete (auth, goals, growth recommended for coaching context)
 - Anthropic API key
 
 ### Acceptance criteria
 
 - [ ] UserFlows §16: chat works on **iOS and Android**
-- [ ] Pia introduction (Phase 2) separate from chat; login does not repeat intro
 - [ ] Pia refuses investment advice, trading, tax/legal — friendly redirect
 - [ ] Responses use plain language; Brand voice (supportive, not advisor)
 - [ ] Conversation persists across sessions (one thread per user)
-- [ ] No Anthropic key in mobile binary; no protocol/crypto jargon unless user asks for education
+- [ ] No Anthropic key in mobile binary
 
 ---
 
@@ -369,14 +368,12 @@ User puts part of savings to work — plain-language Growth surface, single-prov
   ```
 
 - Deposit/withdraw inline states; disclaimer below headline (not dominant)
-- **Ask Pia** on Growth view
 - Home dashboard: *Growth earnings this month* when applicable
 
 ### Dependencies
 
 - Phase 4 (available balance to allocate)
 - Yield provider sandbox on Base
-- Phase 7 for Pia Growth prompts (optional same sprint)
 
 ### Acceptance criteria
 
@@ -444,7 +441,7 @@ Production-quality prototype ready for TestFlight, Google Play internal testing,
 - End-to-end QA script covering all 16 UserFlows
 - Webhook retry + stuck-`processing` polling job
 - Error copy audit (Brand.md voice; no raw provider errors)
-- Security pass: auth on all routes, rate limits, webhook signatures, Pia guardrails
+- Security pass: auth on all routes, rate limits, webhook signatures
 - Privacy Policy + Terms linked from app and site
 - App Store + Google Play metadata, screenshots (both platforms)
 - TestFlight + Play internal track builds
@@ -453,15 +450,16 @@ Production-quality prototype ready for TestFlight, Google Play internal testing,
 
 ### Dependencies
 
-- Phases 0–9 complete
+- Phases 0–6, 8–9 complete (Phase 7 Pia chat is Future)
 - Apple + Google developer accounts in good standing
 - Phase 0 launch geography assessment complete; founder has confirmed initial supported countries (or explicitly deferred TBD for prototype demo geography)
 
 ### Acceptance criteria
 
-- [ ] All **16 UserFlows** pass on physical **iOS and Android** devices
+- [ ] All **16 UserFlows** pass on physical **iOS and Android** devices (excluding UserFlows §16 Pia live chat — Future)
 - [ ] Marketing site live with waitlist or store links
-- [ ] No P0 bugs in core loop: onboard → fund → dashboard → goal → send → receive → growth → card → withdraw → Pia → profile
+- [ ] No P0 bugs in core loop: onboard → fund → dashboard → goal → send → receive → growth → card → withdraw → profile
+- [ ] Pia Coming Soon preview visible; no live chat in MVP
 - [ ] Async flows use four canonical states everywhere
 - [ ] Store submission packages uploaded (or ready for founder review)
 - [ ] MVP exclusions verified: no request money, no AI advisor, no Base App, no confidence score
@@ -476,9 +474,9 @@ Before calling MVP **done**:
 |------|-----------|
 | **Platforms** | React Native app shipped to App Store + Google Play (or approved beta) |
 | **Marketing** | Website live with SEO, FAQ, `/learn/usdc`, waitlist or download links |
-| **Screens** | All **12 PRD screens** implemented |
+| **Screens** | All **11 PRD screens** implemented (Pia preview inline on Profile — not a separate screen) |
 | **Flows** | All **16 UserFlows** demonstrable |
-| **Pia** | Coach live with guardrails; not financial advice |
+| **Pia** | Static Coming Soon preview visible (Profile + marketing); no live chat |
 | **Stack** | Wrapper model only — provider integrations per Architecture §15 |
 | **Voice** | Brand.md + UserFlows outcome copy; dollars not crypto in app |
 | **Mission** | Experience reinforces *More choices. More freedom.* |
@@ -494,11 +492,12 @@ Phase 0 (Foundation)
             └── Phase 3 (Dashboard)                       │
                     ├── Phase 4 (Add money)               │
                     │       ├── Phase 5 (Goals)           │
-                    │       │       └── Phase 7 (Pia)     │
                     │       ├── Phase 6 (Send/Receive)    │
                     │       ├── Phase 8 (Growth)          │
                     │       └── Phase 9 (Withdraw + Card) │
                     └──────────────────────────────────────┴── Phase 10 (Release)
+
+Future (post-MVP): Pia AI chat agent — see Future section above.
 ```
 
 ---
@@ -510,7 +509,6 @@ Phase 0 (Foundation)
 | Bridge/Gnosis sandbox delays | Staging ledger + manual credit for UI phases; parallel API integration |
 | Gnosis geo limits | Phase 0 geography assessment (Architecture §4A); gate Card tab with provider-driven plain copy |
 | Yield provider complexity | Option A single provider only; defer multi-provider |
-| Pia advice boundary | Server guardrails + disclaimer; test refusal prompts in QA |
 | iOS/Android drift | Single RN codebase; test both platforms every phase |
 | Scope creep | Phase acceptance gates; PRD P1/P2 stays out |
 
@@ -544,7 +542,7 @@ Before implementation begins:
 
 - [ ] Phase order and parallel marketing track accepted
 - [ ] Phase 0 monorepo structure accepted
-- [ ] Pia in Phase 7 (after goals) accepted
+- [ ] Pia preview only in MVP; functional coach deferred to Future section
 - [ ] Single yield provider (Phase 8) accepted
 - [x] Growth account in MVP (founder confirmed — PRD v1.10 P0)
 - [x] Bank withdraw in MVP (founder confirmed — PRD v1.10 P0)

@@ -49,11 +49,9 @@ Olimpia is a three-surface system:
       ▼      ▼      ▼      ▼      ▼      ▼      ▼
    Privy  Bridge Gnosis  LI.FI  Yield  Resend  Base
                   Pay          layer         (settlement)
-                                    │
-                                    ▼
-                              Anthropic API
-                              (Pia coach — server-side only)
 ```
+
+**Future (not MVP):** Anthropic API (Pia coach — server-side only).
 
 ### Approved infrastructure stack
 
@@ -67,7 +65,8 @@ Olimpia is a three-surface system:
 | 6 | **Yield layer** (Aave, Morpho, Compound) | USDC growth / yield allocation |
 | 7 | **Resend** | Transactional email |
 | 8 | **Node.js** | Orchestration and application data |
-| 9 | **Anthropic API** | Pia AI Financial Coach — server-side LLM only |
+
+**Future (not MVP):** **Anthropic API** — Pia AI Financial Coach (live chat); see §12B Future and §20.
 
 **Also from PRD (unchanged):** **EIP-7702 transaction sponsorship** — gas and network fees are sponsored so users never see or pay gas.
 
@@ -87,7 +86,7 @@ Olimpia is a three-surface system:
 | Virtual debit card | Yes |
 | Profile | Yes |
 | Marketing landing page | Yes |
-| **Pia AI Financial Coach** | Yes |
+| **Pia preview (Coming Soon)** | Yes — static in-app card; no live chat in MVP |
 
 ---
 
@@ -108,9 +107,10 @@ User (Mobile App)
             ├─► LI.FI API ──────────► Route swaps (backend-initiated only)
             ├─► Yield provider API ─► Deposit / withdraw USDC (MVP: one provider)
             ├─► Resend API ─────────► Email notifications
-            ├─► Anthropic API ──────► Pia coach completions (server-side)
             └─► Base (via relayer / RPC) ─► Settlement reads, sponsored txs
 ```
+
+**Future (not MVP):** Anthropic API → Pia coach completions (server-side) — see §12B Future.
 
 ### Event path (providers → backend → user)
 
@@ -171,7 +171,7 @@ Olimpia has **two frontends** sharing brand direction (Brand.md) but **no shared
 | 1 | **Hero** | — | Eyebrow, headline, subheadlines, tagline, CTAs | — |
 | 2 | **Product Preview** | `#preview` | Mobile mockup showcase | Static asset |
 | 3 | **Built Around Real Life** | `#real-life` | 4 goal cards with progress UI | Static content |
-| 4 | **Your Money Bestie (Pia)** | `#pia` | Messaging-style preview of in-app coach | Static — reflects app MVP Pia |
+| 4 | **Your Money Bestie (Pia)** | `#pia` | Messaging-style preview of future in-app coach | Static — matches mobile Coming Soon preview |
 | 5 | **Trusted Infrastructure** | `#infrastructure` | Headline + 6 provider logos | Static assets |
 | 6 | **Features** | `#features` | 5 pillars: Save · Spend · Grow · Learn · Own | Static |
 | 7 | **How It Works** | `#how-it-works` | 4-step flow | Static |
@@ -229,7 +229,7 @@ Static responsive card grid — **product-UI style**, not illustrative marketing
 
 #### Your Money Bestie (Pia)
 
-Static **messaging-style conversation card** previewing the in-app Pia coach. Pia ships in **mobile app MVP** (§12B). Marketing copy aligns with Brand.md — supportive, educational, not financial advice. No live chat or Anthropic calls on the marketing site.
+Static **messaging-style conversation card** previewing the future in-app Pia coach. **MVP:** marketing site and mobile app show **static preview only** — no live chat, no Anthropic API. Full functional coach: **§12B Future**. Marketing copy aligns with Brand.md — supportive, educational, not financial advice.
 
 #### Trusted Infrastructure
 
@@ -456,9 +456,8 @@ See FAQ table above. Implementation notes:
 | Goal Detail | Savings | Goal Detail + New Goal sheet |
 | Growth Account | Savings or Home | Growth deposit / withdraw |
 | Card reveal | Card | CVV reveal (auth-gated) |
-| **Pia AI Coach** | Home (**Ask Pia**) or Profile | Pia chat (§12B) |
 
-#### Screen inventory (maps to PRD — 12 screens)
+#### Screen inventory (maps to PRD — 11 screens)
 
 | # | Screen | Tab / flow | Key APIs |
 |---|--------|------------|----------|
@@ -473,8 +472,7 @@ See FAQ table above. Implementation notes:
 | 9 | Savings (goals list) | Savings tab | `GET /goals` |
 | 10 | Goal Detail | Stack/sheet | `GET /goals/:id`, `POST .../allocate` |
 | 10 | Card | Card tab | `GET /card`, `POST /card/issue`, `POST /card/freeze` |
-| 11 | **Pia** | Stack (Home / Profile) | `GET /pia/thread`, `POST /pia/messages` |
-| 12 | Profile | Profile tab | `GET /me`, `PATCH /me`, Privy sign-out |
+| 11 | Profile | Profile tab | `GET /me`, `PATCH /me`, Privy sign-out; inline Pia Coming Soon card (static — no API) |
 
 *Growth account and withdraw flows are MVP capabilities (§7, §11) but may live inline on Home/Savings — not separate PRD screens. Withdraw is a modal/stack flow, not a tab.*
 
@@ -493,29 +491,22 @@ See FAQ table above. Implementation notes:
 | Debit card | Virtual card spend | **Gnosis Pay** |
 | Profile | Account settings | Backend + **Privy** |
 | Email receipts | Notifications | **Resend** (backend-triggered) |
-| **Pia AI Coach** | Money bestie chat | **Anthropic API** (backend proxy only) |
+
+**Future (not MVP):** Pia AI Coach live chat — **Anthropic API** (backend proxy only); see §12B Future.
 
 #### Mobile app rules
 
-- Never call Bridge, Gnosis Pay, LI.FI, yield protocols, or **Anthropic** directly from the app.
+- Never call Bridge, Gnosis Pay, LI.FI, or yield protocols directly from the app.
 - Never display wallet addresses, chains, tokens, gas, or protocol names.
 - All amounts in **USD** (two decimal places).
 - All async flows use normalized statuses from backend (see Section 21).
 - Poll or refresh on `processing` states until `completed` or `failed` (push **Future**).
 
-#### Pia (AI Financial Coach) — summary
+#### Pia preview (MVP)
 
-In-app **lightweight chat** backed by **Anthropic API** (server-side only). Full flow, guardrails, and APIs: **§12B**.
+Static **Coming Soon** card **inline on the Profile screen** (optional post-signup teaser on same screen). Messaging-style visual preview of Pia — Brand.md AI Guide voice — with **no** text input, send button, API calls, or conversation storage. **Not** a separate screen, stack flow, or navigation destination.
 
-| Allowed | Not allowed |
-|---------|-------------|
-| Education (USDC, stablecoins, savings concepts) | Financial advice |
-| Product guidance (how Olimpia features work) | Investment recommendations |
-| Goal coaching (progress, motivation, next steps) | Trading or swap suggestions |
-| Progress reinforcement (milestones, celebrations) | Tax, legal, or insurance advice |
-| Plain-language explanations on user request | Portfolio picks or "buy/sell X" |
-
-Voice and personality: **Brand.md — AI Guide (Pia)**. Persistent disclaimer: Pia is a coach, not a financial advisor.
+**Future:** Full in-app chat backed by Anthropic API (server-side only) — flow, guardrails, and APIs: **§12B Future**.
 
 ---
 
@@ -619,7 +610,8 @@ The Node.js backend is the **single orchestration layer** between the mobile app
 10. Consume provider webhooks and normalize status updates.
 11. Send transactional email via Resend.
 12. Expose a stable, dollar-denominated REST API to the mobile app.
-13. Proxy Pia coach requests to Anthropic with guardrails, user context, and conversation persistence (§12B).
+
+**Future (not MVP):** Proxy Pia coach requests to Anthropic with guardrails, user context, and conversation persistence (§12B Future).
 
 ### Suggested internal structure (logical modules)
 
@@ -636,7 +628,6 @@ src/
 ├── growth/           # Yield allocations
 ├── card/             # Gnosis Pay integration
 ├── routing/          # LI.FI orchestration
-├── pia/              # Coach: Anthropic client, prompts, guardrails, context assembly
 ├── webhooks/         # Inbound provider events
 ├── notifications/    # Resend email dispatch
 └── jobs/             # Polling / retry workers (if webhooks delayed)
@@ -646,7 +637,7 @@ src/
 
 | Store | Purpose |
 |-------|---------|
-| **Primary database** (e.g. PostgreSQL) | Users, wallets, transactions, goals, growth allocations, **Pia threads/messages**, webhook idempotency keys |
+| **Primary database** (e.g. PostgreSQL) | Users, wallets, transactions, goals, growth allocations, webhook idempotency keys |
 | **Secrets manager / env** | Provider API keys, webhook secrets, relayer keys |
 
 No custom blockchain indexer required for MVP — rely on provider APIs, webhooks, and targeted on-chain reads where needed.
@@ -1133,7 +1124,24 @@ Settings merged into Profile tab per PRD screen inventory.
 
 ## 12B. Pia AI Financial Coach Flow
 
-### Role
+> **MVP:** Static **Coming Soon** preview only (Profile card; marketing `#pia` section). No backend routes, Anthropic integration, or conversation storage in MVP.
+>
+> **Future:** Full functional coach — specification below.
+
+### MVP — Pia preview (static)
+
+| Element | Spec |
+|---------|------|
+| **Placement** | Inline card on **Profile** screen — not a separate screen, stack flow, or navigation destination |
+| **UI** | Messaging-style preview card + **Coming Soon** label |
+| **Behavior** | No text input, send button, or API calls |
+| **Tone** | Brand.md — AI Guide (Pia); supportive, educational |
+
+---
+
+### Future — full AI coach (not MVP)
+
+#### Role
 
 **Pia** is Olimpia's in-app AI coach ("money bestie") — a **lightweight chat** for education, product guidance, goal coaching, and progress reinforcement. Pia uses the **Anthropic Messages API** exclusively through the Node.js backend. The mobile app never holds an Anthropic API key.
 
@@ -1143,7 +1151,7 @@ Pia is **not** a financial advisor, investment recommender, or trading assistant
 
 | Element | Spec |
 |---------|------|
-| **Entry points** | Home quick action **Ask Pia** · Profile **Ask Pia** |
+| **Entry points** | Profile **Pia preview** (future: expands to chat) · optional entry from Savings / Goal Detail / Growth |
 | **Screen** | Message thread (user + Pia bubbles), text input, send button |
 | **Suggested prompts** | 3–4 chips on empty state — e.g. *How do goals work?* · *What is growth?* · *Am I on track?* |
 | **Disclaimer** | Persistent footer or first-visit notice: *Pia is your money coach, not a financial advisor.* |
@@ -1312,8 +1320,8 @@ Logical entities — implementation types deferred.
 | **CardTransaction** | id, userId, cardId, amountUsd, merchantName, status, createdAt | Spend history |
 | **WebhookEvent** | id, provider, eventId, payload, processedAt | Idempotency |
 | **WaitlistEntry** | id, email, createdAt, source | Marketing signups |
-| **PiaThread** | id, userId, createdAt, updatedAt | One coach thread per user (MVP) |
-| **PiaMessage** | id, threadId, role, content, createdAt, blocked | Chat history |
+
+**Future entities (not MVP):** **PiaThread**, **PiaMessage** — see §12B Future.
 
 ### Transaction types (activity feed)
 
@@ -1327,8 +1335,6 @@ User 1──* Transaction
 User 1──* Goal
 User 1──0..1 Card
 User 1──0..1 GrowthAllocation
-User 1──1 PiaThread
-PiaThread 1──* PiaMessage
 Goal 1──* GoalMovement
 ```
 
@@ -1400,12 +1406,12 @@ Base path: `/api/v1` — all routes require Privy auth unless noted.
 | POST | `/card/freeze` | Freeze / unfreeze | Yes |
 | GET | `/card/transactions` | Card spend history | Yes |
 
-### Pia (AI Financial Coach)
+### Pia (AI Financial Coach) — Future only
 
 | Method | Route | Purpose | MVP |
 |--------|-------|---------|-----|
-| GET | `/pia/thread` | Load thread, history, suggested prompts | Yes |
-| POST | `/pia/messages` | Send message; receive Pia reply | Yes |
+| GET | `/pia/thread` | Load thread, history, suggested prompts | **Future** |
+| POST | `/pia/messages` | Send message; receive Pia reply | **Future** |
 
 ### Webhooks (inbound — no user auth)
 
@@ -1440,8 +1446,9 @@ Base path: `/api/v1` — all routes require Privy auth unless noted.
 | **LI.FI** | Cross-asset / cross-route swaps | Invoke only server-side when required; hide all routing from UI |
 | **Aave / Morpho / Compound** | USDC yield | Deposit/withdraw USDC; track position; show estimated earnings |
 | **Resend** | Email delivery | Send receipts, confirmations, security notices |
-| **Anthropic** | LLM completions for Pia coach | Proxy messages server-side; apply guardrails; never expose API key to clients |
 | **EIP-7702 relayer** | Gas sponsorship | Pay gas; never surface fees to user |
+
+**Future (not MVP):** **Anthropic** — LLM completions for Pia coach; proxy messages server-side; apply guardrails; never expose API key to clients (§12B Future).
 
 ---
 
@@ -1494,8 +1501,9 @@ Base path: `/api/v1` — all routes require Privy auth unless noted.
 | **Card data** | Display via Gnosis Pay secure components or tokenized API — never store full PAN/CVV in Olimpia DB |
 | **API** | HTTPS only; rate limiting on auth and transfer endpoints |
 | **Idempotency** | Idempotency keys on `POST /transfers`, `/funding/*`, `/growth/*` |
-| **Pia / Anthropic** | API key server-only; rate-limit `/pia/*`; minimize PII in prompts; output guardrails (§12B) |
 | **Audit** | Append-only transaction log; webhook event store |
+
+**Future (not MVP):** Pia / Anthropic — API key server-only; rate-limit `/pia/*`; minimize PII in prompts; output guardrails (§12B Future).
 
 **Prototype caveat:** This is a consumer finance prototype, not a licensed bank. Security controls reflect best-effort MVP — not production banking grade.
 
@@ -1515,8 +1523,9 @@ Base path: `/api/v1` — all routes require Privy auth unless noted.
 | Privy session expiry | API errors | Refresh flow in mobile SDK |
 | Sponsored tx budget exhaustion | On-chain ops fail | Monitor relayer balance; alert internally |
 | P2P recipient not found | Send fails | User lookup validation before confirm |
-| Pia inappropriate advice | Regulatory / trust risk | Guardrails, disclaimers, refusal templates (§12B) |
 | Regulatory / KYC gaps | Ramp or card blocked | Bridge and Gnosis handle KYC; backend surfaces provider errors plainly |
+
+**Future risk (Pia coach):** Inappropriate advice — mitigated by guardrails, disclaimers, refusal templates when live chat ships (§12B Future).
 
 ---
 
@@ -1535,7 +1544,7 @@ Explicit choices to optimize for **fastest working MVP**:
 | **Goals** | Ledger envelopes, no on-chain per-goal | Smart contract goals |
 | **Marketing site** | Static landing page | CMS, blog, waitlist API |
 | **Notifications** | Email (Resend) | Push notifications |
-| **Pia AI Coach** | Lightweight chat + Anthropic (§12B) | Proactive nudges, streaming, multi-thread |
+| **Pia AI Coach** | Static Coming Soon preview in app | Live chat + Anthropic (§12B Future) |
 | **Analytics** | Basic event logging | Data warehouse, cohort dashboards |
 | **Admin** | Manual DB/support scripts | Admin dashboard |
 | **Reconciliation** | Manual spot checks | Automated reconciliation jobs |
@@ -1554,6 +1563,7 @@ Card, send, and withdraw operate on **available** only.
 
 | Feature | Notes |
 |---------|-------|
+| **Pia AI Financial Coach (live chat)** | Full in-app chat — Anthropic API (server-side), `pia/` module, `/pia/*` routes, `PiaThread` / `PiaMessage` entities, guardrails — see §12B Future |
 | **AI Financial Advisor** | PRD future feature — distinct from Pia coach; deeper personalized advisory flows |
 | **Request money** | P2P request flow with pending states |
 | **Push notifications** | FCM (Android) + APNs (iOS) via notification service |
@@ -1668,8 +1678,10 @@ Confirms this document covers **marketing website** and **React Native mobile ap
 | USDC Growth Account / yield | §11 | ✓ |
 | Virtual debit card (Gnosis Pay) | §12 | ✓ |
 | Profile | §12A | ✓ |
-| Pia AI Financial Coach (in-app) | §3B, §12B | ✓ |
+| Pia preview (Coming Soon) | §3B | ✓ |
 | User-facing states (all flows) | §21 | ✓ |
+
+**Future (not MVP):** Pia AI Financial Coach live chat — §12B Future.
 
 ### Backend & infrastructure
 
@@ -1680,7 +1692,7 @@ Confirms this document covers **marketing website** and **React Native mobile ap
 | Status tracking + normalization | §16, §21 | ✓ |
 | API route inventory | §14 | ✓ |
 | Data model | §13 | ✓ |
-| Privy · Base · Bridge · Gnosis Pay · LI.FI · Yield · Resend · **Anthropic** | §15 | ✓ |
+| Privy · Base · Bridge · Gnosis Pay · LI.FI · Yield · Resend | §15 | ✓ |
 | EIP-7702 gas sponsorship | §1, §5 | ✓ |
 
 ---
@@ -1707,9 +1719,8 @@ Before implementation begins:
 - [ ] **Marketing website** section map and waitlist flow accepted (§3A)
 - [ ] **Marketing SEO + agent optimization** accepted (§3A — semantic HTML, metadata, JSON-LD, `/llms.txt`, `/learn/usdc`)
 - [ ] **Mobile app** navigation, screens, and platform strategy accepted (§3B)
-- [ ] MVP capability list confirmed (including withdraw + growth)
-- [ ] Pia AI Financial Coach scope and guardrails accepted (§12B)
-- [ ] Pia / AI Guide confirmed as **in-app MVP** — marketing preview only on web (§3A)
+- [ ] MVP capability list confirmed (including withdraw + growth; Pia preview only — no live chat)
+- [ ] Pia preview (Coming Soon) on mobile + static marketing preview accepted; functional coach deferred to Future (§12B Future, §20)
 - [ ] Provider stack unchanged
 - [ ] API route inventory sufficient (including `/waitlist`)
 - [ ] Balance and ledger policy confirmed

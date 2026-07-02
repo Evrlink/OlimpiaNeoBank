@@ -49,7 +49,7 @@ Olimpia is a **React Native** financial app prototype for **iOS and Android** (w
 - **Send and receive money** like a modern P2P payment app
 - **Savings goals** with optional yield (post-minimal demo scope)
 - A **debit card** for everyday purchases
-- **Pia AI Financial Coach** — in-app chat for education, product guidance, goal coaching, and progress reinforcement (not financial advice)
+- **Pia preview (Coming Soon)** — static in-app card teasing the future AI money coach (no live chat in MVP)
 - **Profile and account management**
 
 The product is a **wrapper and orchestration layer**. It does not issue banking licenses, mint stablecoins, operate card networks, or run yield protocols. It integrates existing providers into a unified UX.
@@ -194,7 +194,7 @@ Features required to demonstrate the prototype's emotional and functional value 
 | **Debit card (prototype)** | Virtual card view, card controls, link to spending balance |
 | **Withdraw money** | Off-ramp to linked bank; draws from available balance |
 | **Growth account** | Put part of savings to work — plain-language growth surface, estimated variable earnings, deposit/withdraw |
-| **Pia AI Financial Coach** | In-app chat with Pia — explains concepts, guides product use, coaches goals, celebrates progress |
+| **Pia preview (Coming Soon)** | Static in-app card on Profile — introduces Pia; no chat, input, or AI responses in MVP |
 | **Profile** | Name, notifications, support, sign out |
 
 ### P1 — Strong prototype enhancers (if time allows)
@@ -206,7 +206,7 @@ Features required to demonstrate the prototype's emotional and functional value 
 | **Spending insight (lite)** | Simple weekly spend summary |
 | **Recurring savings** | Auto-allocate to goals on schedule |
 
-**Note:** Pia AI Coach is **P0** (see above). It is educational coaching — not an AI Financial Advisor (see Section 17).
+**Note:** Functional Pia AI Coach (live chat) is **Future** — see Section 17. MVP shows Pia as a visible **Coming Soon** preview only.
 
 ### P2 — Defer unless core loop is polished
 
@@ -257,25 +257,19 @@ Features required to demonstrate the prototype's emotional and functional value 
 
 ### Phase 5 — "I manage my account"
 
-9. Profile (account info, settings, support)
+9. Profile (account info, settings, support; **Pia Coming Soon preview** visible)
 
 **Validates:** Account ownership and ongoing use.
 
-### Phase 6 — "I have a coach in my corner"
+### Phase 6 — "Part of my money is working"
 
-10. Pia AI Financial Coach (chat)
-
-**Validates:** In-context education, goal motivation, and confidence — without turning the app into an advisory or trading product.
-
-### Phase 7 — "Part of my money is working"
-
-11. Growth account (deposit, withdraw, estimated earnings summary)
+10. Growth account (deposit, withdraw, estimated earnings summary)
 
 **Validates:** Quiet growth narrative — hope and forward motion without investment-app complexity.
 
-### Phase 8 — "I can cash out when I need to"
+### Phase 7 — "I can cash out when I need to"
 
-12. Withdraw to bank (off-ramp from available balance)
+11. Withdraw to bank (off-ramp from available balance)
 
 **Validates:** Control and trust — money supports her life, not the other way around.
 
@@ -288,6 +282,7 @@ Features required to demonstrate the prototype's emotional and functional value 
 - Native token / loyalty points
 - Trading, swapping UI exposed to user
 - **Personalized investment recommendations or portfolio picks**
+- **Functional Pia AI Financial Coach** (live in-app chat — MVP shows static Coming Soon preview only)
 - **AI Financial Advisor** (deeper advisory flows — distinct from Pia coach)
 - Multi-chain selection
 - Visual design system (owned by Brand.md — approved)
@@ -372,41 +367,27 @@ Profile → View account info
 → Access support → Sign out
 ```
 
-### Flow I: Pia AI Financial Coach
+### Flow I: Pia preview (MVP — Coming Soon)
 
 ```
-Home or Profile → Ask Pia
-→ Chat screen opens (message history + input)
-→ User asks a question (e.g. "How do savings goals work?" or "Am I on track for my trip fund?")
-→ Pia responds in plain language — education, product guidance, goal coaching, or progress celebration
-→ User continues conversation or returns to app
+Profile tab → account info + inline Pia Coming Soon card (same screen)
+→ Static messaging-style card: who Pia is, what she will help with, "Coming Soon" label
+→ No text input, send button, or AI responses; no navigation to a separate Pia screen
 ```
 
-**Pia must:**
+**Success criteria:** User understands Pia is Olimpia's future money coach; preview feels on-brand (Brand.md — AI Guide); no impression that live chat is available in MVP.
 
-- Explain money concepts, USDC/stablecoins, and growth in beginner-friendly language
-- Guide users through Olimpia features (add money, goals, growth account, card)
-- Reference the user's goals and progress when context is available
-- Celebrate milestones (first goal funded, growth started, etc.)
-
-**Pia must not:**
-
-- Recommend specific investments, securities, or assets to buy or sell
-- Provide personalized financial advice or tax guidance
-- Suggest trading, swapping, or speculative strategies
-- Present itself as a licensed financial advisor
-
-**Success criteria:** User gets a helpful, on-brand answer in under a few seconds; zero crypto jargon unless explaining a concept the user asked about; clear disclaimer available in Profile or chat footer.
+> **Future:** Full Pia AI Financial Coach chat flow — education, product guidance, goal coaching, guardrails — see Section 17.
 
 ---
 
 ## 11. Screen Inventory
 
-**Scope:** Minimum viable set to demonstrate onboarding, funding, dashboard, savings goals, send money, receive money, card experience, bank withdraw, growth account, Pia AI Coach, and profile.
+**Scope:** Minimum viable set to demonstrate onboarding, funding, dashboard, savings goals, send money, receive money, card experience, bank withdraw, growth account, Pia preview (Coming Soon), and profile.
 
 **Approach:** Consolidate multi-step flows; use inline states, modals, and sheets instead of dedicated screens where possible.
 
-**Total: 12 screens**
+**Total: 11 screens**
 
 | # | Screen | Demonstrates | Consolidation notes |
 |---|--------|--------------|---------------------|
@@ -420,21 +401,19 @@ Home or Profile → Ask Pia
 | 8 | **Savings** | Savings goals | Goals list + total saved. **New Goal** opens as a bottom sheet — not a separate screen. |
 | 9 | **Goal Detail** | Savings goals | Progress, add/withdraw, goal-specific activity. |
 | 10 | **Card** | Card experience | Virtual card (masked PAN, reveal CVV, freeze toggle), recent card spends inline. Tap spend → Transaction Detail (#7). |
-| 11 | **Pia** | AI Financial Coach | Chat UI: message thread, text input, suggested prompts. Entry from Home quick action and Profile. |
-| 12 | **Profile** | Profile | Account info, notifications, security, help/support, sign out. Settings merged here — no separate Settings screen. |
+| 11 | **Profile** | Profile | Account info, notifications, security, help/support, sign out. **Pia Coming Soon** card inline on this screen — not a separate screen or stack flow. Settings merged here — no separate Settings screen. |
 
-### Additional MVP surfaces (beyond 12 core screens)
+### Additional MVP surfaces (beyond 11 core screens)
 
 Stack/modal flows documented in [ScreenInventory.md](./ScreenInventory.md) — not separate tab screens:
 
 | Surface | Demonstrates |
 |---------|--------------|
-| **Pia introduction** | One-time onboarding moment after signup |
 | **Withdraw Money** | Bank off-ramp from available balance |
 | **Create Goal** | Bottom sheet from Savings |
 | **Growth Account** | Growth deposit, withdraw, earnings summary |
 
-**Total MVP mobile surfaces:** 16 (12 core + 4 above). See ScreenInventory.md for full spec.
+**Total MVP mobile surfaces:** 14 (11 core + 3 above). Pia preview is an inline component on Profile (#11), not a separate surface. See ScreenInventory.md for full spec.
 
 ### Deferred from minimal screen set
 
@@ -453,12 +432,10 @@ Welcome → Auth → Home
 Home ─┬─ Add Money
       ├─ Send Money → Transaction Detail
       ├─ Receive Money
-      ├─ Ask Pia → Pia (#11)
       └─ Transaction Detail (from recent activity)
 
 [Savings] → Goal Detail (+ New Goal sheet from Savings)
 [Card] → Transaction Detail (from spend row)
-[Profile] → Pia (#11)
 ```
 
 ---
@@ -475,14 +452,14 @@ Bottom tab bar (4 tabs):
 
 | Tab | Contains |
 |-----|----------|
-| **Home** | Balance, quick actions (Add, Send, Receive, **Ask Pia**), recent activity |
+| **Home** | Balance, quick actions (Add, Send, Receive), recent activity |
 | **Savings** | Goals list, total saved, create goal (sheet), **Growth account** entry |
 | **Card** | Virtual card, recent card spend, card controls |
-| **Profile** | Account info, settings, **Withdraw**, help, **Ask Pia**, sign out |
+| **Profile** | Account info, settings, **Withdraw**, help, inline **Pia preview (Coming Soon)** card, sign out |
 
-**Modal / stack flows (not tabs):** Add Money, Send Money, Receive Money, **Withdraw Money**, Transaction Detail, Goal Detail, New Goal sheet, **Growth Account**, **Pia (chat)**
+**Modal / stack flows (not tabs):** Add Money, Send Money, Receive Money, **Withdraw Money**, Transaction Detail, Goal Detail, New Goal sheet, **Growth Account**
 
-**Marketing website (out of app navigation):** Standalone site for acquisition, education, support, and App Store / Google Play download links. Not part of the 12-screen app inventory.
+**Marketing website (out of app navigation):** Standalone site for acquisition, education, support, and App Store / Google Play download links. Not part of the 11-screen app inventory.
 
 **What we avoid:**
 
@@ -507,7 +484,7 @@ Bottom tab bar (4 tabs):
 | **First receive** | Friend pays her back via link | "That was painless" | Confidence |
 | **First goal** | "Italy trip" $2,000 | "I can actually picture this" | Motivation |
 | **First card spend** | Coffee shop | "This is my real spending account" | Integration |
-| **Ask Pia** | Home → Pia chat | "She explained it without making me feel dumb" | Confidence |
+| **Pia preview** | Profile tab (inline card) | "I can't wait to meet her" | Anticipation |
 | **Return visit** | Opens app from home screen | "I'm in control" | Confidence |
 
 **Critical moments of truth:**
@@ -535,7 +512,6 @@ These are **product-level assumptions** about what providers enable. Architectur
 | Gas / tx fees | **EIP-7702 sponsorship** | Users never see gas or network fees |
 | Swaps (if needed) | **LI.FI** | Any asset movement happens invisibly |
 | Yield | **Aave, Morpho, Compound** | Presented as a unified "Growth" product when enabled |
-| **Pia AI Coach** | **Anthropic API** (via Node.js backend) | In-app educational coach; server-side LLM only — not financial advice |
 | Email | **Resend** | Receipts, magic links, notifications |
 | Backend | **Node.js** | Orchestrates providers; not user-visible |
 
@@ -648,7 +624,8 @@ Explicitly deferred past mobile MVP:
 - Credit products, loans, BNPL
 - Stock/ETF brokerage
 - Crypto trading, NFTs, or token rewards
-- **Personalized investment recommendations** (Pia coaches; does not advise)
+- **Pia AI Financial Coach** (live in-app chat with Anthropic API — education, product guidance, goal coaching, progress reinforcement, guardrails against financial advice; not an AI Financial Advisor. Full spec: Architecture §12B Future, BuildPlan Future — Pia AI chat agent)
+- **Personalized investment recommendations** (Pia coaches when live; does not advise)
 - Budgeting with bank aggregation (external account linking)
 - **AI Financial Advisor** (deeper advisory product — distinct from Pia coach)
 - Community forums or social investing
@@ -726,7 +703,7 @@ PRD approved 2026-06-16. **Brand.md** approved. **Architecture.md** drafted — 
 
 - [x] Vision, mission, and principles
 - [x] Personas reviewed as **draft assumptions** — approved as working hypotheses pending validation
-- [x] MVP P0 feature list and screen inventory (12 core + 4 additional surfaces; includes Pia, Growth, Withdraw)
+- [x] MVP P0 feature list and screen inventory (11 core + 3 additional surfaces; Pia preview inline on Profile; Growth, Withdraw)
 - [x] Platform strategy: React Native (iOS + Android simultaneous launch), App Store + Google Play, Node.js backend, marketing website
 - [x] Phase prioritization
 - [x] Navigation structure
