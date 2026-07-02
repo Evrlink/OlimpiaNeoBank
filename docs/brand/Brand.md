@@ -272,7 +272,15 @@ Target feeling:
 
 **Accent Color (Raspberry)**
 
+#E54B7A
+
+Primary interactive accent — buttons, links, focus rings, active states. Matches the marketing site (`apps/marketing/src/styles.css`).
+
+**Supporting Berry Dark**
+
 #C73E72
+
+Darker berry shade only — pressed states, gradient stops, subtle emphasis. Not the primary CTA fill.
 
 **Success Color**
 
