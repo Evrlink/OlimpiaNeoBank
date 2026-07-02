@@ -250,6 +250,8 @@ Target feeling:
 
 ## Color Palette
 
+Implementation hex values: `apps/marketing/src/styles.css` (marketing) · `docs/design/MobilePhase2ScreenBrief.md` §1.1 (mobile). Do not use `packages/design-system/tokens.css` (stale, unwired).
+
 **Primary Background**
 
 #F7F4F1

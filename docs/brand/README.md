@@ -12,6 +12,6 @@ Brand, tone, visual identity, fonts, colors, and design direction for **Olimpia*
 ## Related docs
 
 - Design references (visual intent) → [`DesignReferences.md`](./DesignReferences.md) · optional screenshots in `references/`
-- Design tokens (implementation) → [`../../packages/design-system/`](../../packages/design-system/)
+- Color tokens (implementation) → [`../../apps/marketing/src/styles.css`](../../apps/marketing/src/styles.css) · mobile → [`../design/MobilePhase2ScreenBrief.md`](../design/MobilePhase2ScreenBrief.md) §1.1 (ignore stale `packages/design-system/tokens.css`)
 - UI components → [`../../packages/ui/`](../../packages/ui/)
 - Product positioning → [`../product/PRD.md`](../product/PRD.md)

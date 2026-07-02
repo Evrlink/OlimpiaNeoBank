@@ -28,6 +28,8 @@ Translate the approved Olimpia brand system from the marketing website into a **
 
 ### 1.1 Color palette
 
+**Color source of truth:** `apps/marketing/src/styles.css` (marketing / Lovable) and this brief §1.1 (mobile Phase 2, including berry-dark `#C73E72`). Ignore `packages/design-system/tokens.css` — stale draft values, not wired into the marketing site.
+
 **Mobile theme (founder approved)** — aligned with `apps/marketing/src/styles.css`:
 
 | Token | Hex | Usage |
@@ -49,7 +51,7 @@ Translate the approved Olimpia brand system from the marketing website into a **
 
 **Raspberry usage rule:** Default interactive accent is `#E54B7A`. Use `#C73E72` only as a supporting darker berry — e.g. button pressed state, gradient stop, or subtle text emphasis — not as the primary CTA fill.
 
-**Brand.md reference:** Brand.md lists accent raspberry as `#C73E72`. For mobile Phase 2, the founder confirmed **`#E54B7A` as primary** (marketing parity) with **`#C73E72` as supporting berry dark**.
+**Brand.md reference:** Brand.md matches this palette — primary raspberry `#E54B7A`, supporting berry dark `#C73E72`.
 
 **Marketing CSS mapping** (`styles.css`):
 

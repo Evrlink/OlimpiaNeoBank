@@ -1,3 +1,11 @@
+/*
+ * STALE — do not use for implementation.
+ * Canonical color tokens:
+ *   - apps/marketing/src/styles.css (marketing / Lovable)
+ *   - docs/design/MobilePhase2ScreenBrief.md §1.1 (mobile Phase 2)
+ * Regenerate this file from those sources when packages/design-system is wired in.
+ */
+
 :root {
   --olimpia-bg-primary: #faf9f6;
   --olimpia-bg-secondary: #f3f0eb;

@@ -15,6 +15,17 @@
 - Screen layouts and product flows — see `apps/mobile/` and `apps/marketing/`
 - Marketing copy and content
 
+## Color source of truth
+
+Use these files for canonical hex values and token names:
+
+| Surface | File |
+|---------|------|
+| Marketing site / Lovable | [`apps/marketing/src/styles.css`](../../apps/marketing/src/styles.css) |
+| Mobile Phase 2 | [`docs/design/MobilePhase2ScreenBrief.md`](../../docs/design/MobilePhase2ScreenBrief.md) §1.1 |
+
+**Do not use** `tokens.css` in this folder for implementation — it contains stale draft values and is not wired into `apps/marketing`. Regenerate from the sources above when this package is connected to mobile.
+
 ## Status
 
-Folder scaffold only — no tokens or theme files yet.
+Scaffold only — `tokens.css` is a placeholder until synced from the canonical sources above.
