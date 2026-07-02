@@ -2,21 +2,48 @@
 
 **Olimpia** Node.js backend — orchestration, persistence, and provider integrations.
 
-## What belongs here
+## Phase 0 (current)
 
-- REST API (`/api/v1`) and health endpoints
-- Privy auth verification middleware
-- Provider clients: BridgeXYZ, Gnosis Pay, LI.FI, yield layer, Resend, Anthropic (Pia)
-- Webhook handlers and idempotent event processing
-- PostgreSQL migrations, ledger, and transaction state normalization
-- Environment and secrets configuration (`.env.example` only in repo — never commit secrets)
+- Express server with `GET /health`
+- `/api/v1` router stub
+- PostgreSQL connection via `DATABASE_URL`
+- SQL migrations: `users`, `wallets`, stub `transactions`
 
-## Out of scope
+**Not connected yet:** Privy, Bridge, Gnosis Pay, Aave, LI.FI, Resend, Anthropic, Base.
 
-- Mobile or marketing UI — see `apps/mobile/` and `apps/marketing/`
-- Shared types — see `packages/types/` (imported by API)
-- Product requirements — see `docs/product/` and `docs/architecture/`
+## Local development
 
-## Status
+```bash
+# From repo root
+npm install
 
-Folder scaffold only — no dependencies or server code yet.
+# Configure env (once)
+cp apps/api/.env.example apps/api/.env.local
+# Edit DATABASE_URL for your PostgreSQL instance
+
+# Run migrations
+npm run migrate:api
+
+# Start dev server (port 3001)
+npm run dev:api
+```
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev:api` | Start API with hot reload |
+| `npm run migrate:api` | Apply SQL migrations |
+| `npm run build:api` | Compile TypeScript to `dist/` |
+| `npm run start:api` | Run compiled server |
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Liveness + database status |
+| GET | `/api/v1` | API v1 stub |
+
+## Environment
+
+See [`.env.example`](./.env.example). Use `.env.local` locally — never commit secrets.
