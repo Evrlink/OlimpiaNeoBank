@@ -12,7 +12,9 @@
     "dev:api": "npm run dev -w @olimpia/api",
     "build:api": "npm run build -w @olimpia/api",
     "start:api": "npm run start -w @olimpia/api",
-    "migrate:api": "npm run migrate -w @olimpia/api"
+    "migrate:api": "npm run migrate -w @olimpia/api",
+    "dev:mobile": "npm run start -w @olimpia/mobile",
+    "start:mobile": "npm run start -w @olimpia/mobile"
   },
   "engines": {
     "node": ">=18"

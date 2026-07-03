@@ -12,6 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppPreviewIndexRouteImport } from './routes/app-preview/index'
+import { Route as AppPreviewYoureInRouteImport } from './routes/app-preview/youre-in'
+import { Route as AppPreviewWelcomeRouteImport } from './routes/app-preview/welcome'
+import { Route as AppPreviewSavingsRouteImport } from './routes/app-preview/savings'
+import { Route as AppPreviewProfileRouteImport } from './routes/app-preview/profile'
+import { Route as AppPreviewHomeRouteImport } from './routes/app-preview/home'
+import { Route as AppPreviewCardRouteImport } from './routes/app-preview/card'
+import { Route as AppPreviewAddFundsRouteImport } from './routes/app-preview/add-funds'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -28,35 +36,141 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppPreviewIndexRoute = AppPreviewIndexRouteImport.update({
+  id: '/app-preview/',
+  path: '/app-preview/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppPreviewYoureInRoute = AppPreviewYoureInRouteImport.update({
+  id: '/app-preview/youre-in',
+  path: '/app-preview/youre-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppPreviewWelcomeRoute = AppPreviewWelcomeRouteImport.update({
+  id: '/app-preview/welcome',
+  path: '/app-preview/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppPreviewSavingsRoute = AppPreviewSavingsRouteImport.update({
+  id: '/app-preview/savings',
+  path: '/app-preview/savings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppPreviewProfileRoute = AppPreviewProfileRouteImport.update({
+  id: '/app-preview/profile',
+  path: '/app-preview/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppPreviewHomeRoute = AppPreviewHomeRouteImport.update({
+  id: '/app-preview/home',
+  path: '/app-preview/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppPreviewCardRoute = AppPreviewCardRouteImport.update({
+  id: '/app-preview/card',
+  path: '/app-preview/card',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppPreviewAddFundsRoute = AppPreviewAddFundsRouteImport.update({
+  id: '/app-preview/add-funds',
+  path: '/app-preview/add-funds',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/app-preview/add-funds': typeof AppPreviewAddFundsRoute
+  '/app-preview/card': typeof AppPreviewCardRoute
+  '/app-preview/home': typeof AppPreviewHomeRoute
+  '/app-preview/profile': typeof AppPreviewProfileRoute
+  '/app-preview/savings': typeof AppPreviewSavingsRoute
+  '/app-preview/welcome': typeof AppPreviewWelcomeRoute
+  '/app-preview/youre-in': typeof AppPreviewYoureInRoute
+  '/app-preview/': typeof AppPreviewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/app-preview/add-funds': typeof AppPreviewAddFundsRoute
+  '/app-preview/card': typeof AppPreviewCardRoute
+  '/app-preview/home': typeof AppPreviewHomeRoute
+  '/app-preview/profile': typeof AppPreviewProfileRoute
+  '/app-preview/savings': typeof AppPreviewSavingsRoute
+  '/app-preview/welcome': typeof AppPreviewWelcomeRoute
+  '/app-preview/youre-in': typeof AppPreviewYoureInRoute
+  '/app-preview': typeof AppPreviewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/app-preview/add-funds': typeof AppPreviewAddFundsRoute
+  '/app-preview/card': typeof AppPreviewCardRoute
+  '/app-preview/home': typeof AppPreviewHomeRoute
+  '/app-preview/profile': typeof AppPreviewProfileRoute
+  '/app-preview/savings': typeof AppPreviewSavingsRoute
+  '/app-preview/welcome': typeof AppPreviewWelcomeRoute
+  '/app-preview/youre-in': typeof AppPreviewYoureInRoute
+  '/app-preview/': typeof AppPreviewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/privacy' | '/terms'
+  fullPaths:
+    | '/'
+    | '/privacy'
+    | '/terms'
+    | '/app-preview/add-funds'
+    | '/app-preview/card'
+    | '/app-preview/home'
+    | '/app-preview/profile'
+    | '/app-preview/savings'
+    | '/app-preview/welcome'
+    | '/app-preview/youre-in'
+    | '/app-preview/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/privacy' | '/terms'
-  id: '__root__' | '/' | '/privacy' | '/terms'
+  to:
+    | '/'
+    | '/privacy'
+    | '/terms'
+    | '/app-preview/add-funds'
+    | '/app-preview/card'
+    | '/app-preview/home'
+    | '/app-preview/profile'
+    | '/app-preview/savings'
+    | '/app-preview/welcome'
+    | '/app-preview/youre-in'
+    | '/app-preview'
+  id:
+    | '__root__'
+    | '/'
+    | '/privacy'
+    | '/terms'
+    | '/app-preview/add-funds'
+    | '/app-preview/card'
+    | '/app-preview/home'
+    | '/app-preview/profile'
+    | '/app-preview/savings'
+    | '/app-preview/welcome'
+    | '/app-preview/youre-in'
+    | '/app-preview/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  AppPreviewAddFundsRoute: typeof AppPreviewAddFundsRoute
+  AppPreviewCardRoute: typeof AppPreviewCardRoute
+  AppPreviewHomeRoute: typeof AppPreviewHomeRoute
+  AppPreviewProfileRoute: typeof AppPreviewProfileRoute
+  AppPreviewSavingsRoute: typeof AppPreviewSavingsRoute
+  AppPreviewWelcomeRoute: typeof AppPreviewWelcomeRoute
+  AppPreviewYoureInRoute: typeof AppPreviewYoureInRoute
+  AppPreviewIndexRoute: typeof AppPreviewIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +196,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app-preview/': {
+      id: '/app-preview/'
+      path: '/app-preview'
+      fullPath: '/app-preview/'
+      preLoaderRoute: typeof AppPreviewIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app-preview/youre-in': {
+      id: '/app-preview/youre-in'
+      path: '/app-preview/youre-in'
+      fullPath: '/app-preview/youre-in'
+      preLoaderRoute: typeof AppPreviewYoureInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app-preview/welcome': {
+      id: '/app-preview/welcome'
+      path: '/app-preview/welcome'
+      fullPath: '/app-preview/welcome'
+      preLoaderRoute: typeof AppPreviewWelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app-preview/savings': {
+      id: '/app-preview/savings'
+      path: '/app-preview/savings'
+      fullPath: '/app-preview/savings'
+      preLoaderRoute: typeof AppPreviewSavingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app-preview/profile': {
+      id: '/app-preview/profile'
+      path: '/app-preview/profile'
+      fullPath: '/app-preview/profile'
+      preLoaderRoute: typeof AppPreviewProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app-preview/home': {
+      id: '/app-preview/home'
+      path: '/app-preview/home'
+      fullPath: '/app-preview/home'
+      preLoaderRoute: typeof AppPreviewHomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app-preview/card': {
+      id: '/app-preview/card'
+      path: '/app-preview/card'
+      fullPath: '/app-preview/card'
+      preLoaderRoute: typeof AppPreviewCardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app-preview/add-funds': {
+      id: '/app-preview/add-funds'
+      path: '/app-preview/add-funds'
+      fullPath: '/app-preview/add-funds'
+      preLoaderRoute: typeof AppPreviewAddFundsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +259,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  AppPreviewAddFundsRoute: AppPreviewAddFundsRoute,
+  AppPreviewCardRoute: AppPreviewCardRoute,
+  AppPreviewHomeRoute: AppPreviewHomeRoute,
+  AppPreviewProfileRoute: AppPreviewProfileRoute,
+  AppPreviewSavingsRoute: AppPreviewSavingsRoute,
+  AppPreviewWelcomeRoute: AppPreviewWelcomeRoute,
+  AppPreviewYoureInRoute: AppPreviewYoureInRoute,
+  AppPreviewIndexRoute: AppPreviewIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

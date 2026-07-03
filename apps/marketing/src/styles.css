@@ -425,6 +425,27 @@
     }
   }
 
+  /* Phase 2 app preview — static welcome wash (no animation) */
+  .app-welcome-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 18%, color-mix(in srgb, var(--raspberry) 18%, transparent), transparent 72%),
+      radial-gradient(ellipse 55% 45% at 22% 32%, color-mix(in srgb, var(--rose) 22%, transparent), transparent 68%),
+      radial-gradient(ellipse 50% 40% at 78% 28%, color-mix(in srgb, var(--raspberry-soft) 14%, transparent), transparent 70%);
+  }
+
+  .app-welcome-sparkle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.85);
+    box-shadow: 0 0 6px 1px rgb(229 75 122 / 0.2);
+    opacity: 0.35;
+  }
+
   .hero-phone-stage {
     isolation: isolate;
     overflow: visible;

@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Olimpia",
+    "slug": "olimpia",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "scheme": "olimpia",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.olimpia.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F7F4F1"
+      },
+      "package": "app.olimpia.mobile"
+    }
+  }
+}

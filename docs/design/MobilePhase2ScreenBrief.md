@@ -1,6 +1,6 @@
 # Olimpia — Mobile Phase 2 Screen Design Brief
 
-**Version:** 2.0  
+**Version:** 2.2  
 **Status:** **Approved** — all founder design decisions complete (no open questions)  
 **Scope:** Build Plan Phase 2 — first implementation screens only  
 **Source of truth:** [Brand.md](../brand/Brand.md) · [PRD.md](../product/PRD.md) (v1.10) · [BuildPlan.md](../build/BuildPlan.md) (v1.1) · [Architecture.md](../architecture/Architecture.md) · [UserFlows.md](../product/UserFlows.md) · [NavigationMap.md](../product/NavigationMap.md) · Marketing site (`apps/marketing`)
@@ -28,7 +28,7 @@ Translate the approved Olimpia brand system from the marketing website into a **
 
 ### 1.1 Color palette
 
-**Color source of truth:** `apps/marketing/src/styles.css` (marketing / Lovable) and this brief §1.1 (mobile Phase 2, including berry-dark `#C73E72`). Ignore `packages/design-system/tokens.css` — stale draft values, not wired into the marketing site.
+**Color source of truth:** `apps/marketing/src/styles.css` (marketing site) and this brief §1.1 (mobile Phase 2, including berry-dark `#C73E72`). Ignore `packages/design-system/tokens.css` — stale draft values, not wired into the marketing site.
 
 **Mobile theme (founder approved)** — aligned with `apps/marketing/src/styles.css`:
 
@@ -91,7 +91,7 @@ Translate the approved Olimpia brand system from the marketing website into a **
 
 **Cormorant Garamond usage rules** (founder approved — mobile Phase 2):
 
-- **Required only for:** (1) Olimpia wordmark on Welcome and optional Profile header · (2) italic *yours.* in the Welcome headline  
+- **Required only for:** (1) Olimpia wordmark on Welcome and optional Profile header · (2) italic *everything your bank can't do.* in the Welcome headline  
 - **Inter for every other mobile UI element** — auth, tabs, buttons, inputs, body copy, Pia message text, settings rows  
 - **Do not** use Cormorant for buttons, inputs, tab bar, list rows, or Pia bubble body text  
 - **Do not** use a system serif fallback unless the custom font **fails to load** (error/fallback path only)
@@ -99,10 +99,10 @@ Translate the approved Olimpia brand system from the marketing website into a **
 **Font loading (implementation — Phase 2):**
 
 - Bundle and load **Inter** and **Cormorant Garamond** before rendering Welcome (and Profile if wordmark shown)  
-- Preload or block first paint on auth/onboarding stack until fonts are ready — **no visible font swap (FOUT/FOIT)** on wordmark or *yours.*  
+- Preload or block first paint on auth/onboarding stack until fonts are ready — **no visible font swap (FOUT/FOIT)** on wordmark or *everything your bank can't do.*  
 - Apply to React Native via bundled assets (e.g. `expo-font` / `react-native-asset` pattern) — document in mobile app setup, not in this brief’s scope beyond requirement
 
-**Legacy marketing rule (still applies):** Optional italic accent on **one joy word** in a headline — never whole sentences. Welcome headline uses this for *yours.* only in Phase 2.
+**Legacy marketing rule (still applies):** Optional italic accent on **one joy phrase** in a headline — never whole sentences. Welcome headline uses Cormorant italic on *everything your bank can't do.* only in Phase 2.
 
 **Inter usage:** Everything else — auth forms, tab labels, body copy, settings rows, empty states.
 
@@ -150,12 +150,20 @@ From marketing implementation:
 - Savings goals  
 - Financial confidence  
 
-**Banned from Phase 2 app UI** (Welcome, Auth, onboarding, Home, Savings, Card, Profile, Add funds screen):
+**Banned from Phase 2 app UI by default** (Welcome, Auth, Home, Savings, Card, Profile, **Add funds stub**):
 
 - crypto · DeFi · Base · USDC · wallet · yield · blockchain · protocol  
-- (Also per Add funds screen: bank account, debit card, Bridge — user-facing Phase 2 stub)
+- (Also per Add funds stub: bank account, debit card, Bridge — user-facing Phase 2 stub)
 
-**Marketing website:** May continue educational content on USDC, decentralized finance, and how Olimpia works where appropriate (`/learn/usdc`, FAQ, etc.). **Do not change marketing copy** as part of mobile Phase 2 implementation. App copy does not need to mirror marketing DeFi-forward hero language.
+**Copy tiers (founder approved):**
+
+| Tier | Screens | Language |
+|------|---------|------------|
+| **Neobank default** | Welcome, Auth, Empty Home, Savings, Card, Profile, Add funds stub | Plain *save · spend · grow* — no DeFi/USDC/wallet/Bridge in user-facing copy |
+| **Onboarding education** | **You're in confirmation (A3) only** — §3.3 | USD, USDC, yield, bank, decentralized finance allowed; footer disclaimer required |
+| **Marketing website** | `/`, `/learn/usdc`, FAQ, etc. | Educational DeFi/USDC content unchanged |
+
+**Preview source of truth:** Approved screen copy lives in `apps/marketing/src/components/app-preview/` and is mirrored in [`DesignInput.md`](DesignInput.md) + §3.3 below.
 
 **Tone rules:**
 
@@ -189,7 +197,7 @@ Use these as **visual DNA**, not layout templates.
 | Marketing source | Mobile component inspired | What to carry over |
 |------------------|---------------------------|-------------------|
 | **Nav** (`index.tsx` — sticky header, pill CTA) | Welcome primary CTA | Pill-shaped berry/raspberry button, Inter semibold, soft shadow |
-| **Hero** (eyebrow + headline + dual CTAs) | Welcome screen | Approved mobile headline: Inter + Cormorant italic on *yours.* only; eyebrow, subhead, tagline per §3.1 |
+| **Hero** (eyebrow + headline + dual CTAs) | Welcome screen | Approved Welcome headline: Inter semibold + Cormorant italic on *everything your bank can't do.*; eyebrow, subhead, tagline per §3.1 |
 | **HeroPaperBackground** + gradient washes | Welcome background only | Approved: static rose→raspberry radial wash on `#F7F4F1` — **no WebGL** (marketing paper shader is web-only) |
 | **WaitlistModal** | Auth form container | `rounded-[32px]` card, generous padding, inline validation errors |
 | **StayTunedSection** success state | Auth success / onboarding confirmation | Rose-soft icon circle + reassuring confirmation copy |
@@ -220,20 +228,20 @@ Use these as **visual DNA**, not layout templates.
 **Route:** Pre-auth stack root (A1)  
 **Reference:** Marketing Hero + Stay Tuned emotional tone; **not** full marketing hero layout  
 
-**Scope note:** Welcome copy below is **mobile Phase 2 only**. The marketing website hero headline and copy remain unchanged (`apps/marketing`).
+**Scope note:** Welcome **headline** is founder-approved app copy (`Better than a checking account, everything your bank can't do.`). Subhead, tagline, and CTAs below are **mobile app** copy (neobank tone; app actions — not marketing Download/Learn More).
 
 **Approved copy (founder):**
 
 | Element | Copy | Typography |
 |---------|------|------------|
 | Eyebrow | Financial freedom, designed for women | Inter semibold, uppercase, tracking ~0.18em, raspberry |
-| Headline | Money that feels like yours. | **Inter:** *Money that feels like* · **Cormorant Garamond italic:** *yours.* |
+| Headline | Better than a checking account, everything your bank can't do. | **Inter semibold:** *Better than a checking account,* · **Cormorant Garamond italic:** *everything your bank can't do.* |
 | Subhead | Save, spend, and grow your money with confidence. | Inter body-lg, ink-muted |
 | Tagline | More choices. More freedom. | Inter body-sm, raspberry |
 | Primary CTA | Get started | Inter, raspberry pill button |
 | Secondary CTA | Sign in | Inter, ghost/text button |
 
-**Headline typography rule:** Cormorant Garamond italic applies **only** to the word *yours.* (including its period). All other headline words use Inter. Optional raspberry accent on *yours.* per marketing joy-word pattern — default to foreground ink if contrast testing prefers.
+**Headline typography rule:** Cormorant Garamond italic applies **only** to *everything your bank can't do.* (including its period). All other headline words use Inter semibold. Optional raspberry accent on the italic phrase per marketing joy-word pattern — default to foreground ink if contrast testing prefers.
 
 **Approved visual direction (founder — mobile Phase 2 Welcome only):**
 
@@ -311,33 +319,55 @@ Abstract **static gradient only**. The background supports the approved copy and
 ### 3.3 Onboarding (post-auth first-run) — dedicated confirmation screen
 
 **Route:** Full-screen confirmation (A3-equivalent) shown **after successful sign-up and account sync**, **before** Empty Home — **not** a Pia screen; **no Pia content anywhere in this flow  
-**Reference:** StayTuned success card + Brand.md confirmation tone  
+**Reference:** Reassurance onboarding layout (founder-approved mock); preview at `/app-preview/youre-in`  
 **Build Plan Phase 2:** Sign-up path only; sign-in skips this screen and routes directly to Empty Home
 
-**Founder approved:** Dedicated Pia-free **“You're in.”** confirmation screen for Phase 2. No modal, no banner substitute, no Pia greeting or chat preview.
+**Status:** **Founder approved** — preview component `apps/marketing/src/components/app-preview/youre-in-screen.tsx`. Step 2 (*Convert to USDC*) approved.
+
+**Founder approved:** Dedicated Pia-free **“You're in!”** confirmation screen for Phase 2. No modal, no banner substitute, no Pia greeting or chat preview. Uses **onboarding-education copy tier** (§1.4) — USDC, yield, bank, and decentralized finance allowed on this screen only.
 
 **Entry:** Auth sign-up → account sync success  
 **Exit:**
 
 | CTA | Action |
 |-----|--------|
-| **Add money** (primary) | Push shared **Add funds screen** (Phase 2 stub — copy §3.3; full funding in Phase 4) |
+| **Add funds and start earning** (primary) | Push shared **Add funds screen** (Phase 2 stub — full funding in Phase 4) |
 | **Explore the app** (secondary) | Empty Home (A4) with bottom tabs visible |
 
 **Pia rule (founder approved):** Pia appears **only** as the static “Coming Soon” card inside Profile. Do **not** add Pia content, chat preview, modal, or navigation to this flow.
 
-**Layout — dedicated full screen (Pia-free):**
+**Layout — dedicated full screen (Pia-free, scrollable):**
 
-1. **Celebration icon** — rose-soft circle, heart or checkmark, raspberry accent  
-2. **Headline (Inter h2):** *You're in.*  
-3. **Body (body):** *Your Olimpia account is ready. Add money when you're ready — or explore the app first.*  
-4. **Primary CTA (pinned):** **Add money** → shared Add funds screen (see below)  
-5. **Secondary CTA:** **Explore the app** → Empty Home with tabs  
-6. Optional dismiss (X) — same behavior as **Explore the app**
+1. **Header** — sparkle accents · centered **Olimpia** wordmark · mascot avatar top-right  
+2. **Headline stack (centered):** *You're in!* (Cormorant/display) · subhead (2 lines)  
+3. **Value props (3 columns):** icon in rose circle + raspberry title + muted description  
+4. **Here's how it works (3 steps):** numbered badges · step icons · chevrons between steps  
+5. **Built for you card** — line-art illustration + checkmark list on rose wash  
+6. **Primary CTA (pinned):** **Add funds and start earning** → shared Add funds screen  
+7. **Secondary CTA:** **Explore the app** → Empty Home with tabs  
+8. **Footer disclaimer** — third-party services · yield variable · not guaranteed  
+
+**Approved copy (founder — mirror preview):**
+
+| Element | Copy |
+|---------|------|
+| **Headline** | You're in! |
+| **Subhead (line 1)** | Simple access to decentralized finance |
+| **Subhead (line 2)** | so you can save, grow, and reach your goals. |
+| **Value prop 1** | **Earn yield** — Your money can grow over time. |
+| **Value prop 2** | **Set goals** — Create savings goals for what matters most. |
+| **Value prop 3** | **You're in control** — Move your money anytime, always your choice. |
+| **How it works — Step 1** | **Add USD** — Add funds from your bank. |
+| **How it works — Step 2** | **Convert to USDC** — Convert to USDC, earn yield. |
+| **How it works — Step 3** | **Earn and access** — USDC earns the yield. Cash out to your bank any time. |
+| **Built for you** | No lock ups · Withdraw anytime · Full transparency |
+| **Primary CTA** | Add funds and start earning |
+| **Secondary CTA** | Explore the app |
+| **Footer** | Olimpia provides access to third party financial services. Yield is variable and not guaranteed. |
 
 **Add funds screen (Phase 2 — shared stub, founder approved):**
 
-**One screen, two entry points:** onboarding confirmation **Add money** (after “You're in.”) and Empty Home **Add money** CTA open the **same** shared Add funds screen — identical copy and layout.
+**One screen, two entry points:** onboarding confirmation **Add funds and start earning** and Empty Home **Add money** CTA open the **same** shared Add funds screen — identical copy and layout.
 
 | Element | User-facing copy |
 |---------|------------------|
@@ -345,7 +375,9 @@ Abstract **static gradient only**. The background supports the approved copy and
 | **Body** | Choose how you'd like to add funds to your Olimpia balance. |
 | **Primary action** | Continue |
 
-**Phase 2 UI — do not mention:** bank account · debit card · Bridge · USDC · Base · wallet  
+**Add funds stub — Phase 2 UI — do not mention:** bank account · debit card · Bridge · USDC · Base · wallet  
+
+*(Jargon restrictions above apply to the Add funds stub only — not to this confirmation screen.)*
 
 Available funding methods will be determined by the live Bridge flow at launch — not shown or named in Phase 2 stub UI.
 
@@ -542,13 +574,13 @@ Available funding methods will be determined by the live Bridge flow at launch �
 | Element | Copy | Typography |
 |---------|------|------------|
 | Eyebrow | Financial freedom, designed for women | Inter · label/eyebrow · raspberry |
-| Headline | Money that feels like yours. | Inter + Cormorant Garamond italic on **yours.** only |
+| Headline | Better than a checking account, everything your bank can't do. | Inter semibold + Cormorant Garamond italic on **everything your bank can't do.** only |
 | Subhead | Save, spend, and grow your money with confidence. | Inter body-lg · ink-muted |
 | Tagline | More choices. More freedom. | Inter body-sm · raspberry |
 | Primary CTA | Get started | Inter · primary button |
 | Secondary CTA | Sign in | Inter · ghost button |
 
-*Marketing website headline unchanged — this copy applies to the mobile Welcome screen only.*
+*Headline is approved Welcome copy. Subhead, tagline, and CTAs are mobile app–specific (§1.4 neobank tone).*
 
 ### Auth — Sign up
 
@@ -573,12 +605,16 @@ Available funding methods will be determined by the live Bridge flow at launch �
 
 ### Onboarding (post sign-up) — dedicated confirmation screen
 
-| Element | Placeholder copy |
-|---------|------------------|
-| Headline | You're in. |
-| Body | Your Olimpia account is ready. Add money when you're ready — or explore the app first. |
-| Primary CTA | Add money |
+| Element | Copy |
+|---------|------|
+| Headline | You're in! |
+| Subhead | Simple access to decentralized finance / so you can save, grow, and reach your goals. |
+| Value props | Earn yield · Set goals · You're in control (see §3.3) |
+| How it works | Add USD · Convert to USDC · Earn and access (see §3.3) |
+| Built for you | No lock ups · Withdraw anytime · Full transparency |
+| Primary CTA | Add funds and start earning |
 | Secondary CTA | Explore the app |
+| Footer | Olimpia provides access to third party financial services. Yield is variable and not guaranteed. |
 
 ### Add funds screen (Phase 2 — shared stub, approved)
 
@@ -664,7 +700,7 @@ Available funding methods will be determined by the live Bridge flow at launch �
 | Component | Variants | Notes |
 |-----------|----------|-------|
 | **Color tokens** | background, surface, card, ink, ink-muted, berry, deep-berry, raspberry (`#E54B7A`), berry-dark (`#C73E72`), raspberry-soft, rose, rose-soft, success, border | Map to React Native theme per §1.1 |
-| **Typography styles** | display, h1–h3, body-lg, body, body-sm, caption, label/eyebrow | Inter default; Cormorant **wordmark + *yours.* only** (§1.2) |
+| **Typography styles** | display, h1–h3, body-lg, body, body-sm, caption, label/eyebrow | Inter default; Cormorant **wordmark + *everything your bank can't do.* only** (§1.2) |
 | **FontLoader** | Inter + Cormorant Garamond | Preload before Welcome/Profile wordmark render — no visible swap |
 | **PrimaryButton** | default, loading, disabled | Raspberry pill, white text, min height 48 |
 | **SecondaryButton** | outline, ghost | Border foreground/15 or text-only |
@@ -721,7 +757,7 @@ Available funding methods will be determined by the live Bridge flow at launch �
 | Marketing 5-tab mockup | **4 tabs:** Home · Savings · Card · Profile |
 | Pia on Home / dedicated tab | **Profile-only Coming Soon card** |
 | Dark balance hero card | **Not on Phase 2 empty Home** — quiet *Money available · $0.00* line only; dark/inverted card deferred to funded Home (Phase 3+) |
-| Serif display headlines everywhere | Inter for mobile UI; Cormorant on Welcome wordmark + italic *yours.* only |
+| Serif display headlines everywhere | Inter for mobile UI; Cormorant on Welcome wordmark + italic *everything your bank can't do.* only |
 | Shadow-card depth | Reduce shadow on Android; use elevation API; optional subtle border |
 | Marketing DeFi-forward copy | **App:** neobank language per §1.4 · **Marketing:** educational DeFi/USDC content allowed — do not change marketing copy in Phase 2 |
 | Dark / system appearance | **Light-only MVP** — ignore system dark mode; no dark theme (§1.5) |
@@ -742,16 +778,16 @@ Available funding methods will be determined by the live Bridge flow at launch �
 |---|----------|------------|
 | 1 | **Raspberry / berry palette** | **Primary raspberry:** `#E54B7A` (matches marketing site). **Supporting berry dark:** `#C73E72` (Brand.md accent — pressed states, depth, secondary emphasis). |
 | 2 | **Pia scope (Phase 2)** | **No Pia in onboarding.** Pia appears **only** as the static “Coming Soon” card inside Profile. No Pia greeting, chat preview, modal, tab, input, “Ask Pia” entry, or navigation destination anywhere else in the app. ScreenInventory A3 / UserFlows §2 Pia introduction deferred. |
-| 3 | **Post-sign-up onboarding** | **Dedicated confirmation screen** after sign-up + account sync, before Empty Home. Pia-free **“You're in.”** layout per §3.3. **Primary CTA:** Add money → shared **Add funds screen** (§3.3). **Secondary CTA:** Explore the app → Empty Home. Sign-in skips confirmation screen. No Pia content, chat preview, modal, or Pia navigation in this flow. |
-| 4 | **Welcome copy (mobile only)** | **Headline:** *Money that feels like yours.* — Inter for all words except **Cormorant Garamond italic** on *yours.* **Subhead:** *Save, spend, and grow your money with confidence.* **Eyebrow:** *Financial freedom, designed for women* **Tagline:** *More choices. More freedom.* Marketing website hero headline **unchanged** — mobile Welcome only. |
+| 3 | **Post-sign-up onboarding** | **Dedicated confirmation screen** after sign-up + account sync, before Empty Home. Pia-free **“You're in!”** layout per §3.3 (founder approved). **Primary CTA:** *Add funds and start earning* → shared **Add funds screen**. **Secondary CTA:** *Explore the app* → Empty Home. Sign-in skips confirmation screen. Onboarding-education copy tier (USDC/yield/bank) allowed on A3 only. |
+| 4 | **Welcome copy** | **Headline:** *Better than a checking account, everything your bank can't do.* **Inter semibold** for *Better than a checking account,* · **Cormorant Garamond italic** on *everything your bank can't do.* **Subhead:** *Save, spend, and grow your money with confidence.* **Eyebrow:** *Financial freedom, designed for women* **Tagline:** *More choices. More freedom.* **CTAs (mobile only):** *Get started* · *Sign in* |
 | 5 | **Welcome visual (mobile only)** | **Abstract static gradient only** on `#F7F4F1` — soft rose→raspberry radial wash; light, premium, calm, airy. Optional very subtle **static** sparkle dots only if they do not compete with the headline. **No** photography, character illustration, product mockup, decorative 3D objects, WebGL, animation, or full-screen illustration. Visual supports approved copy + CTA stack. Marketing site visuals **unchanged**. |
 | 6 | **Empty Home balance (Phase 2)** | Show *Money available · $0.00* as **quiet secondary text only** (body-sm/caption, ink-muted) — below Add money CTA card. **No** large balance hero, dark balance panel, or oversized `$0.00`. Main focus: encouraging headline + Add money CTA card. |
 | 7 | **Savings / Card tabs (Phase 2)** | **Simple transparent empty states** via shared EmptyState — centered, calm, rose-circle icon. **Savings:** *Your savings goals will live here.* + optional *You'll be able to create and track goals here.* **Card:** *Your virtual debit card will live here.* + optional *Your card details and spending tools will appear here.* **No** skeleton shimmer, fake data, fake balances, or “Phase 3” labels. |
 | 8 | **Add funds screen routing + copy (Phase 2)** | Empty Home **Add money** CTA opens the **same shared Add funds screen** as onboarding **Add money**. **Title:** *Add funds* · **Body:** *Choose how you'd like to add funds to your Olimpia balance.* · **Primary:** *Continue*. **Phase 2 UI must not mention:** bank account, debit card, Bridge, USDC, Base, or wallet. Funding methods from live Bridge flow at launch (internal only). |
-| 9 | **Cormorant Garamond (mobile)** | Ship **actual Cormorant Garamond** for brand fidelity — **only** Olimpia wordmark (Welcome + optional Profile header) and italic *yours.* in Welcome headline. **Inter everywhere else.** No system serif fallback except on custom font load failure. **Implementation:** bundle/load Inter + Cormorant before rendering Welcome so there is **no visible font swap**. |
+| 9 | **Cormorant Garamond (mobile)** | Ship **actual Cormorant Garamond** for brand fidelity — **only** Olimpia wordmark (Welcome + optional Profile header) and italic *everything your bank can't do.* in Welcome headline. **Inter everywhere else.** No system serif fallback except on custom font load failure. **Implementation:** bundle/load Inter + Cormorant before rendering Welcome so there is **no visible font swap**. |
 | 10 | **Pia Coming Soon card (Profile)** | **One static Pia message bubble only** — no decorative user-question bubble. Keep: Pia avatar · name **Pia** · **Coming Soon** badge · message: *Pia will help you understand saving, growth, and financial confidence — supportive, never judgmental.* No input, send, suggested prompts, user bubble, chat interaction, or navigation. |
 | 11 | **Dark mode (MVP)** | **Light-only.** Approved warm light theme: background `#F7F4F1`, primary raspberry `#E54B7A`, supporting berry dark `#C73E72`, white cards, warm neutral surfaces. **Do not** design, build, document, or test dark mode for MVP. Future enhancement post-launch only. |
-| 12 | **Marketing vs app copy tone** | **Mobile app** uses simple consumer-friendly **neobank language** as in-app source of truth (§1.4). Preferred terms: *Add funds*, *your balance*, *save*, *spend*, *grow your money*, *savings goals*, *financial confidence*. **Banned in app Phase 2 UI:** crypto, DeFi, Base, USDC, wallet, yield, blockchain, protocol. **Marketing website** may keep USDC/DeFi educational content — unchanged in this phase. |
+| 12 | **Marketing vs app copy tone** | **Default:** neobank language per §1.4 on Welcome, Auth, Home, Savings, Card, Profile, and Add funds stub. **Exception:** onboarding confirmation (A3, §3.3) uses onboarding-education tier — USD, USDC, yield, bank, decentralized finance allowed with disclaimer. **Marketing website** may keep USDC/DeFi educational content — unchanged in this phase. |
 
 ---
 
@@ -764,7 +800,7 @@ Available funding methods will be determined by the live Bridge flow at launch �
 ```
 Welcome (A1)
   ├─ Get started → Auth sign up (A2)
-  │     └─ Sync success → Onboarding confirmation (“You're in.”) [Pia-free]
+  │     └─ Sync success → Onboarding confirmation (“You're in!”) [Pia-free]
   │           ├─ Add money → Add funds screen (shared) → back → prior screen
   │           └─ Explore the app → Empty Home (A4) [tabs visible]
   └─ Sign in → Auth sign in (A2)
@@ -793,4 +829,4 @@ Pia: Profile inline Coming Soon card ONLY — no navigation target
 
 ---
 
-*End of Mobile Phase 2 Screen Design Brief v2.0 — approved*
+*End of Mobile Phase 2 Screen Design Brief v2.2 — approved*
