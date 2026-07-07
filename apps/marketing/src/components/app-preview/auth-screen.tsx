@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft, Delete, Mail, Phone, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowLeft, Mail, Phone, ShieldCheck } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -21,42 +21,6 @@ const authSparkles = [
   { top: "18%", left: "62%" },
   { top: "11%", left: "90%" },
 ];
-
-const iosKeypadKeys = [
-  { digit: "1", letters: "" },
-  { digit: "2", letters: "ABC" },
-  { digit: "3", letters: "DEF" },
-  { digit: "4", letters: "GHI" },
-  { digit: "5", letters: "JKL" },
-  { digit: "6", letters: "MNO" },
-  { digit: "7", letters: "PQRS" },
-  { digit: "8", letters: "TUV" },
-  { digit: "9", letters: "WXYZ" },
-] as const;
-
-function OtpKeypad() {
-  return (
-    <div className="auth-keypad-ios" aria-hidden>
-      <div className="auth-keypad-ios-grid">
-        {iosKeypadKeys.map(({ digit, letters }) => (
-          <div key={digit} className="auth-keypad-ios-key">
-            <span className="auth-keypad-ios-digit">{digit}</span>
-            {letters ? <span className="auth-keypad-ios-letters">{letters}</span> : null}
-          </div>
-        ))}
-      </div>
-      <div className="auth-keypad-ios-bottom">
-        <div className="auth-keypad-ios-key is-empty" />
-        <div className="auth-keypad-ios-key">
-          <span className="auth-keypad-ios-digit">0</span>
-        </div>
-        <div className="auth-keypad-ios-key auth-keypad-ios-delete">
-          <Delete className="h-[1.125rem] w-[1.125rem]" strokeWidth={1.75} />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function AppleLogo({ className }: { className?: string }) {
   return (
@@ -152,12 +116,15 @@ export function AuthScreen({
   const isLoading = step === "loading";
 
   useEffect(() => {
-    if (previewMode || step !== "loading") return;
+    if (step !== "loading") return;
+    // Static Loading pill (?step=loading) — show overlay only, no auto-advance.
+    if (initialStep === "loading") return;
+
     const timer = window.setTimeout(() => {
       navigate({ to: isSignIn ? "/app-preview/home" : "/app-preview/youre-in" });
     }, 1800);
     return () => window.clearTimeout(timer);
-  }, [step, navigate, isSignIn, previewMode]);
+  }, [step, navigate, isSignIn, initialStep]);
 
   useEffect(() => {
     if (previewMode || step !== "otp" || resendSeconds <= 0) return;
@@ -328,8 +295,6 @@ export function AuthScreen({
                     Verify
                   </button>
                 </div>
-
-                <OtpKeypad />
             </div>
           ) : (
             <div className="flex min-h-0 flex-1 flex-col">

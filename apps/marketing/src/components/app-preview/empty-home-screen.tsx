@@ -102,13 +102,6 @@ export function EmptyHomeScreen() {
             <p className="text-[0.8125rem] leading-[1.5] text-ink-muted">
               Your first savings goal will appear here.
             </p>
-            <button
-              type="button"
-              className="mt-2 inline-flex items-center gap-0.5 text-[0.8125rem] font-semibold text-raspberry"
-            >
-              Create a goal
-              <ChevronRight className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden />
-            </button>
           </div>
         </div>
       </div>

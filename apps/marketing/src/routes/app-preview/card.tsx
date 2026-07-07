@@ -22,8 +22,8 @@ function CardPreviewPage() {
         <TabEmptyState
           active="card"
           icon={CreditCard}
-          title="Your virtual debit card will live here."
-          description="Your card details and spending tools will appear here."
+          title="Your virtual card will appear here."
+          description="Card details and spending tools will be available here."
         />
       </PhoneFrame>
     </AppPreviewShell>
