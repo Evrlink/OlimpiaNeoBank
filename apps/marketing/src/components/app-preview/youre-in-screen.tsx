@@ -11,22 +11,23 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import piaMascot from "@/assets/pia-raspberry.png";
+import { AppPreviewWordmark } from "./app-preview-wordmark";
 
 const valueProps = [
   {
     Icon: Sprout,
     title: "Earn yield",
-    description: "Your money can grow over time.",
+    description: "Higher yields",
   },
   {
     Icon: Target,
     title: "Set goals",
-    description: "Create savings goals for what matters most.",
+    description: "Create Savings Goals",
   },
   {
     Icon: Shield,
     title: "You're in control",
-    description: "Move your money anytime, always your choice.",
+    description: "Move money anytime",
   },
 ] as const;
 
@@ -35,23 +36,23 @@ const steps = [
     Icon: Landmark,
     step: 1,
     title: "Add USD",
-    description: "Add funds from your bank.",
+    description: "Add funds from bank",
   },
   {
     Icon: CircleDollarSign,
     step: 2,
-    title: "Convert to USDC",
-    description: "Convert to USDC, earn yield.",
+    title: "Convert",
+    description: "USDC earns yield",
   },
   {
     Icon: Sparkles,
     step: 3,
-    title: "Earn and access",
-    description: "USDC earns the yield. Cash out to your bank any time.",
+    title: "Grow",
+    description: "Balance grows",
   },
 ] as const;
 
-const builtForYou = ["No lock ups", "Withdraw anytime", "Full transparency"] as const;
+const builtForYou = ["No lock ups", "Withdraw anytime", "Higher yields than your bank"] as const;
 
 function BuiltForYouIllustration() {
   return (
@@ -235,9 +236,10 @@ export function YoureInScreen() {
               className="absolute right-0 top-1 h-9 w-9 rounded-full object-cover ring-2 ring-background"
             />
 
-            <div className="mx-auto flex max-w-[18rem] flex-col items-center text-center">
-              <p className="font-display text-[1.35rem] tracking-tight text-berry">Olimpia</p>
-              <h1 className="mt-3 font-display text-[2rem] font-semibold leading-tight tracking-tight text-foreground">
+            <AppPreviewWordmark />
+
+            <div className="mx-auto mt-3 flex max-w-[18rem] flex-col items-center text-center">
+              <h1 className="font-display text-[2rem] font-semibold leading-tight tracking-tight text-foreground">
                 You&apos;re in!
               </h1>
               <p className="mt-3 text-[0.8125rem] leading-[1.45] text-ink-muted">
@@ -320,13 +322,13 @@ export function YoureInScreen() {
             to="/app-preview/add-funds"
             className="flex h-12 w-full items-center justify-center rounded-2xl bg-raspberry text-[0.875rem] font-semibold text-white shadow-soft transition hover:opacity-90"
           >
-            Add funds and start earning
+            Start earning
           </Link>
           <Link
             to="/app-preview/home"
             className="flex h-12 w-full items-center justify-center rounded-2xl border border-border bg-card text-[0.875rem] font-semibold text-foreground transition hover:border-foreground/20"
           >
-            Explore the app
+            Explore
           </Link>
           <p className="flex items-start justify-center gap-1.5 px-1 text-center text-[0.5625rem] leading-snug text-ink-muted">
             <ShieldCheck className="mt-0.5 h-3 w-3 shrink-0 text-ink-muted/70" aria-hidden />

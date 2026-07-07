@@ -19,6 +19,7 @@ import { Route as AppPreviewSavingsRouteImport } from './routes/app-preview/savi
 import { Route as AppPreviewProfileRouteImport } from './routes/app-preview/profile'
 import { Route as AppPreviewHomeRouteImport } from './routes/app-preview/home'
 import { Route as AppPreviewCardRouteImport } from './routes/app-preview/card'
+import { Route as AppPreviewAuthRouteImport } from './routes/app-preview/auth'
 import { Route as AppPreviewAddFundsRouteImport } from './routes/app-preview/add-funds'
 
 const TermsRoute = TermsRouteImport.update({
@@ -71,6 +72,11 @@ const AppPreviewCardRoute = AppPreviewCardRouteImport.update({
   path: '/app-preview/card',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppPreviewAuthRoute = AppPreviewAuthRouteImport.update({
+  id: '/app-preview/auth',
+  path: '/app-preview/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppPreviewAddFundsRoute = AppPreviewAddFundsRouteImport.update({
   id: '/app-preview/add-funds',
   path: '/app-preview/add-funds',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/app-preview/add-funds': typeof AppPreviewAddFundsRoute
+  '/app-preview/auth': typeof AppPreviewAuthRoute
   '/app-preview/card': typeof AppPreviewCardRoute
   '/app-preview/home': typeof AppPreviewHomeRoute
   '/app-preview/profile': typeof AppPreviewProfileRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/app-preview/add-funds': typeof AppPreviewAddFundsRoute
+  '/app-preview/auth': typeof AppPreviewAuthRoute
   '/app-preview/card': typeof AppPreviewCardRoute
   '/app-preview/home': typeof AppPreviewHomeRoute
   '/app-preview/profile': typeof AppPreviewProfileRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/app-preview/add-funds': typeof AppPreviewAddFundsRoute
+  '/app-preview/auth': typeof AppPreviewAuthRoute
   '/app-preview/card': typeof AppPreviewCardRoute
   '/app-preview/home': typeof AppPreviewHomeRoute
   '/app-preview/profile': typeof AppPreviewProfileRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app-preview/add-funds'
+    | '/app-preview/auth'
     | '/app-preview/card'
     | '/app-preview/home'
     | '/app-preview/profile'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app-preview/add-funds'
+    | '/app-preview/auth'
     | '/app-preview/card'
     | '/app-preview/home'
     | '/app-preview/profile'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/app-preview/add-funds'
+    | '/app-preview/auth'
     | '/app-preview/card'
     | '/app-preview/home'
     | '/app-preview/profile'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
   AppPreviewAddFundsRoute: typeof AppPreviewAddFundsRoute
+  AppPreviewAuthRoute: typeof AppPreviewAuthRoute
   AppPreviewCardRoute: typeof AppPreviewCardRoute
   AppPreviewHomeRoute: typeof AppPreviewHomeRoute
   AppPreviewProfileRoute: typeof AppPreviewProfileRoute
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPreviewCardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app-preview/auth': {
+      id: '/app-preview/auth'
+      path: '/app-preview/auth'
+      fullPath: '/app-preview/auth'
+      preLoaderRoute: typeof AppPreviewAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app-preview/add-funds': {
       id: '/app-preview/add-funds'
       path: '/app-preview/add-funds'
@@ -260,6 +280,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
   AppPreviewAddFundsRoute: AppPreviewAddFundsRoute,
+  AppPreviewAuthRoute: AppPreviewAuthRoute,
   AppPreviewCardRoute: AppPreviewCardRoute,
   AppPreviewHomeRoute: AppPreviewHomeRoute,
   AppPreviewProfileRoute: AppPreviewProfileRoute,

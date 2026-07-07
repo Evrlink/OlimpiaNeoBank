@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 
 const previewScreens = [
   { id: "welcome", label: "Welcome", to: "/app-preview/welcome" as const },
+  { id: "auth", label: "Auth", to: "/app-preview/auth" as const },
   { id: "youre-in", label: "You're in", to: "/app-preview/youre-in" as const },
   { id: "home", label: "Empty Home", to: "/app-preview/home" as const },
   { id: "add-funds", label: "Add funds", to: "/app-preview/add-funds" as const },

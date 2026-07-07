@@ -1,5 +1,6 @@
 import { ArrowLeft, Building2, CreditCard, ShieldCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { AppPreviewTopBar } from "./app-preview-wordmark";
 
 export function AddFundsScreen() {
   return (
@@ -7,13 +8,17 @@ export function AddFundsScreen() {
       <div className="app-welcome-bg" aria-hidden />
 
       <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-6 pt-3">
-        <Link
-          to="/app-preview/home"
-          className="inline-flex w-fit items-center gap-1 text-body-sm font-semibold text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
-          Back
-        </Link>
+        <AppPreviewTopBar
+          leftSlot={
+            <Link
+              to="/app-preview/home"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-foreground transition hover:bg-surface/80"
+              aria-label="Back to Home"
+            >
+              <ArrowLeft className="h-5 w-5" strokeWidth={2} aria-hidden />
+            </Link>
+          }
+        />
 
         <h1 className="mt-6 text-h2 font-semibold text-foreground">Add funds</h1>
         <p className="mt-2 text-body text-ink-muted">

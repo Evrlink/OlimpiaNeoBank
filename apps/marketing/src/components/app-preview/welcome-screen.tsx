@@ -1,5 +1,6 @@
 import { BookOpen, CreditCard, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { AppPreviewWordmark } from "./app-preview-wordmark";
 
 const sparkles = [
   { top: "12%", left: "18%" },
@@ -28,7 +29,7 @@ export function WelcomeScreen() {
       ))}
 
       <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-6 pt-4">
-        <p className="font-display text-h3 tracking-tight text-berry">Olimpia</p>
+        <AppPreviewWordmark />
 
         <div className="mt-10 flex flex-col">
           <p className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.12em] text-raspberry">
@@ -63,18 +64,19 @@ export function WelcomeScreen() {
         </div>
 
         <div className="relative z-[1] mt-auto space-y-3 pt-6">
-          <button
-            type="button"
+          <Link
+            to="/app-preview/auth"
             className="flex h-14 w-full items-center justify-center rounded-full bg-raspberry text-body font-semibold text-white shadow-soft transition hover:opacity-90"
           >
             Get started
-          </button>
-          <button
-            type="button"
+          </Link>
+          <Link
+            to="/app-preview/auth"
+            search={{ mode: "signin" }}
             className="flex h-14 w-full items-center justify-center rounded-full border border-border bg-card text-body font-semibold text-foreground transition hover:border-foreground/20"
           >
             Sign in
-          </button>
+          </Link>
           <p className="text-center text-caption text-ink-muted">
             <Link to="/privacy" className="hover:text-foreground">
               Terms
