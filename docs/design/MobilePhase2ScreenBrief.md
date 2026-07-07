@@ -1,7 +1,7 @@
 # Olimpia — Mobile Phase 2 Screen Design Brief
 
-**Version:** 2.2  
-**Status:** **Approved** — all founder design decisions complete (no open questions)  
+**Version:** 2.3  
+**Status:** **Approved** — all founder design decisions complete; **Phase 2 app previews founder-approved** (Welcome, Auth, You're in, Empty Home, Add funds stub, Savings empty, Card empty, Profile, bottom nav shell)  
 **Scope:** Build Plan Phase 2 — first implementation screens only  
 **Source of truth:** [Brand.md](../brand/Brand.md) · [PRD.md](../product/PRD.md) (v1.10) · [BuildPlan.md](../build/BuildPlan.md) (v1.1) · [Architecture.md](../architecture/Architecture.md) · [UserFlows.md](../product/UserFlows.md) · [NavigationMap.md](../product/NavigationMap.md) · Marketing site (`apps/marketing`)
 
@@ -19,8 +19,36 @@ Translate the approved Olimpia brand system from the marketing website into a **
 2. Sign up / Login (Auth)  
 3. Onboarding (post-auth first-run moment)  
 4. Empty Home dashboard  
-5. Bottom navigation  
-6. Profile (with static Pia “Coming Soon” card)
+5. Add funds (shared stub)  
+6. Savings tab (empty state)  
+7. Card tab (empty state)  
+8. Bottom navigation  
+9. Profile (with static Pia “Coming Soon” card)
+
+### Phase 2 app preview — founder approved
+
+Interactive browser previews live at `/app-preview/*` on the marketing app (`npm run dev:marketing`). Components in `apps/marketing/src/components/app-preview/`. **Do not extend previews** beyond this inventory until a later build phase.
+
+| Screen | Route ID | Preview URL | Component |
+|--------|----------|-------------|-----------|
+| Welcome (A1) | welcome | `/app-preview/welcome` | `welcome-screen.tsx` |
+| Auth (A2) | auth | `/app-preview/auth` | `auth-screen.tsx` |
+| You're in (A3) | youre-in | `/app-preview/youre-in` | `youre-in-screen.tsx` |
+| Empty Home (A4) | home | `/app-preview/home` | `empty-home-screen.tsx` |
+| Add funds stub (A5) | add-funds | `/app-preview/add-funds` | `add-funds-screen.tsx` |
+| Savings empty (A10) | savings | `/app-preview/savings` | `tab-empty-state.tsx` + `app-tab-bar.tsx` |
+| Card empty (A14) | card | `/app-preview/card` | `tab-empty-state.tsx` + `app-tab-bar.tsx` |
+| Profile (A16) | profile | `/app-preview/profile` | `profile-screen.tsx` |
+| Bottom nav shell | — | (embedded on tab screens above) | `app-tab-bar.tsx` |
+
+**Auth preview states** (state pills on `/app-preview/auth`): Email entry · OTP (`?step=otp`) · Loading (`?step=loading`) · Error (`?step=error`).
+
+**Explicitly out of scope for Phase 2 previews** (later build phases — do not design or preview now):
+
+- Create Goal sheet (A11) · Goal Detail (A12)  
+- Send Money (A7) · Receive Money (A8) · Withdraw (A6)  
+- Growth Account (A13) · Pia chat (A15)  
+- Transaction Detail (A9) · funded Home states
 
 ---
 
@@ -163,7 +191,7 @@ From marketing implementation:
 | **Onboarding education** | **You're in confirmation (A3) only** — §3.3 | USD, USDC, yield, bank, decentralized finance allowed; footer disclaimer required |
 | **Marketing website** | `/`, `/learn/usdc`, FAQ, etc. | Educational DeFi/USDC content unchanged |
 
-**Preview source of truth:** Approved screen copy lives in `apps/marketing/src/components/app-preview/` and is mirrored in [`DesignInput.md`](DesignInput.md) + §3.3 below.
+**Preview source of truth:** Founder-approved Phase 2 previews listed in **Purpose → Phase 2 app preview — founder approved**. Approved copy lives in `apps/marketing/src/components/app-preview/` and is mirrored in [`DesignInput.md`](DesignInput.md) + §3 and §5 below.
 
 **Tone rules:**
 
@@ -227,6 +255,7 @@ Use these as **visual DNA**, not layout templates.
 
 **Route:** Pre-auth stack root (A1)  
 **Reference:** Marketing Hero + Stay Tuned emotional tone; **not** full marketing hero layout  
+**Status:** **Founder approved** — preview at `/app-preview/welcome` · component `welcome-screen.tsx`
 
 **Scope note:** Welcome **headline** is founder-approved app copy (`Better than a checking account, everything your bank can't do.`). Subhead, tagline, and CTAs below are **mobile app** copy (neobank tone; app actions — not marketing Download/Learn More).
 
@@ -287,20 +316,59 @@ Abstract **static gradient only**. The background supports the approved copy and
 ### 3.2 Sign up / Login (Auth)
 
 **Route:** A2 — single flow, mode toggled by entry path  
-**Reference:** WaitlistModal form + Privy SDK sheets
+**Reference:** WaitlistModal form + Privy SDK sheets  
+**Status:** **Founder approved** — preview at `/app-preview/auth` · component `auth-screen.tsx` · state pills: Email entry · OTP · Loading · Error
 
-**Layout — shared chrome:**
+**Layout — shared chrome (approved preview):**
 
-- Top: Back → Welcome  
-- Title: **Create your account** (sign up) or **Welcome back** (sign in)  
-- Subtitle: *Takes about a minute. No complicated setup.*
+- Top: centered **Olimpia** wordmark (`AppPreviewTopBar`) · Back → Welcome (left)  
+- Headline + subtitle **outside** white card (sign up vs sign in copy below)  
+- White rounded card: email/phone field · Continue with phone/email toggle · Continue · `or` · Continue with Apple · Continue with Google · sign-up/sign-in toggle  
+- Trust line below card: *Secure sign in. No seed phrases. No crypto setup.*
 
-**Sign-up steps (inline / Privy-managed):**
+**Sign-up copy (approved preview):**
 
-1. Email or phone input (single field with toggle or segmented control)  
+| Element | Copy |
+|---------|------|
+| Title | Create your account |
+| Subtitle | Sign up in minutes. Olimpia keeps the money tools simple behind the scenes. |
+| Email label | Email address |
+| Phone label | Phone number |
+| Field toggle | Continue with phone · Continue with email |
+| Primary | Continue |
+| OAuth | Continue with Apple · Continue with Google |
+| Mode toggle | Don't have an account? **Sign up** / Already have an account? **Sign in** |
+| Trust | Secure sign in. No seed phrases. No crypto setup. |
+
+**Sign-in copy (approved preview):**
+
+| Element | Copy |
+|---------|------|
+| Title | Welcome back |
+| Subtitle | Sign in to pick up where you left off. |
+
+**OTP step (approved preview):**
+
+| Element | Copy / spec |
+|---------|-------------|
+| Title | Verify your email *(single line)* |
+| Instruction (line 1) | We sent a 6-digit code to |
+| Instruction (line 2) | `{email}` (bold) |
+| OTP fields | Six single-digit boxes |
+| Resend | Resend code in **00:45** (raspberry) |
+| Primary | Verify |
+| Keypad | iOS-style numeric keypad (preview decoration) |
+
+**Loading step (approved preview):** Entry layout ghosted (~12% opacity) · centered spinner · *Creating your account…* · *This will only take a moment.*
+
+**Error step (approved preview):** Invalid email inline · *Please enter a valid email address* · red field border · alert icon · faded disabled Continue
+
+**Sign-up steps (production / Privy-managed — after preview approval):**
+
+1. Email or phone input (single field with toggle)  
 2. OTP verification / passkey prompt (Privy native UI themed where possible)  
-3. **Account sync loading** — full-width calm loader: *Setting up your account…* (no wallet/chain language)  
-4. Error inline below field or banner — friendly retry
+3. **Account sync loading** — full-width calm loader: *Creating your account…* (no wallet/chain language)  
+4. Error inline below field — friendly retry
 
 **Sign-in steps:** Same without “new account” framing; route directly to empty Home — **no Pia greeting or introduction**.
 
@@ -367,6 +435,8 @@ Abstract **static gradient only**. The background supports the approved copy and
 
 **Add funds screen (Phase 2 — shared stub, founder approved):**
 
+**Status:** **Founder approved** — preview at `/app-preview/add-funds` · component `add-funds-screen.tsx`
+
 **One screen, two entry points:** onboarding confirmation **Add funds and start earning** and Empty Home **Add money** CTA open the **same** shared Add funds screen — identical copy and layout.
 
 | Element | User-facing copy |
@@ -408,7 +478,8 @@ Available funding methods will be determined by the live Bridge flow at launch �
 
 **Route:** A4 — Home tab root  
 **State:** NavigationMap **State 1 — New User** (account created, $0, no goals, no growth)  
-**Reference:** UserFlows §4 empty state; ScreenInventory State 1; marketing goal card for future slots
+**Reference:** UserFlows §4 empty state; ScreenInventory State 1; marketing goal card for future slots  
+**Status:** **Founder approved** — preview at `/app-preview/home` · component `empty-home-screen.tsx`
 
 **Visual hierarchy (founder approved):** The **encouraging headline** and **Add money CTA card** are the main focus. Balance is present but quiet — never the hero.
 
@@ -451,7 +522,8 @@ Available funding methods will be determined by the live Bridge flow at launch �
 ### 3.5 Bottom navigation
 
 **Route:** Persistent tab bar — 4 tabs per PRD / NavigationMap  
-**Reference:** Marketing phone mockup tab styling (colors/icons) — **not** 5-tab structure
+**Reference:** Marketing phone mockup tab styling (colors/icons) — **not** 5-tab structure  
+**Status:** **Founder approved** — component `app-tab-bar.tsx` (embedded on Empty Home, Savings, Card, Profile previews)
 
 **Tabs:**
 
@@ -478,7 +550,8 @@ Available funding methods will be determined by the live Bridge flow at launch �
 ### 3.6 Savings tab (Phase 2 empty state)
 
 **Route:** A10 — Savings tab root (shell only in Phase 2)  
-**Component:** Shared **EmptyState** — calm, centered, visually consistent across Savings and Card
+**Component:** Shared **EmptyState** — calm, centered, visually consistent across Savings and Card  
+**Status:** **Founder approved** — preview at `/app-preview/savings`
 
 **Founder approved:** Simple, transparent empty state. **No** skeleton shimmer, fake data, fake balances, or “Phase 3” labels.
 
@@ -496,7 +569,8 @@ Available funding methods will be determined by the live Bridge flow at launch �
 ### 3.7 Card tab (Phase 2 empty state)
 
 **Route:** A14 — Card tab root (shell only in Phase 2)  
-**Component:** Shared **EmptyState** — same centered layout and styling as Savings (§3.6)
+**Component:** Shared **EmptyState** — same centered layout and styling as Savings (§3.6)  
+**Status:** **Founder approved** — preview at `/app-preview/card`
 
 **Founder approved:** Simple, transparent empty state. **No** skeleton shimmer, fake card PAN, fake balances, or “Phase 3” labels.
 
@@ -514,7 +588,8 @@ Available funding methods will be determined by the live Bridge flow at launch �
 ### 3.8 Profile (with Pia “Coming Soon” card)
 
 **Route:** A16 — Profile tab root  
-**Reference:** SiteFooter restraint + PiaSection ChatPreview (static only)
+**Reference:** SiteFooter restraint + PiaSection ChatPreview (static only)  
+**Status:** **Founder approved** — preview at `/app-preview/profile` · component `profile-screen.tsx`
 
 **Layout (scrollable single column, 16px horizontal padding):**
 
@@ -582,26 +657,34 @@ Available funding methods will be determined by the live Bridge flow at launch �
 
 *Headline is approved Welcome copy. Subhead, tagline, and CTAs are mobile app–specific (§1.4 neobank tone).*
 
-### Auth — Sign up
+### Auth — Sign up (founder approved — mirror preview)
 
-| Element | Placeholder copy |
-|---------|------------------|
+| Element | Copy |
+|---------|------|
 | Title | Create your account |
-| Subtitle | Takes about a minute. No complicated setup. |
-| Email label | Email |
+| Subtitle | Sign up in minutes. Olimpia keeps the money tools simple behind the scenes. |
+| Email label | Email address |
 | Phone label | Phone number |
+| Field toggle | Continue with phone · Continue with email |
 | Continue | Continue |
-| OTP prompt | Enter the code we sent you |
-| Loading | Setting up your account… |
-| Error (generic) | Something didn't work. Try again. |
-| Error (verification) | That code didn't match. Check and try again. |
+| OAuth | Continue with Apple · Continue with Google |
+| Mode toggle | Don't have an account? **Sign up** |
+| Trust | Secure sign in. No seed phrases. No crypto setup. |
+| OTP title | Verify your email |
+| OTP instruction | We sent a 6-digit code to / `{email}` |
+| OTP resend | Resend code in 00:45 |
+| OTP primary | Verify |
+| Loading | Creating your account… / This will only take a moment. |
+| Error (email) | Please enter a valid email address |
+| Error (OTP) | That code didn't match. Check and try again. |
 
-### Auth — Sign in
+### Auth — Sign in (founder approved — mirror preview)
 
-| Element | Placeholder copy |
-|---------|------------------|
+| Element | Copy |
+|---------|------|
 | Title | Welcome back |
 | Subtitle | Sign in to pick up where you left off. |
+| Mode toggle | Already have an account? **Sign in** |
 
 ### Onboarding (post sign-up) — dedicated confirmation screen
 
@@ -788,6 +871,7 @@ Available funding methods will be determined by the live Bridge flow at launch �
 | 10 | **Pia Coming Soon card (Profile)** | **One static Pia message bubble only** — no decorative user-question bubble. Keep: Pia avatar · name **Pia** · **Coming Soon** badge · message: *Pia will help you understand saving, growth, and financial confidence — supportive, never judgmental.* No input, send, suggested prompts, user bubble, chat interaction, or navigation. |
 | 11 | **Dark mode (MVP)** | **Light-only.** Approved warm light theme: background `#F7F4F1`, primary raspberry `#E54B7A`, supporting berry dark `#C73E72`, white cards, warm neutral surfaces. **Do not** design, build, document, or test dark mode for MVP. Future enhancement post-launch only. |
 | 12 | **Marketing vs app copy tone** | **Default:** neobank language per §1.4 on Welcome, Auth, Home, Savings, Card, Profile, and Add funds stub. **Exception:** onboarding confirmation (A3, §3.3) uses onboarding-education tier — USD, USDC, yield, bank, decentralized finance allowed with disclaimer. **Marketing website** may keep USDC/DeFi educational content — unchanged in this phase. |
+| 13 | **Phase 2 app previews** | **Founder approved** at `/app-preview/*` for Welcome, Auth (4 states), You're in, Empty Home, Add funds stub, Savings empty, Card empty, Profile, and bottom nav shell. **Do not** preview Create Goal, Goal Detail, Send, Receive, Withdraw, Growth, or Pia chat until later build phases. |
 
 ---
 
@@ -829,4 +913,4 @@ Pia: Profile inline Coming Soon card ONLY — no navigation target
 
 ---
 
-*End of Mobile Phase 2 Screen Design Brief v2.2 — approved*
+*End of Mobile Phase 2 Screen Design Brief v2.3 — approved*

@@ -1,6 +1,6 @@
 # Olimpia — Design Input (Phase 2 Mobile)
 
-**Status:** Active — mirrors approved preview + [`MobilePhase2ScreenBrief.md`](MobilePhase2ScreenBrief.md)  
+**Status:** Active — **Phase 2 app previews founder-approved** (mirrors [`MobilePhase2ScreenBrief.md`](MobilePhase2ScreenBrief.md) v2.3)  
 **Scope:** Phase 2 mobile app screens — design concepts only (no backend, no live Pia, no funding integration)  
 **Visual source of truth:** `apps/marketing/src/styles.css` · `docs/design/MobilePhase2ScreenBrief.md`  
 **Preview components:** `apps/marketing/src/components/app-preview/` · routes `/app-preview/*`  
@@ -14,15 +14,44 @@ Olimpia is a women-first neobank mobile app that helps users save, spend, and gr
 
 ---
 
-## 2. Screens to design
+## 2. Phase 2 app preview — founder approved
 
-Design these as **native mobile screens** (iOS + Android parity). Light theme only.
+Run previews: `npm run dev:marketing` → `/app-preview/*`. Nav pills in `app-preview-shell.tsx`.
+
+| # | Screen | Route ID | Preview URL | Component | Status |
+|---|--------|----------|-------------|-----------|--------|
+| 1 | **Welcome (A1)** | welcome | `/app-preview/welcome` | `welcome-screen.tsx` | Founder approved |
+| 2 | **Auth (A2)** | auth | `/app-preview/auth` | `auth-screen.tsx` | Founder approved |
+| 3 | **You're in! (A3)** | youre-in | `/app-preview/youre-in` | `youre-in-screen.tsx` | Founder approved |
+| 4 | **Empty Home (A4)** | home | `/app-preview/home` | `empty-home-screen.tsx` | Founder approved |
+| 5 | **Add funds stub (A5)** | add-funds | `/app-preview/add-funds` | `add-funds-screen.tsx` | Founder approved |
+| 6 | **Savings empty (A10)** | savings | `/app-preview/savings` | `tab-empty-state.tsx` | Founder approved |
+| 7 | **Card empty (A14)** | card | `/app-preview/card` | `tab-empty-state.tsx` | Founder approved |
+| 8 | **Profile (A16)** | profile | `/app-preview/profile` | `profile-screen.tsx` | Founder approved |
+| 9 | **Bottom nav shell** | — | (on tab screens above) | `app-tab-bar.tsx` | Founder approved |
+
+**Auth preview states** (pills on `/app-preview/auth`): Email entry · OTP (`?step=otp`) · Loading (`?step=loading`) · Error (`?step=error`).
+
+### Out of scope — do not preview in Phase 2
+
+- Create Goal sheet (A11) · Goal Detail (A12)  
+- Send Money (A7) · Receive Money (A8) · Withdraw (A6)  
+- Growth Account (A13) · Pia chat (A15)  
+- Transaction Detail (A9) · funded Home dashboard states  
+
+These ship in later build phases (see `BuildPlan.md`).
+
+---
+
+## 3. Screens to design (native mobile)
+
+Design as **native mobile screens** (iOS + Android parity). Light theme only. Mirror approved previews above.
 
 | # | Screen | Notes |
 |---|--------|-------|
 | 1 | **Welcome** | Pre-auth. Static rose→raspberry gradient on `#F7F4F1`. Pill CTAs pinned above safe area. |
-| 2 | **Sign up / Login** | Single auth flow; mode from entry path. Privy-style fields; back to Welcome. |
-| 3 | **“You're in!” confirmation** | Post sign-up only. Pia-free. Full reassurance layout per §3.3 brief. Preview: `/app-preview/youre-in`. |
+| 2 | **Sign up / Login** | Single auth flow; mode from entry path. Four preview states. Centered Olimpia wordmark top bar. |
+| 3 | **“You're in!” confirmation** | Post sign-up only. Pia-free. Full reassurance layout per brief §3.3. |
 | 4 | **Add Funds** | Shared stub — same layout from onboarding **Add funds and start earning** and Home **Add money**. |
 | 5 | **Empty Home** | State 1 new user. Headline + Add money card are hero; balance is quiet `$0.00` line. |
 | 6 | **Savings empty state** | Centered EmptyState inside tab shell. |
@@ -33,7 +62,7 @@ Design these as **native mobile screens** (iOS + Android parity). Light theme on
 
 ---
 
-## 3. Approved user flow
+## 4. Approved user flow
 
 ```
 Welcome
@@ -53,7 +82,7 @@ Pia: Profile Coming Soon card ONLY — no tab, no screen, no chat
 
 ---
 
-## 4. Exact 8-color palette
+## 5. Exact 8-color palette
 
 From `apps/marketing/src/styles.css` / Mobile Phase 2 brief §1.1.
 
@@ -74,13 +103,13 @@ From `apps/marketing/src/styles.css` / Mobile Phase 2 brief §1.1.
 
 ---
 
-## 5. Typography rules
+## 6. Typography rules
 
 | Role | Font | Rule |
 |------|------|------|
 | **Default UI** | **Inter** (400, 500, 600) | All body, buttons, inputs, tabs, labels, Pia bubble text, settings rows |
 | **Headline** | **Inter semibold** (600) | Welcome headline — all words except the Cormorant accent phrase |
-| **Display accent** | **Cormorant Garamond** italic 400 | **Welcome only:** italic on *everything your bank can't do.* in headline; optional Cormorant “Olimpia” wordmark on Welcome / Profile / You're in |
+| **Display accent** | **Cormorant Garamond** italic 400 | **Welcome only:** italic on *everything your bank can't do.* in headline; Cormorant “Olimpia” wordmark (centered top bar on Auth + optional Welcome / Profile / You're in) |
 | **Eyebrow** | Inter semibold uppercase | `tracking ~0.18em`, raspberry — Welcome only |
 
 **Font loading (match marketing site):** Load Google Fonts — `Inter:wght@400;500;600` and `Cormorant+Garamond:ital,wght@0,400;0,500;1,400` (same as `apps/marketing/src/routes/__root.tsx`). Never combine `font-semibold` / `font-bold` with Cormorant.
@@ -89,7 +118,7 @@ From `apps/marketing/src/styles.css` / Mobile Phase 2 brief §1.1.
 
 ---
 
-## 6. Exact approved copy
+## 7. Exact approved copy
 
 Use verbatim. Do not paraphrase. Full A3 detail in brief §3.3.
 
@@ -104,9 +133,34 @@ Use verbatim. Do not paraphrase. Full A3 detail in brief §3.3.
 | Primary CTA | Get started |
 | Secondary CTA | Sign in |
 
-### Sign up / Sign in
+### Auth — Sign up (founder approved)
 
-See brief §3.2 placeholder tables.
+| Element | Copy |
+|---------|------|
+| Title | Create your account |
+| Subtitle | Sign up in minutes. Olimpia keeps the money tools simple behind the scenes. |
+| Email label | Email address |
+| Phone label | Phone number |
+| Field toggle | Continue with phone · Continue with email |
+| Continue | Continue |
+| OAuth | Continue with Apple · Continue with Google |
+| Mode toggle | Don't have an account? **Sign up** |
+| Trust | Secure sign in. No seed phrases. No crypto setup. |
+| OTP title | Verify your email |
+| OTP instruction | We sent a 6-digit code to / `{email}` |
+| OTP resend | Resend code in 00:45 |
+| OTP primary | Verify |
+| Loading | Creating your account… / This will only take a moment. |
+| Error (email) | Please enter a valid email address |
+| Error (OTP) | That code didn't match. Check and try again. |
+
+### Auth — Sign in (founder approved)
+
+| Element | Copy |
+|---------|------|
+| Title | Welcome back |
+| Subtitle | Sign in to pick up where you left off. |
+| Mode toggle | Already have an account? **Sign in** |
 
 ### “You're in!” confirmation (founder approved)
 
@@ -152,11 +206,11 @@ See brief §3.2 placeholder tables.
 
 ### Savings / Card / Profile / Bottom tabs
 
-See [`MobilePhase2ScreenBrief.md`](MobilePhase2ScreenBrief.md) §3.4–3.7.
+See [`MobilePhase2ScreenBrief.md`](MobilePhase2ScreenBrief.md) §3.5–3.8 and §5.
 
 ---
 
-## 7. Copy tiers (brief §1.4)
+## 8. Copy tiers (brief §1.4)
 
 | Tier | Screens | Language |
 |------|---------|------------|
@@ -166,7 +220,7 @@ See [`MobilePhase2ScreenBrief.md`](MobilePhase2ScreenBrief.md) §3.4–3.7.
 
 ---
 
-## 8. Pia rules (non-negotiable)
+## 9. Pia rules (non-negotiable)
 
 - Pia appears **only** on **Profile** as a static **Coming Soon** card.
 - **One** incoming message bubble — Pia’s text only.
@@ -175,7 +229,7 @@ See [`MobilePhase2ScreenBrief.md`](MobilePhase2ScreenBrief.md) §3.4–3.7.
 
 ---
 
-## 9. Add Funds rules
+## 10. Add Funds rules
 
 - **One shared screen** for onboarding **Add funds and start earning** and Home **Add money**.
 - Stub copy: title **Add funds**, body **Choose how you'd like to add funds to your Olimpia balance.**, button **Continue**.
@@ -184,7 +238,7 @@ See [`MobilePhase2ScreenBrief.md`](MobilePhase2ScreenBrief.md) §3.4–3.7.
 
 ---
 
-## 10. Must-not-do list
+## 11. Must-not-do list
 
 - **No fake balances** beyond quiet *Money available · $0.00*.
 - **No fake card data** on Card tab.
@@ -193,7 +247,8 @@ See [`MobilePhase2ScreenBrief.md`](MobilePhase2ScreenBrief.md) §3.4–3.7.
 - **No bank-linking UI** beyond Add Funds placeholder.
 - **No dark mode** for MVP.
 - **No Pia** outside Profile.
+- **No Phase 2 previews** for Create Goal, Goal Detail, Send, Receive, Withdraw, Growth, or Pia chat.
 
 ---
 
-*Derived from MobilePhase2ScreenBrief.md (approved), Brand.md, and apps/marketing preview components.*
+*Derived from MobilePhase2ScreenBrief.md v2.3 (approved), Brand.md, and apps/marketing preview components.*
