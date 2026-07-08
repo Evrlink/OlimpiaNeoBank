@@ -1,8 +1,10 @@
-import { useEmbeddedEthereumWallet, useLoginWithEmail } from "@privy-io/expo";
+import { useEmbeddedEthereumWallet, useLoginWithEmail, usePrivy } from "@privy-io/expo";
 import { useCallback, useEffect, useState } from "react";
-import type { AuthMode } from "@/screens/AuthScreen";
+import type { AuthMode, AuthSuccessDestination } from "@/screens/AuthScreen";
+import { syncAccount } from "@/services/api/authSync";
 import {
   getAuthErrorMessage,
+  getSyncErrorMessage,
   hasEmbeddedEthereumWallet,
   isValidEmail,
 } from "@/utils/auth";
@@ -29,7 +31,7 @@ type UseEmailAuthFlowResult = {
 
 export function useEmailAuthFlow(
   authMode: AuthMode,
-  onAuthenticated: () => void,
+  onSuccess: (destination: AuthSuccessDestination) => void,
 ): UseEmailAuthFlowResult {
   const [step, setStep] = useState<AuthFlowStep>("email");
   const [email, setEmail] = useState("");
@@ -37,6 +39,7 @@ export function useEmailAuthFlow(
   const [inlineError, setInlineError] = useState<string | null>(null);
   const [resendSeconds, setResendSeconds] = useState(0);
 
+  const { getAccessToken } = usePrivy();
   const { sendCode, loginWithCode, state } = useLoginWithEmail({
     onError: (error) => {
       setInlineError(getAuthErrorMessage(error));
@@ -117,12 +120,32 @@ export function useEmailAuthFlow(
         await create();
       }
 
-      onAuthenticated();
+      const accessToken = await getAccessToken();
+
+      if (!accessToken) {
+        setStep("otp");
+        setInlineError("Your session expired. Please verify your email again.");
+        return;
+      }
+
+      const syncResult = await syncAccount(accessToken);
+      const destination: AuthSuccessDestination =
+        syncResult.isNewUser && authMode === "signup" ? "youre-in" : "home";
+
+      onSuccess(destination);
     } catch (error) {
       setStep("otp");
-      setInlineError(getAuthErrorMessage(error));
+      setInlineError(getSyncErrorMessage(error));
     }
-  }, [authMode, create, loginWithCode, normalizedEmail, onAuthenticated, otpCode]);
+  }, [
+    authMode,
+    create,
+    getAccessToken,
+    loginWithCode,
+    normalizedEmail,
+    onSuccess,
+    otpCode,
+  ]);
 
   const resendCode = useCallback(async () => {
     if (resendSeconds > 0 || !isValidEmail(normalizedEmail)) {

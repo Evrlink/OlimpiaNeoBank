@@ -15,10 +15,11 @@ import { useEmailAuthFlow } from "@/hooks/useEmailAuthFlow";
 import { colors, radius, spacing } from "@/theme/colors";
 
 export type AuthMode = "signup" | "signin";
+export type AuthSuccessDestination = "youre-in" | "home";
 
 type AuthScreenProps = {
   mode: AuthMode;
-  onSuccess: () => void;
+  onSuccess: (destination: AuthSuccessDestination) => void;
   onBack: () => void;
 };
 

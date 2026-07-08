@@ -1,4 +1,5 @@
 import type { User } from "@privy-io/api-types";
+import { AuthSyncApiError } from "@/services/api/authSync";
 
 type LinkedAccount = User["linked_accounts"][number];
 
@@ -23,6 +24,14 @@ export function getAuthErrorMessage(error: unknown): string {
   }
 
   return "Something went wrong. Please try again.";
+}
+
+export function getSyncErrorMessage(error: unknown): string {
+  if (error instanceof AuthSyncApiError) {
+    return error.message;
+  }
+
+  return "We couldn't finish setting up your account. Please try again.";
 }
 
 export function isValidEmail(value: string): boolean {

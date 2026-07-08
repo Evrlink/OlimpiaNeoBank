@@ -72,9 +72,7 @@ export default function App() {
         ) : screen === "auth" ? (
           <AuthScreen
             mode={authMode}
-            onSuccess={() => {
-              setScreen(authMode === "signup" ? "youre-in" : "home");
-            }}
+            onSuccess={(destination) => setScreen(destination)}
             onBack={() => setScreen("welcome")}
           />
         ) : screen === "youre-in" ? (
