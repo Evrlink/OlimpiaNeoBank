@@ -31,6 +31,7 @@ function formatAccountDate(value: string): string {
 export function ProfileScreen({ user, balance, onSignOut }: ProfileScreenProps) {
   const { logout } = usePrivy();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
   const greetingName = getGreetingName(user);
   const email = user.email?.trim();
   const createdAt = user.createdAt?.trim();
@@ -40,15 +41,16 @@ export function ProfileScreen({ user, balance, onSignOut }: ProfileScreenProps) 
       return;
     }
 
+    setSignOutError(null);
     setIsSigningOut(true);
 
     try {
       await logout();
+      onSignOut();
     } catch {
-      // Fall through to clear local session state and return to Welcome.
+      setSignOutError("Sign out didn't finish. Please try again.");
     } finally {
       setIsSigningOut(false);
-      onSignOut();
     }
   };
 
@@ -100,6 +102,11 @@ export function ProfileScreen({ user, balance, onSignOut }: ProfileScreenProps) 
         >
           <Text style={styles.signOutLabel}>{isSigningOut ? "Signing out…" : "Sign out"}</Text>
         </Pressable>
+        {signOutError ? (
+          <Text style={styles.signOutError} accessibilityRole="alert">
+            {signOutError}
+          </Text>
+        ) : null}
       </ScrollView>
 
       <AppTabBar active="profile" />
@@ -231,5 +238,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     color: colors.berryDark,
+  },
+  signOutError: {
+    marginTop: 10,
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.raspberry,
+    textAlign: "center",
   },
 });
