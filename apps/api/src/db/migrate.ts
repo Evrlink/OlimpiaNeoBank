@@ -67,7 +67,7 @@ async function run(): Promise<void> {
   }
 }
 
-run().catch((error) => {
-  console.error("Migration failed:", error);
+run().catch(() => {
+  console.error("Migration failed. Check database configuration and migration SQL.");
   process.exit(1);
 });
