@@ -16,6 +16,9 @@
         "backgroundColor": "#F7F4F1"
       },
       "package": "app.olimpia.mobile"
-    }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }
