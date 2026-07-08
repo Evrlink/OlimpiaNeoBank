@@ -17,6 +17,8 @@
 
 **Out of scope for this map:** `llms.txt` (static file) · FAQ (`#faq` section on M1) · Settings (merged into A16) · inline async states (same route).
 
+**V1 launch (see [V1Scope.md](./V1Scope.md)):** Functional **savings goals** and **USDC yield** are V1. **Ask Pia → A15** chat routes and **A14 Card spend** are **post-V1**. At V1, Pia is visible as a static **Coming soon** card on **A16 Profile** only (no chat, no Ask Pia quick actions).
+
 ---
 
 ## Navigation model (mobile)
@@ -30,7 +32,7 @@
 | **Modal / sheet** | Overlays current screen; dismiss returns to **presenting screen** |
 | **Onboarding** | Pre-auth stack outside tabs: A1 → A2 → (A3) → tabs |
 | **Sign out** | Clears session; resets to A1 Welcome (tabs unmounted) |
-| **Pia (A15)** | Pushed on **caller's tab stack**; back returns to entry screen on that tab |
+| **Pia (A15)** | **Post-V1** — functional chat pushed on caller's tab stack. **V1:** static Coming soon card on A16 Profile only |
 
 ---
 
@@ -97,10 +99,11 @@
 | **Back behavior** | Back → A1 |
 | **Tab behavior** | Tabs hidden |
 
-#### A3 — Pia Introduction
+#### A3 — Pia Introduction · **Not V1**
 
 | Field | Detail |
 |-------|--------|
+| **V1** | **Skipped** — no Pia in onboarding. V1 teases Pia via static Coming soon card on A16 Profile only. |
 | **Parent** | A2 (signup path only) |
 | **Children** | A4 · A5 |
 | **Entry points** | A2 after first registration (**skipped on login**) |
@@ -117,13 +120,13 @@
 | Field | Detail |
 |-------|--------|
 | **Parent** | Tab root (Home stack) · A2/A3 onboarding |
-| **Children** | A5 · A6 · A7 · A8 · A9 · A13 · A15 |
+| **Children** | A5 · A6 · A7 · A8 · A9 · A13 · *(post-V1: A15)* |
 | **Entry points** | Onboarding/login complete · Home tab tap · Back from Home-stack children |
-| **Exit points** | Quick actions → A5 · A7 · A8 · A15 · Activity → A9 · Growth CTA → A13 · Withdraw (secondary) → A6 · Tabs → A10 · A14 · A16 |
+| **Exit points** | Quick actions → A5 · A7 · A8 · Activity → A9 · Growth CTA → A13 · Withdraw (secondary) → A6 · Tabs → A10 · A14 · A16 |
 | **Back behavior** | N/A at root; system back on Android at root → background app |
 | **Tab behavior** | Home tab selected; re-tap Home → stay at A4 (stack cleared if nested) |
 
-*Primary quick actions (PRD): Add · Send · Receive · Ask Pia. Withdraw is **not** in the quick-action row — entry via Profile (primary) or secondary Home affordance (Architecture §7).*
+| **Primary quick actions (V1)** | Add · Send · Receive. Withdraw via Profile (primary) or secondary Home affordance. **No Ask Pia at V1.** |
 
 #### A5 — Add Money · **Tab: Home stack** (or onboarding pre-tabs)
 
@@ -185,9 +188,9 @@
 | Field | Detail |
 |-------|--------|
 | **Parent** | Tab root (Savings stack) |
-| **Children** | A11 (sheet) · A12 · A13 · A15 |
+| **Children** | A11 (sheet) · A12 · A13 · *(post-V1: A15)* |
 | **Entry points** | Savings tab · Back from Savings-stack children |
-| **Exit points** | Goal row → A12 · New Goal → A11 · Growth → A13 · Ask Pia → A15 · Tabs |
+| **Exit points** | Goal row → A12 · New Goal → A11 · Growth → A13 · Tabs |
 | **Back behavior** | N/A at root |
 | **Tab behavior** | Savings tab root |
 
@@ -207,9 +210,9 @@
 | Field | Detail |
 |-------|--------|
 | **Parent** | A10 · A11 |
-| **Children** | A9 · A15 |
+| **Children** | A9 · *(post-V1: A15)* |
 | **Entry points** | A10 goal row · A11 success |
-| **Exit points** | Back → A10 · Activity → A9 · Ask Pia → A15 |
+| **Exit points** | Back → A10 · Activity → A9 |
 | **Back behavior** | Back → A10 |
 | **Tab behavior** | Savings stack |
 
@@ -218,13 +221,13 @@
 | Field | Detail |
 |-------|--------|
 | **Parent** | A4 · A10 |
-| **Children** | A15 |
+| **Children** | *(post-V1: A15)* |
 | **Entry points** | A10 Growth link · A4 growth summary/CTA |
-| **Exit points** | Back → A4 or A10 · Ask Pia → A15 |
+| **Exit points** | Back → A4 or A10 |
 | **Back behavior** | Back → entry parent (A4 or A10) |
 | **Tab behavior** | Stack of tab used to enter |
 
-#### A14 — Virtual Debit Card · **Tab: Card**
+#### A14 — Virtual Debit Card · **Tab: Card** · **Post-V1 (functional spend)**
 
 | Field | Detail |
 |-------|--------|
@@ -233,15 +236,16 @@
 | **Entry points** | Card tab |
 | **Exit points** | Spend row → A9 · Tabs |
 | **Back behavior** | N/A at root |
-| **Tab behavior** | Card tab root; card management (freeze, CVV) on this screen — no separate screen |
+| **Tab behavior** | Card tab root at V1 may show **Coming soon** placeholder; functional card management (freeze, CVV) ships in Phase 9B |
 
-#### A15 — Pia AI Chat · **Tab: caller stack**
+#### A15 — Pia AI Chat · **Post-V1** · **Tab: caller stack**
 
 | Field | Detail |
 |-------|--------|
-| **Parent** | A4 · A10 · A12 · A13 · A16 |
+| **V1** | **Not shipped** — Pia visible only as static Coming soon card on A16 Profile |
+| **Parent** | A4 · A10 · A12 · A13 · A16 *(post-V1 entry points)* |
 | **Children** | None |
-| **Entry points** | Ask Pia from Home · Savings · Goal Detail · Growth · Profile |
+| **Entry points** | **Post-V1:** Ask Pia from Home · Savings · Goal Detail · Growth · Profile |
 | **Exit points** | Back → parent · Tab switch → other tab root (conversation persisted) |
 | **Back behavior** | Back → entry screen on same tab |
 | **Tab behavior** | Lives on stack of tab that opened it; switching away preserves Pia stack until back or tab-root reset |
@@ -251,9 +255,9 @@
 | Field | Detail |
 |-------|--------|
 | **Parent** | Tab root (Profile stack) |
-| **Children** | A6 · A15 · sign out → A1 |
+| **Children** | A6 · sign out → A1 · *(inline Pia Coming soon card — static at V1)* |
 | **Entry points** | Profile tab |
-| **Exit points** | Withdraw → A6 · Ask Pia → A15 · Sign out → A1 · Tabs |
+| **Exit points** | Withdraw → A6 · Sign out → A1 · Tabs · *(post-V1: Ask Pia → A15)* |
 | **Back behavior** | N/A at root |
 | **Tab behavior** | Profile tab root; **Settings merged here** — no A17 |
 
@@ -326,10 +330,10 @@ Default resting state: **A4 Home** (or last-used tab).
 
 | From | Can reach |
 |------|-----------|
-| **A4 Home** | A5 · A6* · A7 · A8 · A9 · A13 · A15 · any tab |
-| **A10 Savings** | A11 · A12 · A13 · A15 · A9 · any tab |
-| **A14 Card** | A9 · any tab |
-| **A16 Profile** | A6 · A15 · A1 (sign out) · any tab |
+| **A4 Home** | A5 · A6* · A7 · A8 · A9 · A13 · any tab · *(post-V1: A15)* |
+| **A10 Savings** | A11 · A12 · A13 · A9 · any tab · *(post-V1: A15)* |
+| **A14 Card** | A9 · any tab · *(functional spend post-V1)* |
+| **A16 Profile** | A6 · A1 (sign out) · any tab · Pia Coming soon card (static at V1) · *(post-V1: A15)* |
 
 *A6 from A4 = secondary entry only (not primary quick-action row).
 
@@ -341,10 +345,10 @@ Money flows return to **tab root or parent** on success — not orphaned success
 
 | Tab | Root | Stack children (typical) |
 |-----|------|--------------------------|
-| **Home** | A4 | A5 · A6 · A7 · A8 · A9 · A13 · A15 |
-| **Savings** | A10 | A11 (sheet) · A12 · A13 · A9 · A15 |
-| **Card** | A14 | A9 |
-| **Profile** | A16 | A6 · A15 |
+| **Home** | A4 | A5 · A6 · A7 · A8 · A9 · A13 · *(post-V1: A15)* |
+| **Savings** | A10 | A11 (sheet) · A12 · A13 · A9 · *(post-V1: A15)* |
+| **Card** | A14 | A9 · *(functional spend post-V1)* |
+| **Profile** | A16 | A6 · Pia Coming soon card (static at V1) · *(post-V1: A15)* |
 
 | Interaction | Result |
 |-------------|--------|
@@ -482,10 +486,12 @@ A4 [growth CTA] or A10 [growth entry]
 
 Requires available balance (often after first deposit).
 
-### First Pia conversation journey
+### First Pia conversation journey — **Post-V1**
+
+*At V1 launch, users see Pia only as a static **Coming soon** card on Profile — this journey applies after functional Pia ships (A15).*
 
 ```
-A4 Ask Pia (or A10/A12/A13/A16)
+A4 *(post-V1: Ask Pia)* or A10/A12/A13/A16
   → A15 Pia Chat
       → disclaimer + suggested prompts
       → user message → Pia reply
@@ -627,7 +633,7 @@ flowchart TB
 
 | Pattern | Paths | Assessment |
 |---------|-------|--------------|
-| **Ask Pia → A15** | A4 · A10 · A12 · A13 · A16 | ✅ Intentional — context-aware entry |
+| **Ask Pia → A15** | **Post-V1** — A4 · A10 · A12 · A13 · A16 | V1: Pia Coming soon card on A16 only |
 | **A13 Growth** | A4 · A10 | ✅ Intentional — two valid entry points |
 | **A6 Withdraw** | A4 · A16 | ✅ Intentional — Profile primary |
 | **A9 Transaction Detail** | A4 · A12 · A14 · A7 | ✅ Intentional — shared detail screen |
@@ -665,7 +671,7 @@ flowchart TB
 | 4 | **Receive deep links optional** | Without deep links, new payers must find Receive manually — acceptable for MVP if documented. |
 | 5 | **A11 success → A12** | User may not know how to return to A10 — back from A12 handles; OK. |
 | 6 | **Pia on multiple stacks** | Tab switch while in A15 may confuse — persist thread; back returns to entry. QA on iOS + Android. |
-| 7 | ~~**Brand.md Pia section**~~ | **Resolved:** Marketing = static Pia preview; app = live Pia MVP. Brand.md updated. |
+| 7 | ~~**Brand.md Pia section**~~ | **Resolved:** Marketing and mobile at V1 = static Pia Coming soon preview; functional coach **post-V1** (A15). |
 
 ---
 

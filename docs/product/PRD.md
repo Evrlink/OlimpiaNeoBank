@@ -7,6 +7,7 @@
 **Scope:** Consumer finance prototype  
 **Platform:** React Native mobile app (iOS + Android) + marketing website  
 **Distribution:** App Store + Google Play (MVP)  
+**V1 scope (founder confirmed):** Full V1 launch — money loop (Add, Withdraw, Send, Receive), Home balance, activity, **savings goals**, and **USDC yield**. Pia = Coming soon preview only; **card = post-V1**. See [V1Scope.md](./V1Scope.md).  
 **Next artifacts:** Architecture.md (system design)
 
 ---
@@ -48,13 +49,13 @@ Olimpia is a **React Native** financial app prototype for **iOS and Android** (w
 - A **stablecoin-backed spending and savings account** (presented as dollars, not tokens)
 - **Send and receive money** like a modern P2P payment app
 - **Savings goals** with optional yield (post-minimal demo scope)
-- A **debit card** for everyday purchases
+- A **debit card** for everyday purchases — **post-V1** (V1 focuses on save, yield, send, receive, and bank in/out)
 - **Pia preview (Coming Soon)** — static in-app card teasing the future AI money coach (no live chat in MVP)
 - **Profile and account management**
 
 The product is a **wrapper and orchestration layer**. It does not issue banking licenses, mint stablecoins, operate card networks, or run yield protocols. It integrates existing providers into a unified UX.
 
-**What users see:** "My balance," "My goals," "My card," "Send to Sarah."  
+**What users see:** "My balance," "My goals," "Send to Sarah," "Growth earnings." *(Virtual card — post-V1.)*  
 **What users never see:** Wallets, gas, networks, approvals, DeFi, or crypto terminology.
 
 **Experience goals (non-visual):** Trustworthy, safe, empowering, approachable, financially intelligent, emotionally supportive, modern, and calm under pressure.
@@ -141,7 +142,7 @@ Women often experience finance as:
 
 ### Prototype prioritization note *(draft — not approved)*
 
-Until founder validation, **do not anchor MVP decisions to any single persona**. Current **tentative** hypothesis: flows that serve **onboard → fund → dashboard → save → send → receive → card → profile** should be built first because they stress-test the core neobank loop — regardless of which persona ultimately proves primary.
+Until founder validation, **do not anchor MVP decisions to any single persona**. Current **tentative** hypothesis: flows that serve **onboard → fund → dashboard → save → yield → send → receive → profile** stress-test the V1 loop — **card is post-V1.**
 
 ### Founder validation checklist (personas)
 
@@ -184,17 +185,17 @@ Features required to demonstrate the prototype's emotional and functional value 
 |---------|-------------------------|
 | **Onboarding** | Welcome → auth → account creation → optional funding |
 | **Invisible wallet creation** | Automatic; user never sees keys or wallet UI |
-| **Account funding** | Add money via bank/card (fiat → stablecoin, invisible) |
-| **Home dashboard** | Total balance, recent activity, quick actions |
-| **Send money** | To phone/email/username; amount + note + confirm |
-| **Receive money** | Shareable link or username; incoming payment notification |
-| **Transaction history (recent)** | Recent activity on Home; detail view on tap |
-| **Savings goals** | Create goal, name, target, optional deadline, allocate funds |
-| **Goal progress view** | Visual progress, add/withdraw from goal |
-| **Debit card (prototype)** | Virtual card view, card controls, link to spending balance |
-| **Withdraw money** | Off-ramp to linked bank; draws from available balance |
-| **Growth account** | Put part of savings to work — plain-language growth surface, estimated variable earnings, deposit/withdraw |
-| **Pia preview (Coming Soon)** | Static in-app card on Profile — introduces Pia; no chat, input, or AI responses in MVP |
+| **Account funding** | Add money from bank — **USD → USDC via Bridge.xyz** (invisible; V1) |
+| **Bank withdraw** | Withdraw to linked bank — **USDC → USD via Bridge.xyz** (invisible; V1) |
+| **Send money** | To phone/email/username; amount + note + confirm (V1) |
+| **Receive money** | Shareable link or username; incoming payment notification (V1) |
+| **Home dashboard** | Total balance, recent activity, quick actions (V1) |
+| **Transaction history (recent)** | Recent activity on Home; detail view on tap (V1) |
+| **Savings goals** | Create goal, name, target, optional deadline, allocate funds (V1) |
+| **Goal progress view** | Visual progress, add/withdraw from goal (V1) |
+| **Growth account / USDC yield** | Put part of savings to work — plain-language growth surface, estimated variable earnings, deposit/withdraw (V1) |
+| **Debit card (prototype)** | Virtual card view, card controls, link to spending balance — **post-V1** |
+| **Pia preview (Coming Soon)** | Static in-app card on Profile — introduces Pia; no chat, input, or AI at V1 |
 | **Profile** | Name, notifications, support, sign out |
 
 ### P1 — Strong prototype enhancers (if time allows)
@@ -225,7 +226,7 @@ Features required to demonstrate the prototype's emotional and functional value 
 
 **Framework:** Impact on emotional value proposition × feasibility in cross-platform mobile prototype × dependency order.
 
-**Note:** Prioritization follows core loop validation (onboard → fund → dashboard → save → send → receive → card → profile) **pending persona approval.**
+**Note:** Prioritization follows core loop validation (onboard → fund → dashboard → save → send → receive → yield → profile) **pending persona approval.** **Card is post-V1.**
 
 ### Phase 1 — "I exist and I'm funded"
 
@@ -249,9 +250,9 @@ Features required to demonstrate the prototype's emotional and functional value 
 
 **Validates:** Long-term motivation and neobank mental model beyond P2P.
 
-### Phase 4 — "I spend with it"
+### Phase 4 — "I spend with it" — **Post-V1**
 
-8. Virtual debit card experience
+8. Virtual debit card experience *(deferred — card spending not in V1)*
 
 **Validates:** Full neobank loop — not just savings/P2P.
 
@@ -350,7 +351,9 @@ Savings → Goal Detail → View progress
 → See goal-specific activity
 ```
 
-### Flow G: Debit card (prototype)
+### Flow G: Debit card (post-V1)
+
+> **V1:** Card tab may show Coming soon placeholder only. This flow applies after Phase 9B ships.
 
 ```
 Card → View virtual card (masked PAN, CVV reveal, freeze toggle)
@@ -367,7 +370,7 @@ Profile → View account info
 → Access support → Sign out
 ```
 
-### Flow I: Pia preview (MVP — Coming Soon)
+### Flow I: Pia preview (V1 — Coming Soon)
 
 ```
 Profile tab → account info + inline Pia Coming Soon card (same screen)
@@ -375,7 +378,7 @@ Profile tab → account info + inline Pia Coming Soon card (same screen)
 → No text input, send button, or AI responses; no navigation to a separate Pia screen
 ```
 
-**Success criteria:** User understands Pia is Olimpia's future money coach; preview feels on-brand (Brand.md — AI Guide); no impression that live chat is available in MVP.
+**Success criteria:** User understands Pia is Olimpia's future money coach; preview feels on-brand (Brand.md — AI Guide); **no impression that live chat is available at V1 launch.**
 
 > **Future:** Full Pia AI Financial Coach chat flow — education, product guidance, goal coaching, guardrails — see Section 17.
 
@@ -383,7 +386,7 @@ Profile tab → account info + inline Pia Coming Soon card (same screen)
 
 ## 11. Screen Inventory
 
-**Scope:** Minimum viable set to demonstrate onboarding, funding, dashboard, savings goals, send money, receive money, card experience, bank withdraw, growth account, Pia preview (Coming Soon), and profile.
+**Scope:** Minimum viable set to demonstrate onboarding, funding, dashboard, **savings goals**, send money, receive money, bank withdraw, **USDC yield**, Pia preview (Coming Soon on Profile), and profile. **Virtual card is post-V1.**
 
 **Approach:** Consolidate multi-step flows; use inline states, modals, and sheets instead of dedicated screens where possible.
 
@@ -400,7 +403,7 @@ Profile tab → account info + inline Pia Coming Soon card (same screen)
 | 7 | **Transaction Detail** | Send / receive / card | Single reusable detail view for all transaction types. |
 | 8 | **Savings** | Savings goals | Goals list + total saved. **New Goal** opens as a bottom sheet — not a separate screen. |
 | 9 | **Goal Detail** | Savings goals | Progress, add/withdraw, goal-specific activity. |
-| 10 | **Card** | Card experience | Virtual card (masked PAN, reveal CVV, freeze toggle), recent card spends inline. Tap spend → Transaction Detail (#7). |
+| 10 | **Card** | Card experience | **Post-V1** — virtual card (masked PAN, reveal CVV, freeze toggle), recent card spends. Placeholder tab OK at V1 launch. |
 | 11 | **Profile** | Profile | Account info, notifications, security, help/support, sign out. **Pia Coming Soon** card inline on this screen — not a separate screen or stack flow. Settings merged here — no separate Settings screen. |
 
 ### Additional MVP surfaces (beyond 11 core screens)
@@ -435,7 +438,7 @@ Home ─┬─ Add Money
       └─ Transaction Detail (from recent activity)
 
 [Savings] → Goal Detail (+ New Goal sheet from Savings)
-[Card] → Transaction Detail (from spend row)
+[Card] → Transaction Detail (from spend row) — **post-V1**
 ```
 
 ---
@@ -454,7 +457,7 @@ Bottom tab bar (4 tabs):
 |-----|----------|
 | **Home** | Balance, quick actions (Add, Send, Receive), recent activity |
 | **Savings** | Goals list, total saved, create goal (sheet), **Growth account** entry |
-| **Card** | Virtual card, recent card spend, card controls |
+| **Card** | **Post-V1** — placeholder tab may show Coming soon at V1; functional virtual card and spend history when Phase 9B ships |
 | **Profile** | Account info, settings, **Withdraw**, help, inline **Pia preview (Coming Soon)** card, sign out |
 
 **Modal / stack flows (not tabs):** Add Money, Send Money, Receive Money, **Withdraw Money**, Transaction Detail, Goal Detail, New Goal sheet, **Growth Account**
@@ -483,7 +486,7 @@ Bottom tab bar (4 tabs):
 | **First send** | Pay friend for dinner | "Same as apps I already use" | Familiarity |
 | **First receive** | Friend pays her back via link | "That was painless" | Confidence |
 | **First goal** | "Italy trip" $2,000 | "I can actually picture this" | Motivation |
-| **First card spend** | Coffee shop | "This is my real spending account" | Integration |
+| **First card spend** | Coffee shop | "This is my real spending account" | Integration — **post-V1** |
 | **Pia preview** | Profile tab (inline card) | "I can't wait to meet her" | Anticipation |
 | **Return visit** | Opens app from home screen | "I'm in control" | Confidence |
 
@@ -508,7 +511,7 @@ These are **product-level assumptions** about what providers enable. Architectur
 | Wallet & auth | **Privy** | Users sign in with familiar methods; wallets created silently |
 | Chain | **Base** | Single network; users never choose a chain |
 | Fiat on/off ramp | **BridgeXYZ** | Users fund and withdraw in USD; conversion is invisible |
-| Debit card | **Gnosis Pay** | Card spends against stablecoin balance; feels like a bank card |
+| Debit card | **Gnosis Pay** | **Post-V1** — card spends against stablecoin balance |
 | Gas / tx fees | **EIP-7702 sponsorship** | Users never see gas or network fees |
 | Swaps (if needed) | **LI.FI** | Any asset movement happens invisibly |
 | Yield | **Aave, Morpho, Compound** | Presented as a unified "Growth" product when enabled |
@@ -561,7 +564,7 @@ Provider SDKs and auth flows must support the React Native app on both iOS and A
 |--------|--------|
 | D7 return rate | Habit potential |
 | Sessions per week | Stickiness |
-| % users with ≥1 goal + card view | Full-loop adoption |
+| % users with ≥1 goal + card view | Full-loop adoption *(card view post-V1)* |
 | Push notification open rate | Informs P2P and card engagement |
 
 **Anti-metrics (watch for failure)**
@@ -603,7 +606,7 @@ Provider SDKs and auth flows must support the React Native app on both iOS and A
 - Users will fund a prototype if onboarding feels trustworthy (real or staged demo — see Open Questions).
 - Stablecoin-as-dollars is acceptable for prototype testers when copy is clear.
 - P2P receive can work via shareable link or in-app handle; recipient may need to install the mobile app (flow TBD in Architecture.md).
-- Gnosis Pay virtual card is sufficient for "debit card experience" without physical card in MVP.
+- Gnosis Pay virtual card is sufficient for "debit card experience" **after V1** (Phase 9B); not required at V1 launch.
 - Single currency (USD) is enough to validate core hypothesis.
 - Women-first positioning resonates without excluding other users.
 - Infrastructure providers support React Native integration paths on iOS and Android for MVP flows.

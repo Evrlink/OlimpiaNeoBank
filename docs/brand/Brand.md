@@ -538,7 +538,7 @@ Each card displays: goal name · target amount · progress bar · percentage · 
 
 **Purpose:** Introduce **Pia** and sell the in-app coach experience. Reinforce Olimpia’s supportive, educational personality.
 
-> **MVP rule (founder confirmed):** The **marketing website** shows Pia as a **static preview only** — no live chat, no Anthropic API. The **mobile app** ships **fully functional Pia** at launch. The website sells the vision; the app delivers the experience.
+> **V1 rule (founder confirmed):** The **marketing website** and **mobile app at V1 launch** show Pia as a **static Coming soon preview only** — no live chat, no Anthropic API, no text input. Functional Pia AI coach ships **after V1** (Build Plan Future). The website sells the vision; the app teases Pia on Profile until the coach is ready.
 
 **Headline:**
 
@@ -551,7 +551,7 @@ Pia is your in-app AI guide for money, savings, investing, and financial confide
 #### Layout
 
 - Large **messaging-style conversation card** (static — illustrative preview of the real in-app coach)
-- Optional small **Preview** or **In the app** label — not “Coming Soon” (Pia ships in mobile MVP)
+- Optional small **Coming soon** label on mobile Profile preview — functional Pia is **post-V1**
 - Modern messaging UI — warm, encouraging, supportive (not instructional)
 - Olimpia brand colors and typography (Cormorant Garamond headings · Inter body)
 

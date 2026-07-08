@@ -399,7 +399,7 @@ Abstract **static gradient only**. The background supports the approved copy and
 
 | CTA | Action |
 |-----|--------|
-| **Add funds and start earning** (primary) | Push shared **Add funds screen** (Phase 2 stub — full funding in Phase 4) |
+| **Add funds and start earning** (primary) | Push shared **Add funds screen** (stub until money-loop phases — **V1 launch requires add, send, receive, withdraw, savings goals, and USDC yield**) |
 | **Explore the app** (secondary) | Empty Home (A4) with bottom tabs visible |
 
 **Pia rule (founder approved):** Pia appears **only** as the static “Coming Soon” card inside Profile. Do **not** add Pia content, chat preview, modal, or navigation to this flow.
@@ -543,7 +543,7 @@ Available funding methods will be determined by the live Bridge flow at launch �
 - No labels in serif; no Pia tab; no Learn tab  
 - Active tab re-tap: pop stack to tab root (NavigationMap rule)
 
-**Savings and Card tabs:** Phase 2 uses approved simple empty states (§3.6 · §3.7) — not skeleton shimmer, fake data, or phase labels.
+**Savings and Card tabs:** Phase 2 engineering uses approved simple empty states (§3.6 · §3.7) for interim builds. **V1 launch** requires **functional savings goals** (Phase 5) and **USDC yield** (Phase 8); **Card spend remains post-V1**.
 
 ---
 

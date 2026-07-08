@@ -27,7 +27,7 @@ Monorepo for **Olimpia** (Olympia Neobank) — planning docs in `docs/`, impleme
 
 | Path | Purpose |
 |------|---------|
-| `docs/product/` | PRD, user flows, screens, navigation |
+| `docs/product/` | PRD, **V1 scope**, user flows, screens, navigation |
 | `docs/architecture/` | System architecture, launch geography |
 | `docs/brand/` | Brand, tone, and visual identity |
 | `docs/build/` | Build plan and implementation phases |
@@ -88,17 +88,19 @@ MVP before scale
 
 ## Core MVP Features
 
-| Feature | Description |
+**V1 launch (founder confirmed):** Users complete the **full money product** — onboard with Privy, **add** and **withdraw** USD via Bridge.xyz, **send and receive**, **save in goals**, **earn USDC yield**, and see balance plus activity on Home. Pia is a **Coming soon** preview only; **card is post-V1**. Details: [`docs/product/V1Scope.md`](docs/product/V1Scope.md).
 
-| Account Creation | Simple onboarding with email-based registration |
-| Smart Wallet | Secure wallet provisioned automatically — no blockchain knowledge required |
-| Fiat On-Ramp | Fund accounts directly from traditional banking |
-| Stablecoin Balance | Hold digital dollars through stablecoin infrastructure |
-| Send & Receive | Fast peer-to-peer payments on modern rails |
-| Savings Vault | Create savings goals and track progress |
-| Yield Generation | Earn yield through selected infrastructure partners |
-| Debit Card Access | Spend funds in the real world via integrated card infrastructure |
-| Financial Insights | Actionable insights focused on wealth building and financial confidence |
+| Feature | Description |
+| Account Creation | Simple onboarding with email-based registration (Privy) |
+| Smart Wallet | Secure wallet provisioned automatically — no blockchain knowledge required (Privy on Base) |
+| **Fiat On-Ramp (V1)** | **Fund from bank via Bridge.xyz — USD in, USDC settled on Base** |
+| **Fiat Off-Ramp (V1)** | **Withdraw to bank via Bridge.xyz — USDC out, USD to linked bank** |
+| Stablecoin Balance | Hold digital dollars through stablecoin infrastructure (shown as USD) |
+| **Send & Receive (V1)** | Peer-to-peer payments between Olimpia users |
+| **Savings Vault (V1)** | Create savings goals and track progress (Build Phase 5) |
+| **Yield / USDC Growth (V1)** | Earn yield on allocated savings — single provider (Build Phase 8) |
+| Debit Card Access | Spend via Gnosis Pay virtual card — **post-V1** (Build Phase 9 card) |
+| Financial Insights | Actionable insights — future |
 
 
 
@@ -108,7 +110,7 @@ MVP before scale
 
 | Blockchain | Base |
 | Wallet Infrastructure | Privy |
-| Fiat On / Off Ramp | Bridge XYZ |
+| Fiat On / Off Ramp | **Bridge.xyz** (V1: USD bank on-ramp and off-ramp → USDC on Base) |
 | Card Infrastructure | Gnosis Pay |
 | Transaction Sponsorship | EIP-7702 |
 | Swaps | LI.FI |

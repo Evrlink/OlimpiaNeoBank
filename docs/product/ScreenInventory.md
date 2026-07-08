@@ -21,7 +21,9 @@
 
 **Settings:** PRD merges settings into **Profile** — there is **no separate Settings screen** in MVP.
 
-**Card management:** Virtual debit card viewing and controls (freeze, CVV reveal) live on the **Card** tab — not a separate screen.
+**V1 launch scope:** See [V1Scope.md](./V1Scope.md). **Savings goals** and **USDC yield** are **V1 requirements** (not placeholders). **Functional Pia** and **virtual card** are **post-V1**; V1 shows Pia as a static Coming soon preview on Profile only.
+
+**Card management:** Virtual debit card viewing and controls (freeze, CVV reveal) live on the **Card** tab — **post-V1**; not a separate screen.
 
 ---
 
@@ -39,24 +41,24 @@
 
 ### Mobile app
 
-| ID | Surface | PRD screen # | MVP |
-|----|---------|--------------|-----|
-| A1 | [Welcome (Onboarding)](#a1-welcome-onboarding) | 1 | Yes |
-| A2 | [Authentication (Privy)](#a2-authentication-privy) | 2 | Yes |
-| A3 | [Pia Introduction (onboarding moment)](#a3-pia-introduction-onboarding-moment) | — | Yes |
-| A4 | [Home Dashboard](#a4-home-dashboard) | 3 | Yes |
-| A5 | [Add Money](#a5-add-money) | 4 | Yes |
-| A6 | [Withdraw Money](#a6-withdraw-money) | — | Yes |
-| A7 | [Send Money](#a7-send-money) | 5 | Yes |
-| A8 | [Receive Money](#a8-receive-money) | 6 | Yes |
-| A9 | [Transaction Detail](#a9-transaction-detail) | 7 | Yes |
-| A10 | [Savings Goals (list)](#a10-savings-goals-list) | 8 | Yes |
-| A11 | [Create Goal (sheet)](#a11-create-goal-sheet) | — | Yes |
-| A12 | [Goal Detail](#a12-goal-detail) | 9 | Yes |
-| A13 | [Growth Account](#a13-growth-account) | — | Yes |
-| A14 | [Virtual Debit Card (Card tab)](#a14-virtual-debit-card-card-tab) | 10 | Yes |
-| A15 | [Pia AI Chat](#a15-pia-ai-chat) | 11 | Yes |
-| A16 | [Profile (includes Settings)](#a16-profile-includes-settings) | 12 | Yes |
+| ID | Surface | PRD screen # | MVP | V1 launch |
+|----|---------|--------------|-----|-----------|
+| A1 | [Welcome (Onboarding)](#a1-welcome-onboarding) | 1 | Yes | Yes |
+| A2 | [Authentication (Privy)](#a2-authentication-privy) | 2 | Yes | Yes |
+| A3 | [Pia Introduction (onboarding moment)](#a3-pia-introduction-onboarding-moment) | — | Yes | No — Pia-free onboarding; preview on Profile only |
+| A4 | [Home Dashboard](#a4-home-dashboard) | 3 | Yes | Yes |
+| A5 | [Add Money](#a5-add-money) | 4 | Yes | Yes |
+| A6 | [Withdraw Money](#a6-withdraw-money) | — | Yes | Yes |
+| A7 | [Send Money](#a7-send-money) | 5 | Yes | Yes |
+| A8 | [Receive Money](#a8-receive-money) | 6 | Yes | Yes |
+| A9 | [Transaction Detail](#a9-transaction-detail) | 7 | Yes | Yes |
+| A10 | [Savings Goals (list)](#a10-savings-goals-list) | 8 | Yes | Yes |
+| A11 | [Create Goal (sheet)](#a11-create-goal-sheet) | — | Yes | Yes |
+| A12 | [Goal Detail](#a12-goal-detail) | 9 | Yes | Yes |
+| A13 | [Growth Account](#a13-growth-account) | — | Yes | Yes — USDC yield |
+| A14 | [Virtual Debit Card (Card tab)](#a14-virtual-debit-card-card-tab) | 10 | Yes | No — **post-V1** |
+| A15 | [Pia AI Chat](#a15-pia-ai-chat) | 11 | Future | No — static preview on A16 Profile only at V1 |
+| A16 | [Profile (includes Settings)](#a16-profile-includes-settings) | 12 | Yes | Yes |
 
 ---
 
@@ -276,8 +278,8 @@
 
 **Exit point(s):**
 
-- Sign up success → A3 Pia Introduction → A4 Home (or Add Money stack)
-- Sign in success → A4 Home (skip A3)
+- Sign up success → You're in confirmation (optional) → A4 Home (or Add Money stack) — **no A3 Pia intro at V1**
+- Sign in success → A4 Home
 
 **Components on screen:**
 
@@ -306,13 +308,14 @@
 
 ---
 
-### A3: Pia Introduction (onboarding moment)
+### A3: Pia Introduction (onboarding moment) — **Not V1**
 
 | Field | Detail |
 |-------|--------|
 | **Screen name** | Pia Introduction |
+| **V1 launch** | **Not shipped** — V1 uses Pia-free onboarding; static Coming soon card on A16 Profile only |
 | **Type** | Inline card / modal — **not** a separate flow |
-| **MVP / Future** | **MVP** |
+| **MVP / Future** | **Post-V1** (broader prototype spec) |
 | **Purpose** | Brief first-time introduction to Pia before Home |
 | **User flow** | UserFlows §2 |
 
@@ -380,7 +383,7 @@
 - Featured goal + progress % (State 3 Goal Builder; State 5 Mature User)
 - Growth earnings summary (State 4 Growth User; State 5 Mature User)
 - Money available (secondary — not hero in States 1, 3, 4)
-- **Primary actions** — state-dependent: Add Money · Create Goal · Growth Account · Add to goal · View goal · Review progress · Ask Pia
+- **Primary actions** — state-dependent: Add Money · Send · Receive · Create Goal · Growth Account · Add to goal · View goal · Review progress · *(Pia: Coming soon card on Profile at V1 — no Ask Pia)*
 - Secondary quick actions: Send · Receive (de-emphasized when not the next best step)
 - Recent activity list (preview)
 - Processing / inline state components
@@ -672,7 +675,7 @@
 
 - Goal row → A12 Goal Detail
 - New Goal → A11 Create Goal sheet
-- Ask Pia → A15 Pia
+- Pia Coming soon card on A16 Profile (static; **post-V1:** Ask Pia → A15)
 - Growth entry → A13 Growth Account
 - Tabs → A4 Home · A14 Card · A16 Profile
 
@@ -681,7 +684,7 @@
 - Total saved summary
 - Goals list (name, progress %, allocated amount)
 - **New Goal** button
-- **Ask Pia** entry
+- **Pia Coming soon** card (A16 Profile — static; no chat at V1)
 - Link/surface to **Growth Account** (A13)
 - Empty state when no goals
 
@@ -770,7 +773,7 @@
 - Back → A10 Savings
 - Add funds / Remove funds (inline on A12)
 - Activity row → A9 Transaction Detail
-- Ask Pia → A15 Pia
+- Pia Coming soon card on A16 Profile (static; **post-V1:** Ask Pia → A15)
 
 **Components on screen:**
 
@@ -779,7 +782,7 @@
 - Allocated amount
 - **Add funds** / **Remove funds** actions
 - Goal-specific activity list
-- **Ask Pia** entry
+- **Pia Coming soon** card (A16 Profile — static; no chat at V1)
 
 **Primary user goal:** Track and fund progress toward one goal.
 
@@ -820,7 +823,7 @@
 
 - Back → A10 or A4
 - Deposit / withdraw inline flows on A13
-- Ask Pia → A15 Pia
+- Pia Coming soon card on A16 Profile (static; **post-V1:** Ask Pia → A15)
 
 **Components on screen:**
 
@@ -832,7 +835,7 @@
 - **Grow** / **Add to growth** action
 - **Withdraw from growth** action
 - **Inline states** for deposit/withdraw async
-- **Ask Pia** entry
+- **Pia Coming soon** card (A16 Profile — static; no chat at V1)
 
 **Primary user goal:** Potentially earn more over time on part of savings.
 
@@ -863,7 +866,8 @@
 | **Screen name** | Card (Virtual Debit Card + Card Management) |
 | **PRD #** | 10 |
 | **Tab** | Card |
-| **MVP / Future** | **MVP** |
+| **MVP / Future** | **MVP** (broader prototype) |
+| **V1 launch** | **No — post-V1** (Gnosis Pay; Build Phase 9 card) |
 | **Purpose** | View virtual card, manage controls, see recent spends |
 | **User flow** | UserFlows §13 |
 
@@ -917,16 +921,14 @@
 | **Screen name** | Pia |
 | **PRD #** | 11 |
 | **Type** | Stack |
-| **MVP / Future** | **MVP** |
+| **MVP / Future** | **Future** — functional coach **post-V1** |
+| **V1** | Static **Coming soon** preview inline on A16 Profile only — not this stack screen |
 | **Purpose** | Educational coach — guidance, goal coaching, progress reinforcement |
 | **User flow** | UserFlows §16 |
 
 **Entry point(s):**
 
-- A4 Home — Ask Pia
-- A16 Profile — Ask Pia
-- A10 Savings / A12 Goal Detail — Ask Pia
-- A13 Growth — Ask Pia
+- A16 Profile — Pia Coming soon card (static preview; **post-V1:** Ask Pia from Home/Savings/Growth)
 
 **Exit point(s):**
 
@@ -981,7 +983,7 @@
 
 **Exit point(s):**
 
-- Ask Pia → A15 Pia
+- Pia Coming soon card on A16 Profile (static; **post-V1:** Ask Pia → A15)
 - Withdraw → A6 Withdraw
 - Sign out → A1 Welcome
 - Tabs → A4 Home · A10 Savings · A14 Card
@@ -995,7 +997,7 @@
 | **Settings: Security** | Biometric toggle, etc. |
 | Linked funding destination | Bank via Bridge |
 | Help / Support | Email or link |
-| Ask Pia | → A15 |
+| **Pia Coming soon** | Static card on Profile — visible at V1; no chat, input, or navigation (**post-V1:** Ask Pia → A15) |
 | Sign out | Privy logout |
 
 **Primary user goal:** Manage account and feel secure.
@@ -1076,7 +1078,7 @@ A4 Home is **state-aware** — not always the same content. Each visit answers: 
 
 Home behaves as a **personal guide**, not a traditional banking dashboard. Progress and momentum take priority over raw balances. States describe **product behavior** — not visual design. Full state resolution, transition diagram, and navigation emphasis: [NavigationMap.md § Dynamic Home Dashboard States](./NavigationMap.md#dynamic-home-dashboard-states).
 
-**No new screens.** All states render on A4 using existing stack destinations (A5, A10, A11, A12, A13, A15).
+**No new screens.** All states render on A4 using existing stack destinations (A5, A10, A11, A12, A13). **Ask Pia → A15** is **post-V1**; at V1 launch, Pia appears only as the static Coming soon card on A16 Profile.
 
 ### State resolution (summary)
 
@@ -1100,11 +1102,11 @@ Let's get started.
 Add funds to begin...
 ```
 
-**Primary actions:** Add Money, Ask Pia
+**Primary actions:** Add Money, Send, Receive *(Pia: static Coming soon card on Profile — no Ask Pia at V1)*
 
 **Goal:** first deposit
 
-**A4 components emphasized:** onboarding-style greeting · first-deposit CTA · Ask Pia  
+**A4 components emphasized:** onboarding-style greeting · first-deposit CTA · Pia Coming soon card on Profile (visible, non-interactive)  
 **A4 components de-emphasized:** goal progress · growth earnings · balance-as-hero · Send · Receive
 
 ---
@@ -1121,11 +1123,11 @@ Your money is ready...
 Create first goal or put savings to work
 ```
 
-**Primary actions:** Create Goal, Growth Account, Ask Pia
+**Primary actions:** Create Goal, Growth Account, Send, Receive
 
 **Goal:** move from holding to intentional use
 
-**A4 components emphasized:** funded headline · Create Goal + Growth Account CTAs · Ask Pia  
+**A4 components emphasized:** funded headline · Create Goal + Growth Account CTAs · Send · Receive  
 **A4 components de-emphasized:** empty goal/growth slots · Send · Receive as primary CTAs
 
 ---
@@ -1142,11 +1144,11 @@ You're making progress.
 Girls Trip Fund 43%
 ```
 
-**Primary actions:** Add funds to goals, View goal details, Ask Pia
+**Primary actions:** Add funds to goals, View goal details, Send, Receive
 
 **Goal:** reinforce progress
 
-**A4 components emphasized:** featured goal + progress % · add-to-goal / view-detail CTAs · Ask Pia  
+**A4 components emphasized:** featured goal + progress % · add-to-goal / view-detail CTAs · Send · Receive  
 **A4 components de-emphasized:** growth-first narrative · money available as hero
 
 ---
@@ -1163,11 +1165,11 @@ Your money is working for you.
 Growth earnings +$12.48
 ```
 
-**Primary actions:** View Growth, Add to Growth, Ask Pia
+**Primary actions:** View Growth, Add to Growth, Send, Receive
 
 **Goal:** understand benefit of growth
 
-**A4 components emphasized:** growth earnings summary · View Growth / Add to Growth CTAs · Ask Pia  
+**A4 components emphasized:** growth earnings summary · View Growth / Add to Growth CTAs · Send · Receive  
 **A4 components de-emphasized:** goal-creation CTAs · available balance as hero
 
 ---
@@ -1184,11 +1186,11 @@ You're building more choices...
 3 active goals, $42.18 growth
 ```
 
-**Primary actions:** Review progress, Manage goals, Ask Pia
+**Primary actions:** Review progress, Manage goals, Send, Receive
 
 **Goal:** celebrate progress, mission
 
-**A4 components emphasized:** multi-goal + growth summary · Review progress / Manage goals CTAs · Ask Pia  
+**A4 components emphasized:** multi-goal + growth summary · Review progress / Manage goals CTAs · Send · Receive · Pia Coming soon card on Profile (visible, non-interactive)  
 **A4 components de-emphasized:** first-deposit or setup prompts · single-metric focus
 
 ---
@@ -1222,7 +1224,7 @@ Navigation structure and journey maps: [NavigationMap.md](./NavigationMap.md). P
 | §13 Virtual debit card | A14, A9 |
 | §14 Transaction history | A4, A9, A12, A14 |
 | §15 Profile | A16 |
-| §16 Pia AI chat | A15 (+ A3 intro only) |
+| §16 Pia AI chat | A15 (**post-V1**; V1 = Coming soon card on A16 only) |
 
 ---
 
@@ -1232,7 +1234,9 @@ Navigation structure and journey maps: [NavigationMap.md](./NavigationMap.md). P
 - [ ] Settings correctly merged into Profile (no separate screen)
 - [ ] Create Goal documented as sheet, not full screen
 - [ ] Card management on Card tab — no duplicate screen
-- [x] Growth and Withdraw included as MVP surfaces (founder confirmed — PRD v1.10)
+- [x] Growth, savings goals, and Withdraw included as V1 launch requirements — see [V1Scope.md](./V1Scope.md)
+- [x] Virtual card (A14) documented as **post-V1**
+- [x] Pia AI chat (A15) documented as **post-V1**; V1 uses static preview on Profile only
 - [ ] API mapping matches Architecture §14
 - [ ] Future deferrals aligned with PRD and Architecture
 - [ ] Navigation map matches UserFlows entry/exit points — see [NavigationMap.md](./NavigationMap.md)

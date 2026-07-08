@@ -16,7 +16,9 @@
 | **Backend** | Node.js orchestrator | REST API, webhooks, provider integrations |
 | **Pia preview** | Static UI (mobile + marketing) | Coming Soon card — no live chat in MVP |
 
-**Wrapper model unchanged:** Integrate Privy, Base, Bridge, Gnosis Pay, LI.FI, yield layer (single provider), Resend. Do not build custom rails.
+**Wrapper model unchanged:** Integrate Privy, Base, **Bridge.xyz (V1 bank funding — USD → USDC on Base)**, Gnosis Pay, LI.FI, yield layer (single provider), Resend. Do not build custom rails.
+
+> **V1 launch requires the full money product:** auth, wallet, sync, session restore, **Add money**, **Withdraw**, **Send**, **Receive**, Home balance, activity, **savings goals**, and **USDC yield**. See [V1Scope.md](../product/V1Scope.md). Build Phases **3, 4, 5, 6, 8**, and **9 (withdraw)** are required before public launch. **Card** and **functional Pia** are **post-V1**.
 
 **Explicitly out of MVP:** Base App · **functional Pia AI coach (live chat)** · Anthropic API · AI Financial Advisor · request money · multi-provider yield · physical card · push notifications · full transaction history screen · Your Growth progression system · trading / investment advice.
 
@@ -40,12 +42,13 @@
 | **0** | [Foundation](#phase-0-foundation) | Runnable repo, API skeleton, RN on iOS + Android |
 | **1** | [Marketing website](#phase-1-marketing-website) | Public landing, education, waitlist live |
 | **2** | [Auth, shell & onboarding](#phase-2-auth-shell--onboarding) | Sign up, tab navigation, empty Home |
-| **3** | [Dashboard & activity](#phase-3-dashboard--activity) | Encouraging Home, balance, activity, transaction detail |
-| **4** | [Add money](#phase-4-add-money) | Bridge on-ramp end-to-end |
-| **5** | [Savings goals](#phase-5-savings-goals) | Create goals, allocate, progress UI |
-| **6** | [Send & receive](#phase-6-send--receive) | Olimpia-to-Olimpia P2P |
-| **8** | [Growth account](#phase-8-growth-account) | Single-provider yield deposit/withdraw |
-| **9** | [Withdraw & virtual card](#phase-9-withdraw--virtual-card) | Off-ramp + Gnosis Pay virtual card |
+| **3** | [Dashboard & activity](#phase-3-dashboard--activity) | **V1 launch requirement** — Home balance, activity feed, transaction detail |
+| **4** | [Add money](#phase-4-add-money) | **V1 launch requirement** — Bridge.xyz on-ramp (USD → USDC on Base) |
+| **5** | [Savings goals](#phase-5-savings-goals) | **V1 launch requirement** — create goals, allocate, progress UI |
+| **6** | [Send & receive](#phase-6-send--receive) | **V1 launch requirement** — Olimpia-to-Olimpia P2P |
+| **8** | [Growth account](#phase-8-growth-account) | **V1 launch requirement** — USDC yield deposit/withdraw |
+| **9** | [Withdraw to bank (V1)](#phase-9-withdraw-to-bank-v1) | **V1 launch requirement** — Bridge.xyz off-ramp |
+| **9B** | [Virtual debit card (post-V1)](#phase-9b-virtual-debit-card-post-v1) | Gnosis Pay — **not V1** |
 | **10** | [MVP hardening & release](#phase-10-mvp-hardening--release) | Polish, parity, store submission |
 
 > **Phase 7 (Pia AI chat) is Future — not MVP.** MVP includes static Pia preview only (Phase 2 Profile card + Phase 1 marketing section). See [Future — Pia AI chat agent](#future--pia-ai-chat-agent).
@@ -162,7 +165,7 @@ A new user can sign up on **iOS and Android** and land on an empty Home with wor
 
 ### Goal
 
-Home answers *"How am I doing?"* — encouraging, outcome-driven dashboard with balance and activity feed.
+**V1 launch requirement** — Home answers *"How am I doing?"* with balance and **activity history**; transaction detail on tap.
 
 ### Deliverables
 
@@ -198,7 +201,7 @@ Home answers *"How am I doing?"* — encouraging, outcome-driven dashboard with 
 
 ### Goal
 
-First real money moment — user adds funds via Bridge on-ramp and sees updated balance.
+**V1 launch requirement** — first real money moment. User adds USD from their bank via **Bridge.xyz** on-ramp; Bridge settles **USDC on Base** to the user’s embedded wallet; Olimpia ledger and Home balance update. See [V1Scope.md](../product/V1Scope.md).
 
 ### Deliverables
 
@@ -234,7 +237,7 @@ First real money moment — user adds funds via Bridge on-ramp and sees updated 
 
 ### Goal
 
-User creates named goals and moves money into progress envelopes — intentions become visible progress.
+**V1 launch requirement** — user creates named goals and moves money into progress envelopes — intentions become visible progress.
 
 ### Deliverables
 
@@ -269,7 +272,7 @@ User creates named goals and moves money into progress envelopes — intentions 
 
 ### Goal
 
-Olimpia-to-Olimpia P2P works — send by handle; receive via share link / QR / username.
+**V1 launch requirement** — Olimpia-to-Olimpia P2P works — send by handle; receive via share link / QR / username.
 
 ### Deliverables
 
@@ -346,7 +349,7 @@ In-app Pia coach — education, product guidance, goal coaching, progress reinfo
 
 ### Goal
 
-User puts part of savings to work — plain-language Growth surface, single-provider yield, estimated earnings visible.
+**V1 launch requirement** — user puts part of savings to work — plain-language Growth surface, single-provider **USDC yield**, estimated earnings visible.
 
 ### Deliverables
 
@@ -385,19 +388,47 @@ User puts part of savings to work — plain-language Growth surface, single-prov
 
 ---
 
-## Phase 9: Withdraw & virtual card
+## Phase 9: Withdraw to bank (V1)
 
 ### Goal
 
-Complete the money loop — cash out to bank and spend with a virtual debit card.
+**V1 launch requirement** — cash out to bank via Bridge off-ramp. Completes the basic money loop with Phase 4 on-ramp and Phase 6 P2P. See [V1Scope.md](../product/V1Scope.md).
 
 ### Deliverables
 
-**Backend — withdraw**
+**Backend**
 
 - `POST /funding/withdrawals`, `GET /funding/withdrawals/:id`, `GET /funding/destinations`
 - Bridge off-ramp webhooks; ledger debit
 - Withdraw from **available balance only**
+
+**Mobile**
+
+- Withdraw stack from Home / Profile (UserFlows §6)
+- Inline async states while off-ramp is processing
+
+### Dependencies
+
+- Phase 4 (Bridge relationship)
+- Phase 6 (funded available balance for withdraw QA)
+- Phase 0 launch geography assessment complete; off-ramp-eligible regions documented
+
+### Acceptance criteria
+
+- [ ] UserFlows §6: withdraw to linked bank in test mode on **iOS and Android**
+- [ ] Insufficient available balance shows friendly error
+- [ ] Withdraw debits ledger only from available — not goal or growth allocations
+- [ ] **iOS and Android** parity on Withdraw flow
+
+---
+
+## Phase 9B: Virtual debit card (post-V1)
+
+### Goal
+
+Virtual debit card via Gnosis Pay — **not required for V1 launch**. Card tab may show a placeholder until this phase ships.
+
+### Deliverables
 
 **Backend — card**
 
@@ -407,26 +438,24 @@ Complete the money loop — cash out to bank and spend with a virtual debit card
 
 **Mobile**
 
-- Withdraw stack from Home / Profile (UserFlows §6)
 - Card tab: virtual card, masked PAN, CVV reveal (biometric), freeze toggle, recent spends
 - Card spend → Transaction Detail
 
 ### Dependencies
 
 - Phase 4 (Bridge relationship)
-- Phase 6 (funded available balance for spend/withdraw QA)
+- Phase 6 (funded available balance for spend QA)
 - Gnosis Pay staging access
-- Phase 0 launch geography assessment complete; card-eligible regions documented (founder confirmation of launch countries before release — Phase 10)
+- Phase 0 launch geography assessment complete; card-eligible regions documented (founder confirmation of launch countries before card release)
 - KYC path via Bridge/Gnosis for test users
 
 ### Acceptance criteria
 
-- [ ] UserFlows §6: withdraw to linked bank in test mode
 - [ ] UserFlows §13: virtual card issued; freeze/unfreeze works
 - [ ] Test purchase or simulated spend updates activity on Home and Card
 - [ ] Insufficient available balance declines spend with clear copy
 - [ ] Card draws from available only — not goal or growth allocations
-- [ ] **iOS and Android** parity on Withdraw and Card flows
+- [ ] **iOS and Android** parity on Card flows
 
 ---
 
@@ -450,7 +479,7 @@ Production-quality prototype ready for TestFlight, Google Play internal testing,
 
 ### Dependencies
 
-- Phases 0–6, 8–9 complete (Phase 7 Pia chat is Future)
+- Phases 0–6, 8–9 complete for **V1 launch** (Phase 9B card and Phase 7 Pia chat are post-V1 / Future)
 - Apple + Google developer accounts in good standing
 - Phase 0 launch geography assessment complete; founder has confirmed initial supported countries (or explicitly deferred TBD for prototype demo geography)
 
@@ -494,7 +523,8 @@ Phase 0 (Foundation)
                     │       ├── Phase 5 (Goals)           │
                     │       ├── Phase 6 (Send/Receive)    │
                     │       ├── Phase 8 (Growth)          │
-                    │       └── Phase 9 (Withdraw + Card) │
+                    │       ├── Phase 9 (Withdraw — V1)   │
+                    │       └── Phase 9B (Card — post-V1) │
                     └──────────────────────────────────────┴── Phase 10 (Release)
 
 Future (post-MVP): Pia AI chat agent — see Future section above.
@@ -546,7 +576,7 @@ Before implementation begins:
 - [ ] Single yield provider (Phase 8) accepted
 - [x] Growth account in MVP (founder confirmed — PRD v1.10 P0)
 - [x] Bank withdraw in MVP (founder confirmed — PRD v1.10 P0)
-- [ ] Withdraw + Card combined in Phase 9 accepted — or split if team prefers
+- [x] Withdraw (Phase 9) and Card (Phase 9B) documented separately — withdraw **V1**, card **post-V1**
 - [ ] Phase 0 launch geography assessment complete (Architecture §4A; [launch-geography.md](../architecture/launch-geography.md)); real vs simulated money resolved (PRD §18)
 - [ ] Store release owner identified
 

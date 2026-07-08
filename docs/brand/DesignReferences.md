@@ -235,7 +235,7 @@ Five cards: **Save · Spend · Grow · Learn · Own** — icon + headline + one 
 
 Large **messaging-style** bubble/card — warm, encouraging. **Static preview only** on the marketing site (no live chat, no API calls).
 
-**MVP rule (founder confirmed):** Website = static preview that sells the vision · Mobile app = fully functional Pia (Architecture §12B).
+**V1 rule (founder confirmed):** Website and mobile app at V1 launch = **static Coming soon preview only** (Profile card + marketing `#pia`). Functional Pia AI coach is **post-V1** (Architecture §12B Future).
 
 ### Product Preview mockup (`#preview`)
 
@@ -264,11 +264,11 @@ Home is a **personal guide**, not a traditional bank dashboard. **Progress and m
 
 | State | Hero emphasis | Primary CTAs |
 |-------|---------------|--------------|
-| **New User** | “Let’s get started” | Add Money · Ask Pia |
-| **Funded User** | “Your money is ready” | Create Goal · Growth Account · Ask Pia |
-| **Goal Builder** | Featured goal + progress % | Add to goal · View goal · Ask Pia |
-| **Growth User** | Growth earnings summary | View Growth · Add to Growth · Ask Pia |
-| **Mature User** | Progress headline + goal + growth | Review progress · Ask Pia |
+| **New User** | “Let’s get started” | Add Money · Send · Receive |
+| **Funded User** | “Your money is ready” | Create Goal · Growth Account · Send · Receive |
+| **Goal Builder** | Featured goal + progress % | Add to goal · View goal · Send · Receive |
+| **Growth User** | Growth earnings summary | View Growth · Add to Growth · Send · Receive |
+| **Mature User** | Progress headline + goal + growth | Review progress · Manage goals · Send · Receive |
 
 **De-emphasize** on early states: Send · Receive as primary · balance-as-hero.
 
@@ -288,7 +288,9 @@ Girls Trip Fund 43%
 | **Headline** | Cormorant or large Inter semibold — outcome language |
 | **Progress** | Bars and % like goal cards — consistent component |
 | **Balance** | Present but secondary until mature state; `$` formatting, two decimals |
-| **Quick actions** | Pill or icon row — Add · Send · Receive · Ask Pia |
+| **Quick actions** | Pill or icon row — Add · Send · Receive *(Ask Pia post-V1)* |
+| **Pia (V1)** | Static **Coming soon** card on Profile only — visible, non-interactive; no chat |
+| **Ask Pia (post-V1)** | Quick action / coach entry — opens functional Pia chat after V1 |
 | **Activity list** | Plain-language labels; no blockchain hashes |
 | **Empty states** | Friendly forward path — never blank ledger wall |
 
@@ -486,7 +488,7 @@ Before `apps/marketing` implementation begins:
 - [ ] Mobile responsive rules accepted (§7)
 - [ ] Anti-patterns acknowledged (§8)
 - [ ] Reference screenshots added (optional) or waived
-- [x] Pia marketing treatment confirmed: **static preview on web; fully functional in mobile app**
+- [x] Pia treatment confirmed: **static Coming soon preview on web and mobile at V1; functional coach post-V1**
 
 **Sign-off:** ___________________ **Date:** ___________
 

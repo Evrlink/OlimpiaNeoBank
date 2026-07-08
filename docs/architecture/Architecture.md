@@ -59,10 +59,10 @@ Olimpia is a three-surface system:
 |---|----------|------|
 | 1 | **Privy** | Authentication, embedded wallet creation, non-custodial wallet experience |
 | 2 | **Base** | Primary blockchain network and stablecoin settlement layer |
-| 3 | **BridgeXYZ** | Fiat on-ramp and off-ramp |
-| 4 | **Gnosis Pay** | Virtual debit card infrastructure |
+| 3 | **BridgeXYZ** | **V1 money loop** — fiat on-ramp (USD in → USDC on Base) and off-ramp (USD out to bank) via Bridge; send/receive via Olimpia ledger |
+| 4 | **Gnosis Pay** | Virtual debit card infrastructure — **post-V1** |
 | 5 | **LI.FI** | Swap and routing (hidden from user) |
-| 6 | **Yield layer** (Aave, Morpho, Compound) | USDC growth / yield allocation |
+| 6 | **Yield layer** (Aave, Morpho, Compound) | **V1:** USDC yield / Growth allocation (single provider) |
 | 7 | **Resend** | Transactional email |
 | 8 | **Node.js** | Orchestration and application data |
 
@@ -81,12 +81,12 @@ Olimpia is a three-surface system:
 | Dashboard | Yes |
 | Send money | Yes |
 | Receive money | Yes |
-| Savings goals | Yes |
-| USDC yield / growth account | Yes |
-| Virtual debit card | Yes |
+| Savings goals | Yes — **V1 launch requirement** |
+| USDC yield / growth account | Yes — **V1 launch requirement** |
+| Virtual debit card | **Post-V1** — Gnosis Pay (Build Phase 9 card) |
 | Profile | Yes |
 | Marketing landing page | Yes |
-| **Pia preview (Coming Soon)** | Yes — static in-app card; no live chat in MVP |
+| **Pia preview (Coming Soon)** | Yes — static in-app card on Profile only; **no live chat at V1** |
 
 ---
 

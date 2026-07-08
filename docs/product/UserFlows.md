@@ -6,6 +6,8 @@
 **Source of truth:** [PRD.md](./PRD.md) (v1.10) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v1.5)  
 **Scope:** Experience definition only — no code, no build tasks, no product redesign
 
+**V1 launch (see [V1Scope.md](./V1Scope.md)):** Working **savings goals** and **USDC yield** are V1. **Pia** is visible as a static **Coming soon** card on Profile only — no Ask Pia buttons, no chat, no AI. **Virtual card** is **post-V1**.
+
 ---
 
 ## Document conventions
@@ -47,7 +49,7 @@
 | 13 | [Virtual debit card](#13-virtual-debit-card) | Mobile app |
 | 14 | [Transaction history](#14-transaction-history) | Mobile app |
 | 15 | [Profile](#15-profile) | Mobile app |
-| 16 | [Pia AI chat agent](#16-pia-ai-chat-agent) | Mobile app |
+| 16 | [Pia AI chat agent (post-V1)](#16-pia-ai-chat-agent-post-v1) | Mobile app — **not V1** |
 
 ---
 
@@ -114,7 +116,7 @@ Starting should feel possible — not like signing up for something complicated 
 
 - Take the first step toward managing money in one clear place
 - Feel welcomed, not judged for what she doesn't know yet
-- Meet a supportive guide (Pia) who will be there when questions come up
+- Meet a supportive guide (Pia) teased on Profile as **Coming soon** — functional coach is post-V1
 - Reach a calm home base quickly, without technical overwhelm
 
 Getting started is about **opening a door** — not mastering a system. The sooner she feels "I can do this," the closer she is to building real financial momentum. *More choices. More freedom* begins with feeling capable enough to begin.
@@ -129,8 +131,8 @@ Getting started is about **opening a door** — not mastering a system. The soon
 |--------|-------|------|
 | Welcome | 1 | Value proposition + primary CTA to create account |
 | Auth | 2 | Sign up: email/phone + verification (passkey or OTP per Privy) |
-| Pia introduction | — | Brief inline moment after account creation — **not** a separate flow or screen |
-| Home | 3 | Dashboard — first landing after introduction |
+| You're in (sign-up) | — | Optional post-sign-up confirmation before Home |
+| Home | 3 | Dashboard — first landing after auth |
 
 **User actions:**
 
@@ -138,19 +140,15 @@ Getting started is about **opening a door** — not mastering a system. The soon
 2. Tap create account / get started → Auth flow
 3. Enter email or phone → complete verification (OTP or passkey)
 4. *(Automatic)* Invisible wallet and Olimpia account provisioned — **no user step**
-5. See brief confirmation moment
-6. **Pia introduction (first-time only):** Simple onboarding moment — single card or modal with Pia greeting, e.g.:
-
-   > *Hi, I'm Pia. I'll help you understand your money, answer questions, and support your goals along the way.*
-
-   User taps **Continue** (or equivalent) — no chat input required at this step.
-7. Choose **Add money now** or **Explore app**
+5. See brief confirmation moment (sign-up path) or land directly on Home (sign-in path)
+6. **V1 — Pia:** No onboarding chat or introduction. User discovers Pia later as a static **Coming soon** card on **Profile** (no interaction).
+7. Choose **Add money now** or **Explore app** (sign-up path)
 8. Arrive on Home dashboard
 
 **Success state:**
 
 - Account created; user is authenticated
-- User has met Pia in a lightweight, welcoming moment — coach role established without starting a chat session
+- User has seen optional sign-up confirmation; Pia teased on Profile as Coming soon only
 - Home displays with balance (may be $0.00) and quick actions
 - Zero crypto vocabulary shown during onboarding
 - Target: reach Home in under ~3 minutes (PRD)
@@ -159,12 +157,11 @@ Getting started is about **opening a door** — not mastering a system. The soon
 
 - Verification fails or times out → clear error on Auth; retry or change contact method
 - Network error during account sync → retry CTA; do not expose technical errors
-- Pia introduction skipped only if account sync fails before moment is shown
 
 **Exit state:**
 
 - User on **Home** tab (explore path) or **Add Money** stack (fund-now path)
-- Returning users with existing session may skip Welcome and Pia introduction → see [Login](#3-login)
+- Returning users with existing session may skip Welcome → see [Login](#3-login)
 
 ---
 
@@ -176,7 +173,7 @@ Returning should feel seamless — like picking up a conversation, not starting 
 
 - Get back to her balance, goals, and progress without friction
 - Feel continuity: *my money is still here, my plan is still intact*
-- Resume daily life — check in, send, save, or ask Pia — without re-explaining herself
+- Resume daily life — check in, send, save, or grow savings — without re-explaining herself
 
 Reliable access supports the habit of staying engaged with money on her own terms. That ongoing connection is what turns a one-time signup into **lasting confidence**.
 
@@ -247,7 +244,7 @@ Home is a **confidence check-in**, not a transaction terminal. When it feels sup
 
 1. View total balance (dollars)
 2. Scan recent activity list (deposits, sends, receives, card spends, goal moves, growth)
-3. Tap quick action: **Add Money** · **Send** · **Receive** · **Ask Pia**
+3. Tap quick action: **Add Money** · **Send** · **Receive** *(V1: no Ask Pia — Pia Coming soon card on Profile only)*
 4. Tap activity row → Transaction Detail
 5. Switch tabs: Savings · Card · Profile
 
@@ -277,7 +274,7 @@ $1,245
 | **Growth earnings this month** | Recent win — plain dollars; ties to *potentially earn more over time*, not technical yield jargon |
 | **Money available** | Spendable clarity — not "available balance" jargon on first read |
 
-Quick actions (Add · Send · Receive · Ask Pia) and recent activity sit below this encouraging summary. Multiple goals may rotate or list on Savings; Home highlights **momentum**, not every ledger line.
+Quick actions (Add · Send · Receive) and recent activity sit below this encouraging summary. Multiple goals may rotate or list on Savings; Home highlights **momentum**, not every ledger line.
 
 **Success state:**
 
@@ -531,10 +528,10 @@ Naming a target gives saving a **why**. Progress bars and milestones make abstra
 
 | Screen | PRD # | Role |
 |--------|-------|------|
-| Savings | 8 | Goals list; opens New Goal sheet; **Ask Pia** entry |
+| Savings | 8 | Goals list; opens New Goal sheet |
 | New Goal | — | Bottom sheet: name, target, optional date, optional initial allocation |
-| Goal Detail | 9 | Progress view after creation; **Ask Pia** entry |
-| Pia | 11 | Optional — context-aware coach from Savings |
+| Goal Detail | 9 | Progress view after creation |
+| Pia | 11 | **Post-V1** — functional coach (V1: Coming soon preview on Profile only) |
 
 **User actions:**
 
@@ -547,7 +544,7 @@ Naming a target gives saving a **why**. Progress bars and milestones make abstra
 7. Confirm → goal created
 8. View Goal Detail with progress bar and allocated amount
 
-**Ask Pia (Savings):** Optional entry on **Savings** tab and **Goal Detail** — e.g. **Ask Pia** link or chip with prompts such as *How does this goal work?* or *How much should I save each month?* Opens [Pia chat](#16-pia-ai-chat-agent) with savings context. Purpose: reduce confusion and reinforce the supportive coach experience.
+**Pia (V1):** Static **Coming soon** card on **Profile** only — no chat from Savings or Growth at V1. **Post-V1:** optional **Ask Pia** entry opens [Pia chat](#16-pia-ai-chat-agent-post-v1).
 
 **Success state:**
 
@@ -588,9 +585,9 @@ Every allocation is proof she is **showing up for something she cares about**. T
 
 | Screen | PRD # | Role |
 |--------|-------|------|
-| Goal Detail | 9 | Progress, add/withdraw controls, goal activity; **Ask Pia** entry |
+| Goal Detail | 9 | Progress, add/withdraw controls, goal activity |
 | Savings | 8 | List reflects updated allocation |
-| Pia | 11 | Optional — e.g. *How does this goal work?* |
+| Pia | 11 | **Post-V1** — V1: Coming soon preview on Profile only |
 
 **User actions:**
 
@@ -600,7 +597,7 @@ Every allocation is proof she is **showing up for something she cares about**. T
 4. Confirm
 5. See updated progress bar and allocated amount
 6. View goal-specific activity entry
-7. *(Optional)* Tap **Ask Pia** for goal coaching — e.g. *How much should I save each month?*
+7. *(Post-V1)* Tap **Ask Pia** for goal coaching — not available at V1 launch
 
 **Success state:**
 
@@ -639,7 +636,7 @@ Flexibility is not failure. Being able to reallocate without shame helps her sta
 
 | Screen | PRD # | Role |
 |--------|-------|------|
-| Goal Detail | 9 | Progress, add/withdraw controls; **Ask Pia** entry |
+| Goal Detail | 9 | Progress, add/withdraw controls |
 | Home | 3 | Available balance increased — optional check |
 
 **User actions:**
@@ -650,7 +647,7 @@ Flexibility is not failure. Being able to reallocate without shame helps her sta
 4. Confirm
 5. See progress bar and allocated amount decrease
 6. Available balance increases
-7. *(Optional)* Tap **Ask Pia** for guidance on reallocating or next steps
+7. *(Post-V1)* Tap **Ask Pia** for guidance — not available at V1 launch
 
 **Success state:**
 
@@ -703,14 +700,14 @@ Supporting copy (below headline/subhead) may note that earnings are **estimated*
 
 | Surface | Role |
 |---------|------|
-| Growth account view | Headline copy above; amount in growth; earnings this month / over time; simple disclaimer; **Ask Pia** entry |
+| Growth account view | Headline copy above; amount in growth; earnings this month / over time; simple disclaimer |
 | Growth deposit / withdraw | Inline or stack — amount entry and confirm |
 | Home / Savings | Balance buckets updated after move |
-| Pia | 11 | Optional — e.g. *What is growth?* · *How can my savings earn over time?* |
+| Pia | 11 | **Post-V1** — V1: Coming soon preview on Profile only |
 
 **User-facing name:** *Grow your savings* or *Growth account* — never protocol names or APY optimization language.
 
-**Ask Pia (Growth):** **Ask Pia** entry on Growth account view — example prompts: *What is growth?* · *How can my savings earn over time?* Opens [Pia chat](#16-pia-ai-chat-agent) with growth context. Purpose: reinforce plain-language understanding and the supportive coach experience.
+**Pia (Growth, V1):** No Ask Pia on Growth at V1. User sees static **Coming soon** card on **Profile**. **Post-V1:** Ask Pia entry opens [Pia chat](#16-pia-ai-chat-agent-post-v1) with growth context.
 
 **User actions — deposit to growth:**
 
@@ -885,7 +882,7 @@ Taking care of account basics supports the deeper outcome: **trusting** that thi
 
 | Screen | PRD # | Role |
 |--------|-------|------|
-| Profile | 12 | Account info, notifications, security, help, Ask Pia, sign out |
+| Profile | 12 | Account info, notifications, security, help, **Pia Coming soon** card (static), sign out |
 | Welcome | 1 | After sign out |
 
 **User actions:**
@@ -896,7 +893,7 @@ Taking care of account basics supports the deeper outcome: **trusting** that thi
 4. Toggle security options (e.g. biometric)
 5. View linked funding destination (bank via Bridge)
 6. Tap **Help / Support** → support email or link
-7. Tap **Ask Pia** → [Pia flow](#16-pia-ai-chat-agent)
+7. View inline **Pia Coming soon** card (static — no chat, input, or navigation at V1)
 8. Tap **Sign out** → confirm → Privy logout
 
 **Success state:**
@@ -912,16 +909,15 @@ Taking care of account basics supports the deeper outcome: **trusting** that thi
 
 **Exit state:**
 
-- Remain on **Profile**, navigate to another tab, open **Pia**, or **Welcome** after sign out
+- Remain on **Profile**, navigate to another tab, or **Welcome** after sign out
 - Withdraw entry may also live here (Architecture §7)
 
 ---
 
-## 16. Pia AI chat agent
+## 16. Pia AI chat agent (post-V1)
 
-### Why This Matters
-
-Money questions often hit when she is alone — and Google does not feel like a friend. A user talks to Pia because she wants to:
+> **V1 launch:** Pia appears only as a static **Coming soon** card on **Profile** — visible, non-interactive. No Ask Pia buttons, no chat thread, no AI responses, no Anthropic API. This flow applies **after V1** when functional Pia ships.
+### Why This Matters (post-V1 functional coach)
 
 - **Understand money more clearly** — concepts, tradeoffs, what something actually means for her life
 - **Build confidence** — especially when finance has felt intimidating or exclusionary before
@@ -932,9 +928,9 @@ Pia is not there to impress her with expertise. She is there so money feels **ta
 
 **User goal:** Get supportive, plain-language help — education, product guidance, goal coaching, or progress celebration — without financial advice.
 
-**Entry point:** Home → **Ask Pia** · Profile → **Ask Pia** · **Savings** tab / **Goal Detail** → **Ask Pia** · **Growth account** view → **Ask Pia**.
+**Entry point (post-V1):** Home → **Ask Pia** · Profile → **Ask Pia** · **Savings** / **Goal Detail** / **Growth** → **Ask Pia**.
 
-**Context-aware entry (MVP):** When opened from Savings or Growth, Pia receives relevant context (goals, growth summary) and may surface domain-specific suggested prompts.
+**Context-aware entry (post-V1):** When opened from Savings or Growth, Pia receives relevant context (goals, growth summary) and may surface domain-specific suggested prompts.
 
 **Screens involved:**
 
@@ -990,7 +986,7 @@ Pia is not there to impress her with expertise. She is there so money feels **ta
 - Back to **Home** or **Profile** via back navigation or tab switch
 - Conversation persisted for return visits (one thread per user, MVP)
 
-**Notes:** Anthropic API is server-side only. No Pia chat on marketing website. Pia is **MVP P0** — distinct from future **AI Financial Advisor** (PRD §17). First-time Pia **introduction** happens in [onboarding](#2-registration-and-onboarding) only — not on login.
+**Notes:** Anthropic API is server-side only. No Pia chat on marketing website. Functional Pia is **post-V1** — distinct from V1 **Coming soon** preview on Profile and from future **AI Financial Advisor** (PRD §17).
 
 ---
 
@@ -1039,21 +1035,21 @@ A friendly, non-judgmental way to celebrate milestones and progress over time.
 [ Home ]  [ Savings ]  [ Card ]  [ Profile ]
 ```
 
-### Pia entry points (MVP)
+### Pia at V1 vs post-V1
 
-| Location | Example prompts |
-|----------|-----------------|
-| Onboarding | Introduction only — no chat (*Hi, I'm Pia…*) |
-| Home | **Ask Pia** |
-| Savings / Goal Detail | *How does this goal work?* · *How much should I save each month?* |
-| Growth account | *What is growth?* · *How can my savings earn over time?* |
-| Profile | **Ask Pia** |
+| Location | V1 launch | Post-V1 (functional coach) |
+|----------|-----------|----------------------------|
+| **Profile** | Static **Coming soon** card — visible, no chat | **Ask Pia** opens chat |
+| **Home** | No Ask Pia quick action | **Ask Pia** quick action |
+| **Savings / Goal Detail** | No Ask Pia entry | Context-aware prompts |
+| **Growth account** | No Ask Pia entry | Growth-context prompts |
+| **Onboarding** | No Pia introduction or chat | Optional intro moments (TBD) |
 
 ### Balance buckets (user mental model)
 
 | Bucket | Used for |
 |--------|----------|
-| **Available** | Send, card spend, withdraw, allocate to goals/growth |
+| **Available** | Send, withdraw, allocate to goals/growth *(card spend post-V1)* |
 | **Savings goals** | Named goal envelopes (logical allocations) |
 | **Growth account** | Optional — put savings to work; potentially earn more over time |
 
@@ -1085,10 +1081,10 @@ Before `BuildPlan.md`:
 
 - [ ] **Why This Matters** sections reviewed — outcome-driven, not product-centric
 - [ ] All 16 flows reviewed against PRD screen inventory and Architecture flows
-- [ ] Pia onboarding introduction moment accepted (flow 2 — inline, not separate flow)
-- [ ] Pia entry points in Savings and Growth accepted
+- [ ] V1 Pia preview on Profile accepted (static Coming soon — no chat at V1)
+- [ ] Functional Pia entry points in Savings and Growth deferred to post-V1 (flow 16)
 - [ ] **Your Growth** documented as future only — not a score or ranking
-- [ ] Pia AI chat agent confirmed as MVP (flow 16)
+- [ ] Pia AI chat agent confirmed as **post-V1** (flow 16 — not required for V1 launch)
 - [ ] Marketing website flow aligned with Brand.md section map
 - [ ] Async failure and success copy direction accepted (Architecture §21)
 - [ ] Growth account entry surface confirmed (Savings vs Home — implementation detail)
