@@ -20,7 +20,7 @@ import {
   privyConfig,
   privySupportedChains,
 } from "@/config/privy";
-import { EmptyHomeScreen } from "@/screens/EmptyHomeScreen";
+import { AuthenticatedTabShell } from "@/components/AuthenticatedTabShell";
 import { AuthScreen, type AuthMode } from "@/screens/AuthScreen";
 import { WelcomeScreen } from "@/screens/WelcomeScreen";
 import { YoureInScreen } from "@/screens/YoureInScreen";
@@ -83,7 +83,7 @@ export default function App() {
         ) : screen === "youre-in" ? (
           <YoureInScreen onExplore={() => setScreen("home")} />
         ) : authSync ? (
-          <EmptyHomeScreen user={authSync.user} balance={authSync.balance} />
+          <AuthenticatedTabShell authSync={authSync} />
         ) : null}
       </SafeAreaProvider>
     </PrivyProvider>

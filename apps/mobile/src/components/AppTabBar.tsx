@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTabNavigation } from "@/context/TabNavigationContext";
 import { colors } from "@/theme/colors";
 
-type TabId = "home" | "savings" | "card" | "profile";
+export type TabId = "home" | "savings" | "card" | "profile";
 
 const tabs: {
   id: TabId;
@@ -18,22 +19,34 @@ const tabs: {
 
 type AppTabBarProps = {
   active?: TabId;
+  onTabPress?: (tab: TabId) => void;
 };
 
-export function AppTabBar({ active = "home" }: AppTabBarProps) {
+export function AppTabBar({ active = "home", onTabPress }: AppTabBarProps) {
+  const tabNavigation = useTabNavigation();
+  const handleTabPress = onTabPress ?? tabNavigation?.onTabPress;
+
   return (
     <View style={styles.bar}>
       {tabs.map(({ id, label, icon, activeIcon }) => {
         const isActive = id === active;
+
         return (
-          <View key={id} style={styles.tab}>
+          <Pressable
+            key={id}
+            style={styles.tab}
+            onPress={() => handleTabPress?.(id)}
+            disabled={!handleTabPress}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isActive, disabled: !handleTabPress }}
+          >
             <Ionicons
               name={isActive ? activeIcon : icon}
               size={22}
               color={isActive ? colors.raspberry : colors.inkMuted}
             />
             <Text style={[styles.label, isActive && styles.labelActive]}>{label}</Text>
-          </View>
+          </Pressable>
         );
       })}
     </View>
