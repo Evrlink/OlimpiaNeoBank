@@ -1,5 +1,7 @@
+import { usePrivy } from "@privy-io/expo";
 import { LinearGradient } from "expo-linear-gradient";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
 import type { AuthSyncBalance, AuthSyncUser } from "@/services/api/authSync";
@@ -9,6 +11,7 @@ import { getGreetingName } from "@/utils/auth";
 type ProfileScreenProps = {
   user: AuthSyncUser;
   balance: AuthSyncBalance;
+  onSignOut: () => void;
 };
 
 function formatAccountDate(value: string): string {
@@ -25,10 +28,29 @@ function formatAccountDate(value: string): string {
   });
 }
 
-export function ProfileScreen({ user, balance }: ProfileScreenProps) {
+export function ProfileScreen({ user, balance, onSignOut }: ProfileScreenProps) {
+  const { logout } = usePrivy();
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const greetingName = getGreetingName(user);
   const email = user.email?.trim();
   const createdAt = user.createdAt?.trim();
+
+  const handleSignOut = async () => {
+    if (isSigningOut) {
+      return;
+    }
+
+    setIsSigningOut(true);
+
+    try {
+      await logout();
+    } catch {
+      // Fall through to clear local session state and return to Welcome.
+    } finally {
+      setIsSigningOut(false);
+      onSignOut();
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -46,6 +68,20 @@ export function ProfileScreen({ user, balance }: ProfileScreenProps) {
       >
         <Text style={styles.title}>Profile</Text>
 
+        <View style={styles.piaCard}>
+          <View style={styles.piaHeader}>
+            <Text style={styles.piaTitle}>Pia</Text>
+            <View style={styles.comingSoonBadge}>
+              <Text style={styles.comingSoonLabel}>Coming soon</Text>
+            </View>
+          </View>
+          <View style={styles.piaBubble}>
+            <Text style={styles.piaBody}>
+              Pia will help explain your balance, money tools, and next steps in simple language.
+            </Text>
+          </View>
+        </View>
+
         <View style={styles.card}>
           <ProfileField label="Name" value={greetingName} />
           {email ? <ProfileField label="Email" value={email} /> : null}
@@ -54,6 +90,16 @@ export function ProfileScreen({ user, balance }: ProfileScreenProps) {
             <ProfileField label="Account created" value={formatAccountDate(createdAt)} />
           ) : null}
         </View>
+
+        <Pressable
+          style={[styles.signOutButton, isSigningOut ? styles.signOutButtonDisabled : null]}
+          onPress={() => void handleSignOut()}
+          disabled={isSigningOut}
+          accessibilityRole="button"
+          accessibilityLabel="Sign out"
+        >
+          <Text style={styles.signOutLabel}>{isSigningOut ? "Signing out…" : "Sign out"}</Text>
+        </Pressable>
       </ScrollView>
 
       <AppTabBar active="profile" />
@@ -98,6 +144,52 @@ const styles = StyleSheet.create({
     lineHeight: 34,
     color: colors.ink,
   },
+  piaCard: {
+    marginTop: spacing.block,
+    padding: spacing.card,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: "rgba(232, 225, 218, 0.4)",
+    backgroundColor: colors.card,
+    gap: 12,
+  },
+  piaHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  piaTitle: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    lineHeight: 22,
+    color: colors.ink,
+  },
+  comingSoonBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    backgroundColor: colors.roseSoft,
+  },
+  comingSoonLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 11,
+    lineHeight: 14,
+    color: colors.raspberry,
+    textTransform: "capitalize",
+  },
+  piaBubble: {
+    padding: 12,
+    borderRadius: radius.card,
+    borderTopLeftRadius: 6,
+    backgroundColor: colors.background,
+  },
+  piaBody: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.ink,
+  },
   card: {
     marginTop: spacing.block,
     padding: spacing.card,
@@ -120,5 +212,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: colors.ink,
+  },
+  signOutButton: {
+    marginTop: spacing.block,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.card,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: "rgba(232, 225, 218, 0.6)",
+    backgroundColor: colors.card,
+    alignItems: "center",
+  },
+  signOutButtonDisabled: {
+    opacity: 0.6,
+  },
+  signOutLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    lineHeight: 22,
+    color: colors.berryDark,
   },
 });

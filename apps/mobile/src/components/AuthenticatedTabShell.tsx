@@ -10,9 +10,10 @@ import type { AuthSyncResponse } from "@/services/api/authSync";
 
 type AuthenticatedTabShellProps = {
   authSync: AuthSyncResponse;
+  onSignOut: () => void;
 };
 
-export function AuthenticatedTabShell({ authSync }: AuthenticatedTabShellProps) {
+export function AuthenticatedTabShell({ authSync, onSignOut }: AuthenticatedTabShellProps) {
   const [activeTab, setActiveTab] = useState<TabId>("home");
 
   return (
@@ -24,7 +25,11 @@ export function AuthenticatedTabShell({ authSync }: AuthenticatedTabShellProps) 
         {activeTab === "savings" ? <SavingsScreen /> : null}
         {activeTab === "card" ? <CardScreen /> : null}
         {activeTab === "profile" ? (
-          <ProfileScreen user={authSync.user} balance={authSync.balance} />
+          <ProfileScreen
+            user={authSync.user}
+            balance={authSync.balance}
+            onSignOut={onSignOut}
+          />
         ) : null}
       </View>
     </TabNavigationProvider>

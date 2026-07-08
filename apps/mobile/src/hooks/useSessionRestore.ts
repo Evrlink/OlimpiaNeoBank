@@ -8,6 +8,7 @@ type SessionRestoreState = {
   authSync: AuthSyncResponse | null;
   setAuthSync: (value: AuthSyncResponse | null) => void;
   sessionRestored: boolean;
+  clearAuthenticatedSession: () => void;
 };
 
 export function useSessionRestore(): SessionRestoreState {
@@ -67,5 +68,9 @@ export function useSessionRestore(): SessionRestoreState {
     authSync,
     setAuthSync,
     sessionRestored,
+    clearAuthenticatedSession: () => {
+      setAuthSync(null);
+      setSessionRestored(false);
+    },
   };
 }

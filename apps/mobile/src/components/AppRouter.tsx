@@ -11,9 +11,15 @@ import { colors } from "@/theme/colors";
 type AppScreen = "welcome" | "auth" | "youre-in" | "home";
 
 export function AppRouter() {
-  const { isBootstrapping, authSync, setAuthSync, sessionRestored } = useSessionRestore();
+  const { isBootstrapping, authSync, setAuthSync, sessionRestored, clearAuthenticatedSession } =
+    useSessionRestore();
   const [screen, setScreen] = useState<AppScreen>("welcome");
   const [authMode, setAuthMode] = useState<AuthMode>("signup");
+
+  const handleSignOut = () => {
+    clearAuthenticatedSession();
+    setScreen("welcome");
+  };
 
   if (isBootstrapping) {
     return (
@@ -34,7 +40,7 @@ export function AppRouter() {
     return (
       <>
         <StatusBar style="dark" />
-        <AuthenticatedTabShell authSync={authSync} />
+        <AuthenticatedTabShell authSync={authSync} onSignOut={handleSignOut} />
       </>
     );
   }
@@ -65,7 +71,7 @@ export function AppRouter() {
       ) : screen === "youre-in" ? (
         <YoureInScreen onExplore={() => setScreen("home")} />
       ) : authSync ? (
-        <AuthenticatedTabShell authSync={authSync} />
+        <AuthenticatedTabShell authSync={authSync} onSignOut={handleSignOut} />
       ) : (
         <WelcomeScreen
           onGetStarted={() => {
