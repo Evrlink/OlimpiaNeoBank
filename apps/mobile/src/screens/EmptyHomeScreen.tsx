@@ -3,9 +3,17 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
+import type { AuthSyncBalance, AuthSyncUser } from "@/services/api/authSync";
+import { getGreetingName } from "@/utils/auth";
 import { colors, radius, spacing } from "@/theme/colors";
 
-export function EmptyHomeScreen() {
+type EmptyHomeScreenProps = {
+  user: AuthSyncUser;
+  balance: AuthSyncBalance;
+};
+
+export function EmptyHomeScreen({ user, balance }: EmptyHomeScreenProps) {
+  const greetingName = getGreetingName(user);
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <LinearGradient
@@ -22,8 +30,8 @@ export function EmptyHomeScreen() {
       >
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.greetingMuted}>Hi Sarah ✨</Text>
-            <Text style={styles.greetingName}>Sarah</Text>
+            <Text style={styles.greetingMuted}>Hi {greetingName} ✨</Text>
+            <Text style={styles.greetingName}>{greetingName}</Text>
           </View>
           <LinearGradient
             colors={[colors.rose, colors.raspberry]}
@@ -53,7 +61,7 @@ export function EmptyHomeScreen() {
         <Text style={styles.trustLineMuted}>
           Your money stays yours — withdraw to your bank when you're ready.
         </Text>
-        <Text style={styles.balanceLine}>Money available · $0.00</Text>
+        <Text style={styles.balanceLine}>Money available · ${balance.totalDisplayUsd}</Text>
 
         <View style={styles.quickRow}>
           {[

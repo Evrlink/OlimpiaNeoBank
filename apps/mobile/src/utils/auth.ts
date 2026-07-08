@@ -1,5 +1,5 @@
 import type { User } from "@privy-io/api-types";
-import { AuthSyncApiError } from "@/services/api/authSync";
+import { AuthSyncApiError, type AuthSyncUser } from "@/services/api/authSync";
 
 type LinkedAccount = User["linked_accounts"][number];
 
@@ -36,4 +36,24 @@ export function getSyncErrorMessage(error: unknown): string {
 
 export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+export function getGreetingName(user: Pick<AuthSyncUser, "displayName" | "email">): string {
+  const displayName = user.displayName?.trim();
+
+  if (displayName) {
+    return displayName;
+  }
+
+  const email = user.email?.trim();
+
+  if (email) {
+    const localPart = email.split("@")[0]?.trim();
+
+    if (localPart) {
+      return localPart;
+    }
+  }
+
+  return "there";
 }

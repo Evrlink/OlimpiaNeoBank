@@ -24,6 +24,7 @@ import { EmptyHomeScreen } from "@/screens/EmptyHomeScreen";
 import { AuthScreen, type AuthMode } from "@/screens/AuthScreen";
 import { WelcomeScreen } from "@/screens/WelcomeScreen";
 import { YoureInScreen } from "@/screens/YoureInScreen";
+import type { AuthSyncResponse } from "@/services/api/authSync";
 import { colors } from "@/theme/colors";
 
 type AppScreen = "welcome" | "auth" | "youre-in" | "home";
@@ -31,6 +32,7 @@ type AppScreen = "welcome" | "auth" | "youre-in" | "home";
 export default function App() {
   const [screen, setScreen] = useState<AppScreen>("welcome");
   const [authMode, setAuthMode] = useState<AuthMode>("signup");
+  const [authSync, setAuthSync] = useState<AuthSyncResponse | null>(null);
   const [interLoaded] = useInterFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -72,14 +74,17 @@ export default function App() {
         ) : screen === "auth" ? (
           <AuthScreen
             mode={authMode}
-            onSuccess={(destination) => setScreen(destination)}
+            onSuccess={({ destination, syncResult }) => {
+              setAuthSync(syncResult);
+              setScreen(destination);
+            }}
             onBack={() => setScreen("welcome")}
           />
         ) : screen === "youre-in" ? (
           <YoureInScreen onExplore={() => setScreen("home")} />
-        ) : (
-          <EmptyHomeScreen />
-        )}
+        ) : authSync ? (
+          <EmptyHomeScreen user={authSync.user} balance={authSync.balance} />
+        ) : null}
       </SafeAreaProvider>
     </PrivyProvider>
   );

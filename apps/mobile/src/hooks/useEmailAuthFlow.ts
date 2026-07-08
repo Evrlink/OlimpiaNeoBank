@@ -1,6 +1,6 @@
 import { useEmbeddedEthereumWallet, useLoginWithEmail, usePrivy } from "@privy-io/expo";
 import { useCallback, useEffect, useState } from "react";
-import type { AuthMode, AuthSuccessDestination } from "@/screens/AuthScreen";
+import type { AuthMode, AuthSuccessPayload } from "@/screens/AuthScreen";
 import { syncAccount } from "@/services/api/authSync";
 import {
   getAuthErrorMessage,
@@ -31,7 +31,7 @@ type UseEmailAuthFlowResult = {
 
 export function useEmailAuthFlow(
   authMode: AuthMode,
-  onSuccess: (destination: AuthSuccessDestination) => void,
+  onSuccess: (payload: AuthSuccessPayload) => void,
 ): UseEmailAuthFlowResult {
   const [step, setStep] = useState<AuthFlowStep>("email");
   const [email, setEmail] = useState("");
@@ -129,10 +129,10 @@ export function useEmailAuthFlow(
       }
 
       const syncResult = await syncAccount(accessToken);
-      const destination: AuthSuccessDestination =
+      const destination =
         syncResult.isNewUser && authMode === "signup" ? "youre-in" : "home";
 
-      onSuccess(destination);
+      onSuccess({ destination, syncResult });
     } catch (error) {
       setStep("otp");
       setInlineError(getSyncErrorMessage(error));

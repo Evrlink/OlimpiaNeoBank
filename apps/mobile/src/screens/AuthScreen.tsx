@@ -12,14 +12,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEmailAuthFlow } from "@/hooks/useEmailAuthFlow";
+import type { AuthSyncResponse } from "@/services/api/authSync";
 import { colors, radius, spacing } from "@/theme/colors";
 
 export type AuthMode = "signup" | "signin";
 export type AuthSuccessDestination = "youre-in" | "home";
 
+export type AuthSuccessPayload = {
+  destination: AuthSuccessDestination;
+  syncResult: AuthSyncResponse;
+};
+
 type AuthScreenProps = {
   mode: AuthMode;
-  onSuccess: (destination: AuthSuccessDestination) => void;
+  onSuccess: (payload: AuthSuccessPayload) => void;
   onBack: () => void;
 };
 
