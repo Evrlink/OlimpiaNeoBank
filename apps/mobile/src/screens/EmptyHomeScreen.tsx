@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
 import type { AuthSyncBalance, AuthSyncUser } from "@/services/api/authSync";
@@ -41,54 +41,54 @@ export function EmptyHomeScreen({ user, balance }: EmptyHomeScreenProps) {
           />
         </View>
 
-        <Text style={styles.headline}>Let's get started.</Text>
+        <Text style={styles.headline}>You're all set.</Text>
         <Text style={styles.subhead}>
-          Add funds to begin building toward the life you choose.
+          Add money from your bank to fund your Olimpia balance.
         </Text>
 
-        <Pressable style={styles.ctaCard}>
-          <View style={styles.ctaIconWrap}>
-            <Text style={styles.ctaIcon}>+</Text>
+        <View style={styles.ctaCardDisabled} accessibilityRole="text">
+          <View style={styles.ctaIconWrapDisabled}>
+            <Text style={styles.ctaIconDisabled}>+</Text>
           </View>
           <View style={styles.ctaCopy}>
-            <Text style={styles.ctaLabel}>Add money</Text>
-            <Text style={styles.ctaSub}>Secure transfer to your balance</Text>
+            <Text style={styles.ctaLabelDisabled}>Add money</Text>
+            <Text style={styles.ctaSubDisabled}>Coming soon</Text>
           </View>
-          <Text style={styles.chevron}>›</Text>
-        </Pressable>
+        </View>
 
-        <Text style={styles.trustLine}>Once you add funds, your balance can earn over time.</Text>
-        <Text style={styles.trustLineMuted}>
-          Your money stays yours — withdraw to your bank when you're ready.
+        <Text style={styles.trustLine}>
+          Your balance is shown in dollars and updates after each transfer.
         </Text>
-        <Text style={styles.balanceLine}>Money available · ${balance.totalDisplayUsd}</Text>
+        <Text style={styles.trustLineMuted}>
+          Send, savings, and growth — Coming soon.
+        </Text>
+        <Text style={styles.balanceLine}>Balance · ${balance.totalDisplayUsd}</Text>
 
         <View style={styles.quickRow}>
           {[
             { icon: "arrow-up-outline" as const, label: "Send" },
             { icon: "arrow-down-outline" as const, label: "Receive" },
           ].map(({ icon, label }) => (
-            <View key={label} style={styles.quickItem}>
-              <View style={styles.quickIconWrap}>
-                <Ionicons name={icon} size={16} color={colors.raspberry} />
+            <View key={label} style={styles.quickItem} accessibilityRole="text">
+              <View style={styles.quickIconWrapDisabled}>
+                <Ionicons name={icon} size={16} color={colors.inkMuted} />
               </View>
-              <Text style={styles.quickLabel}>{label}</Text>
+              <Text style={styles.quickLabelDisabled}>{label}</Text>
+              <Text style={styles.quickComingSoon}>Coming soon</Text>
             </View>
           ))}
         </View>
 
         <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>Your first savings goal will appear here</Text>
+          <Text style={styles.placeholderText}>Savings goals — Coming soon</Text>
         </View>
         <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>
-            Growth earnings will show here when you're ready
-          </Text>
+          <Text style={styles.placeholderText}>Growth — Coming soon</Text>
         </View>
 
         <View style={styles.activityEmpty}>
           <Text style={styles.activityTitle}>No activity yet</Text>
-          <Text style={styles.activitySub}>Your first deposit will show up here</Text>
+          <Text style={styles.activitySub}>Your transfers will show up here</Text>
         </View>
       </ScrollView>
 
@@ -166,6 +166,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 2,
   },
+  ctaCardDisabled: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 20,
+    padding: spacing.card,
+    borderRadius: radius.card,
+    backgroundColor: "rgba(232, 225, 218, 0.35)",
+    borderWidth: 1,
+    borderColor: colors.border,
+    opacity: 0.85,
+  },
   ctaIconWrap: {
     width: 44,
     height: 44,
@@ -174,10 +186,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  ctaIconWrapDisabled: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(232, 225, 218, 0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   ctaIcon: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 22,
     color: colors.raspberry,
+  },
+  ctaIconDisabled: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 22,
+    color: colors.inkMuted,
   },
   ctaCopy: {
     flex: 1,
@@ -187,11 +212,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.ink,
   },
+  ctaLabelDisabled: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: colors.inkMuted,
+  },
   ctaSub: {
     fontFamily: "Inter_400Regular",
     fontSize: 14,
     color: colors.inkMuted,
     marginTop: 2,
+  },
+  ctaSubDisabled: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: colors.inkMuted,
+    marginTop: 2,
+    opacity: 0.85,
   },
   chevron: {
     fontSize: 22,
@@ -220,11 +257,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.block,
     marginTop: 20,
-    opacity: 0.85,
   },
   quickItem: {
     alignItems: "center",
-    gap: 6,
+    gap: 4,
+    opacity: 0.75,
   },
   quickIconWrap: {
     width: 44,
@@ -234,10 +271,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  quickIconWrapDisabled: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(232, 225, 218, 0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   quickLabel: {
     fontFamily: "Inter_400Regular",
     fontSize: 14,
     color: colors.inkMuted,
+  },
+  quickLabelDisabled: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: colors.inkMuted,
+  },
+  quickComingSoon: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: colors.inkMuted,
+    opacity: 0.85,
   },
   placeholder: {
     marginTop: spacing.card,

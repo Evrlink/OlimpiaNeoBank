@@ -10,19 +10,19 @@ type YoureInScreenProps = {
 
 const valueProps = [
   {
-    icon: "leaf-outline" as const,
-    title: "Earn yield",
-    description: "Your money can grow over time.",
+    icon: "business-outline" as const,
+    title: "Add from your bank",
+    description: "Transfer USD securely to your Olimpia balance.",
   },
   {
-    icon: "flag-outline" as const,
-    title: "Set goals",
-    description: "Create savings goals for what matters most.",
+    icon: "sparkles-outline" as const,
+    title: "Simple by design",
+    description: "Your balance in dollars — no crypto setup.",
   },
   {
     icon: "shield-checkmark-outline" as const,
     title: "You're in control",
-    description: "Move your money anytime, always your choice.",
+    description: "A calm place to manage your money.",
   },
 ];
 
@@ -30,24 +30,24 @@ const steps = [
   {
     icon: "business-outline" as const,
     step: 1,
-    title: "Add USD",
-    description: "Add funds from your bank.",
+    title: "Add from your bank",
+    description: "Transfer USD from your bank account.",
   },
   {
     icon: "cash-outline" as const,
     step: 2,
-    title: "Convert to USDC",
-    description: "Convert to USDC, earn yield.",
+    title: "Ready in your balance",
+    description: "Funds are converted behind the scenes — you see dollars.",
   },
   {
     icon: "sparkles-outline" as const,
     step: 3,
-    title: "Earn and access",
-    description: "USDC earns the yield. Cash out to your bank any time.",
+    title: "More coming soon",
+    description: "Send, savings, and growth features are on the way.",
   },
 ];
 
-const builtForYou = ["No lock ups", "Withdraw anytime", "Full transparency"];
+const builtForYou = ["Secure transfers", "Clear dollar balance", "Full transparency"];
 
 export function YoureInScreen({ onExplore }: YoureInScreenProps) {
   return (
@@ -75,8 +75,8 @@ export function YoureInScreen({ onExplore }: YoureInScreenProps) {
         <View style={styles.hero}>
           <Text style={styles.headline}>You're in!</Text>
           <Text style={styles.subhead}>
-            Simple access to decentralized finance{"\n"}
-            so you can save, grow, and reach your goals.
+            Your Olimpia account is ready.{"\n"}
+            Add money from your bank to get started.
           </Text>
         </View>
 
@@ -92,7 +92,7 @@ export function YoureInScreen({ onExplore }: YoureInScreenProps) {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>Here's how it works</Text>
+        <Text style={styles.sectionTitle}>How it works</Text>
         <View style={styles.stepsRow}>
           {steps.map(({ icon, step, title, description }, index) => (
             <View key={title} style={styles.stepGroup}>
@@ -127,17 +127,17 @@ export function YoureInScreen({ onExplore }: YoureInScreenProps) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <Pressable style={styles.primaryButton}>
-          <Text style={styles.primaryLabel}>Add funds and start earning</Text>
-        </Pressable>
+        <View style={styles.primaryButtonDisabled} accessibilityRole="text">
+          <Text style={styles.primaryLabelDisabled}>Add money from your bank — Coming soon</Text>
+        </View>
         <Pressable style={styles.secondaryButton} onPress={onExplore}>
           <Text style={styles.secondaryLabel}>Explore the app</Text>
         </Pressable>
         <View style={styles.disclaimerRow}>
           <Ionicons name="shield-checkmark-outline" size={12} color={colors.inkMuted} />
           <Text style={styles.disclaimer}>
-            Olimpia provides access to third party financial services. Yield is variable and not
-            guaranteed.
+            Olimpia uses third-party providers for bank transfers. Additional features such as
+            yield, when offered, may be variable and are not guaranteed.
           </Text>
         </View>
       </View>
@@ -343,10 +343,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  primaryButtonDisabled: {
+    height: 48,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: "rgba(232, 225, 218, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: 0.85,
+  },
   primaryLabel: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 14,
     color: colors.white,
+  },
+  primaryLabelDisabled: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    color: colors.inkMuted,
   },
   secondaryButton: {
     height: 48,
