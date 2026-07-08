@@ -21,13 +21,16 @@ import {
   privySupportedChains,
 } from "@/config/privy";
 import { EmptyHomeScreen } from "@/screens/EmptyHomeScreen";
+import { AuthScreen, type AuthMode } from "@/screens/AuthScreen";
 import { WelcomeScreen } from "@/screens/WelcomeScreen";
+import { YoureInScreen } from "@/screens/YoureInScreen";
 import { colors } from "@/theme/colors";
 
-type AppScreen = "welcome" | "home";
+type AppScreen = "welcome" | "auth" | "youre-in" | "home";
 
 export default function App() {
   const [screen, setScreen] = useState<AppScreen>("welcome");
+  const [authMode, setAuthMode] = useState<AuthMode>("signup");
   const [interLoaded] = useInterFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -57,9 +60,25 @@ export default function App() {
         <StatusBar style="dark" />
         {screen === "welcome" ? (
           <WelcomeScreen
-            onGetStarted={() => setScreen("home")}
-            onSignIn={() => setScreen("home")}
+            onGetStarted={() => {
+              setAuthMode("signup");
+              setScreen("auth");
+            }}
+            onSignIn={() => {
+              setAuthMode("signin");
+              setScreen("auth");
+            }}
           />
+        ) : screen === "auth" ? (
+          <AuthScreen
+            mode={authMode}
+            onSuccess={() => {
+              setScreen(authMode === "signup" ? "youre-in" : "home");
+            }}
+            onBack={() => setScreen("welcome")}
+          />
+        ) : screen === "youre-in" ? (
+          <YoureInScreen onExplore={() => setScreen("home")} />
         ) : (
           <EmptyHomeScreen />
         )}
