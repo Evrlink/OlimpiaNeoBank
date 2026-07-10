@@ -43,7 +43,7 @@ export default function App() {
   return (
     <PrivyProvider
       appId={privyAppId}
-      clientId={privyClientId}
+      {...(privyClientId ? { clientId: privyClientId } : {})}
       supportedChains={[...privySupportedChains]}
       config={privyConfig}
     >

@@ -15,10 +15,7 @@ export const privyAppId = requireEnv(
   process.env.EXPO_PUBLIC_PRIVY_APP_ID,
 );
 
-export const privyClientId = requireEnv(
-  "EXPO_PUBLIC_PRIVY_CLIENT_ID",
-  process.env.EXPO_PUBLIC_PRIVY_CLIENT_ID,
-);
+export const privyClientId = process.env.EXPO_PUBLIC_PRIVY_CLIENT_ID?.trim() || undefined;
 
 export const privySupportedChains = [base] as const;
 
