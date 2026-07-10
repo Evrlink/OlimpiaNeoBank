@@ -5,8 +5,8 @@ import {
   fetchPrivyUser,
 } from "../auth/privy.js";
 import { getPool } from "../db/pool.js";
+import { getBalanceSummaryForUser } from "../ledger/index.js";
 import {
-  toBalanceSummary,
   toUserProfile,
   type BalanceSummary,
   type UserProfile,
@@ -32,12 +32,6 @@ type DbUserRow = {
 type DbWalletRow = {
   id: string;
   chain: string;
-};
-
-type DbBalanceRow = {
-  available_usd: string;
-  goals_allocated_usd: string;
-  growth_allocated_usd: string;
 };
 
 export class AuthSyncError extends Error {
@@ -122,21 +116,13 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
       [userRow.id],
     );
 
-    const balanceResult = await client.query<DbBalanceRow>(
-      `
-        SELECT available_usd, goals_allocated_usd, growth_allocated_usd
-        FROM user_balances
-        WHERE user_id = $1
-      `,
-      [userRow.id],
-    );
+    const balance = await getBalanceSummaryForUser(userRow.id, client);
 
     await client.query("COMMIT");
 
     const walletRow = walletResult.rows[0];
-    const balanceRow = balanceResult.rows[0];
 
-    if (!walletRow || !balanceRow) {
+    if (!walletRow || !balance) {
       throw new AuthSyncError("Failed to load wallet or balance after sync.");
     }
 
@@ -146,7 +132,7 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
         id: walletRow.id,
         chain: walletRow.chain,
       },
-      balance: toBalanceSummary(balanceRow),
+      balance,
       isNewUser,
     };
   } catch (error) {
@@ -171,23 +157,11 @@ export async function getAuthenticatedUserProfile(
     throw new Error("Database is not configured.");
   }
 
-  const result = await pool.query<
-    DbUserRow & DbBalanceRow
-  >(
+  const result = await pool.query<DbUserRow>(
     `
-      SELECT
-        u.id,
-        u.email,
-        u.phone,
-        u.display_name,
-        u.username,
-        u.created_at,
-        b.available_usd,
-        b.goals_allocated_usd,
-        b.growth_allocated_usd
-      FROM users u
-      LEFT JOIN user_balances b ON b.user_id = u.id
-      WHERE u.privy_user_id = $1
+      SELECT id, email, phone, display_name, username, created_at
+      FROM users
+      WHERE privy_user_id = $1
     `,
     [privyUserId],
   );
@@ -198,16 +172,14 @@ export async function getAuthenticatedUserProfile(
     return null;
   }
 
-  if (
-    row.available_usd === undefined ||
-    row.goals_allocated_usd === undefined ||
-    row.growth_allocated_usd === undefined
-  ) {
+  const balance = await getBalanceSummaryForUser(row.id, pool);
+
+  if (!balance) {
     return null;
   }
 
   return {
     user: toUserProfile(row),
-    balance: toBalanceSummary(row),
+    balance,
   };
 }

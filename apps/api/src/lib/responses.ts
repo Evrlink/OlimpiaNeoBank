@@ -35,12 +35,6 @@ type DbUserRow = {
   created_at: Date;
 };
 
-type DbBalanceRow = {
-  available_usd: string;
-  goals_allocated_usd: string;
-  growth_allocated_usd: string;
-};
-
 export function toUserProfile(row: DbUserRow): UserProfile {
   return {
     id: row.id,
@@ -49,28 +43,6 @@ export function toUserProfile(row: DbUserRow): UserProfile {
     displayName: row.display_name,
     username: row.username,
     createdAt: row.created_at.toISOString(),
-  };
-}
-
-function formatUsd(value: string | number): string {
-  return Number(value).toFixed(2);
-}
-
-export function toBalanceSummary(row: DbBalanceRow): BalanceSummary {
-  const availableUsd = formatUsd(row.available_usd);
-  const goalsAllocatedUsd = formatUsd(row.goals_allocated_usd);
-  const growthAllocatedUsd = formatUsd(row.growth_allocated_usd);
-  const totalDisplayUsd = formatUsd(
-    Number(row.available_usd) +
-      Number(row.goals_allocated_usd) +
-      Number(row.growth_allocated_usd),
-  );
-
-  return {
-    availableUsd,
-    goalsAllocatedUsd,
-    growthAllocatedUsd,
-    totalDisplayUsd,
   };
 }
 
