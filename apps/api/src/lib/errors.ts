@@ -3,6 +3,8 @@ import type { Response } from "express";
 export type ApiErrorCode =
   | "UNAUTHORIZED"
   | "USER_NOT_FOUND"
+  | "TRANSACTION_NOT_FOUND"
+  | "VALIDATION_ERROR"
   | "SYNC_FAILED"
   | "PRIVY_UNAVAILABLE"
   | "INTERNAL_ERROR";

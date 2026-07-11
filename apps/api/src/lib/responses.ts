@@ -14,6 +14,69 @@ export type BalanceSummary = {
   totalDisplayUsd: string;
 };
 
+export type ActivityStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed";
+
+export type ActivityItem = {
+  id: string;
+  type: string;
+  amountUsd: string;
+  status: ActivityStatus;
+  counterpartyId: string | null;
+  createdAt: string;
+};
+
+type DbTransactionRow = {
+  id: string;
+  type: string;
+  amount_usd: string;
+  status: string;
+  counterparty_id: string | null;
+  created_at: Date;
+};
+
+function parseUsdAmount(value: string | number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export class InvalidActivityStatusError extends Error {
+  readonly status: string;
+
+  constructor(status: string) {
+    super(`Invalid activity status: ${status}`);
+    this.name = "InvalidActivityStatusError";
+    this.status = status;
+  }
+}
+
+function parseActivityStatus(value: string): ActivityStatus {
+  if (
+    value === "pending" ||
+    value === "processing" ||
+    value === "completed" ||
+    value === "failed"
+  ) {
+    return value;
+  }
+
+  throw new InvalidActivityStatusError(value);
+}
+
+export function toActivityItem(row: DbTransactionRow): ActivityItem {
+  return {
+    id: row.id,
+    type: row.type,
+    amountUsd: parseUsdAmount(row.amount_usd).toFixed(2),
+    status: parseActivityStatus(row.status),
+    counterpartyId: row.counterparty_id,
+    createdAt: row.created_at.toISOString(),
+  };
+}
+
 export type WalletSummary = {
   id: string;
   chain: string;
