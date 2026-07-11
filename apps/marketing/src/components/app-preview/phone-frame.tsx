@@ -16,6 +16,7 @@ export function PhoneFrame({ children, className }: PhoneFrameProps) {
           aria-hidden
         />
         <div className="relative flex min-h-[780px] flex-col overflow-hidden rounded-[2.75rem] bg-background">
+          {/* Mockup-scale status bar — phone chrome only */}
           <div className="relative flex h-11 shrink-0 items-center justify-between px-7 pt-3 text-[11px] font-semibold text-foreground">
             <span>9:41</span>
             <div className="absolute left-1/2 top-2.5 h-6 w-24 -translate-x-1/2 rounded-full bg-[#111]" />
@@ -33,8 +34,8 @@ export function PhoneFrame({ children, className }: PhoneFrameProps) {
               </svg>
             </div>
           </div>
-          {children}
-          <div className="mx-auto mb-2 mt-auto h-1 w-28 shrink-0 rounded-full bg-foreground/15" aria-hidden />
+          <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+          <div className="mx-auto mb-2 h-1 w-28 shrink-0 rounded-full bg-foreground/15" aria-hidden />
         </div>
       </div>
     </div>

@@ -210,7 +210,7 @@ export function AuthScreen({
 
       <div
         className={cn(
-          "relative z-[1] flex min-h-0 flex-1 flex-col px-5 pt-3",
+          "relative z-[1] flex min-h-0 flex-1 flex-col px-6 pt-3",
           step === "otp" ? "pb-0" : "pb-3",
         )}
       >
@@ -235,7 +235,7 @@ export function AuthScreen({
           {step === "otp" ? (
             <div className="auth-otp-screen">
               <div className="auth-otp-body mt-5">
-                <h1 className="font-display text-[2rem] font-normal leading-[1.12] tracking-[-0.02em] text-foreground whitespace-nowrap">
+                <h1 className="text-h2 font-semibold text-foreground whitespace-nowrap">
                   Verify your email
                 </h1>
                 <p className="auth-otp-copy">We sent a 6-digit code to</p>
@@ -267,7 +267,7 @@ export function AuthScreen({
                   </div>
 
                   {otpError ? (
-                    <p className="mt-2 text-[0.8125rem] text-red-500" role="alert">
+                    <p className="mt-2 text-body-sm text-raspberry" role="alert">
                       That code didn&apos;t match. Check and try again.
                     </p>
                   ) : null}
@@ -299,10 +299,10 @@ export function AuthScreen({
           ) : (
             <div className="flex min-h-0 flex-1 flex-col">
               <div className="mt-5">
-                <h1 className="font-display text-[2rem] font-normal leading-[1.12] tracking-[-0.02em] text-foreground">
+                <h1 className="text-h2 font-semibold text-foreground">
                   {title}
                 </h1>
-                <p className="mt-3 max-w-[20rem] text-[0.875rem] leading-[1.55] text-ink-muted">
+                <p className="mt-3 max-w-[20rem] text-body-sm text-ink-muted">
                   {subtitle}
                 </p>
               </div>
@@ -318,7 +318,7 @@ export function AuthScreen({
                       <Mail
                         className={cn(
                           "h-[1.125rem] w-[1.125rem]",
-                          entryError ? "text-red-400/70" : "text-ink-muted/60",
+                          entryError ? "text-raspberry/70" : "text-ink-muted/60",
                         )}
                         aria-hidden
                       />
@@ -341,13 +341,13 @@ export function AuthScreen({
                   />
                   {entryError ? (
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                      <AlertCircle className="h-[1.125rem] w-[1.125rem] text-red-500" aria-hidden />
+                      <AlertCircle className="h-[1.125rem] w-[1.125rem] text-raspberry" aria-hidden />
                     </span>
                   ) : null}
                 </div>
 
                 {entryError ? (
-                  <p className="mt-2 text-[0.8125rem] leading-snug text-red-500" role="alert">
+                  <p className="mt-2 text-body-sm text-raspberry" role="alert">
                     {inputMethod === "email"
                       ? "Please enter a valid email address"
                       : "Please enter a valid phone number"}
@@ -357,7 +357,7 @@ export function AuthScreen({
                 <button
                   type="button"
                   onClick={inputMethod === "email" ? switchToPhone : switchToEmail}
-                  className="mt-3 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-none text-raspberry"
+                  className="mt-3 inline-flex items-center gap-1.5 text-body-sm font-semibold text-raspberry"
                 >
                   <Phone className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
                   {inputMethod === "email" ? "Continue with phone" : "Continue with email"}
@@ -379,7 +379,7 @@ export function AuthScreen({
 
                 <div className="my-5 flex items-center gap-3">
                   <span className="h-px flex-1 bg-border/70" />
-                  <span className="text-[0.75rem] leading-none text-ink-muted">or</span>
+                  <span className="text-caption text-ink-muted">or</span>
                   <span className="h-px flex-1 bg-border/70" />
                 </div>
 
@@ -391,7 +391,7 @@ export function AuthScreen({
                 <button
                   type="button"
                   onClick={toggleMode}
-                  className="mt-5 w-full text-center text-[0.8125rem] leading-snug text-ink-muted"
+                  className="mt-5 w-full text-center text-body-sm text-ink-muted"
                 >
                   {isSignIn ? (
                     <>
@@ -407,7 +407,7 @@ export function AuthScreen({
                 </button>
               </div>
 
-              <p className="mt-auto flex items-center justify-center gap-2 pt-5 text-center text-[0.6875rem] leading-snug text-ink-muted">
+              <p className="mt-auto flex items-center justify-center gap-2 pt-5 text-center text-caption text-ink-muted">
                 <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-raspberry/80" aria-hidden />
                 <span>Secure sign in. No seed phrases. No crypto setup.</span>
               </p>
@@ -418,10 +418,10 @@ export function AuthScreen({
         {isLoading ? (
           <div className="auth-loading-overlay" aria-live="polite">
             <div className="auth-loading-spinner" aria-hidden />
-            <p className="mt-6 text-[0.9375rem] font-medium leading-snug text-foreground">
+            <p className="mt-6 text-body font-medium text-foreground">
               Creating your account...
             </p>
-            <p className="mt-1 text-[0.8125rem] leading-snug text-ink-muted">
+            <p className="mt-1 text-body-sm text-ink-muted">
               This will only take a moment.
             </p>
           </div>

@@ -32,11 +32,11 @@ export function WelcomeScreen() {
         <AppPreviewWordmark />
 
         <div className="mt-10 flex flex-col">
-          <p className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.12em] text-raspberry">
+          <p className="text-label font-semibold uppercase tracking-[0.18em] text-raspberry">
             Financial freedom, designed for women
           </p>
 
-          <h1 className="mt-5 text-h1 font-semibold leading-[1.15] tracking-[-0.015em] text-foreground">
+          <h1 className="mt-5 text-h1 font-semibold text-foreground">
             Better than a checking account,{" "}
             <span className="font-display italic font-normal text-foreground">
               everything your bank can&apos;t do.

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
 import type { AuthSyncBalance, AuthSyncUser } from "@/services/api/authSync";
@@ -10,10 +10,31 @@ import { colors, radius, spacing } from "@/theme/colors";
 type EmptyHomeScreenProps = {
   user: AuthSyncUser;
   balance: AuthSyncBalance;
+  onAddMoney: () => void;
+  onChooseYield: () => void;
+  onSend: () => void;
+  onReceive: () => void;
 };
 
-export function EmptyHomeScreen({ user, balance }: EmptyHomeScreenProps) {
+function parseBalance(value: string): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function EmptyHomeScreen({
+  user,
+  balance,
+  onAddMoney,
+  onChooseYield,
+  onSend,
+  onReceive,
+}: EmptyHomeScreenProps) {
   const greetingName = getGreetingName(user);
+  const isFunded = parseBalance(balance.totalDisplayUsd) > 0;
+  const isEarning = parseBalance(balance.growthAllocatedUsd) > 0;
+  const hasAvailable = parseBalance(balance.availableUsd) > 0;
+  const estimatedApyPercent = 4.2;
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <LinearGradient
@@ -41,55 +62,173 @@ export function EmptyHomeScreen({ user, balance }: EmptyHomeScreenProps) {
           />
         </View>
 
-        <Text style={styles.headline}>You're all set.</Text>
-        <Text style={styles.subhead}>
-          Add money from your bank to fund your Olimpia balance.
-        </Text>
+        {isFunded ? (
+          <>
+            {isEarning ? (
+              <>
+                <Text style={styles.fundedHeadline}>Your money is growing.</Text>
+                <Text style={styles.fundedSubhead}>
+                  Available to use, and earning yield.
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.fundedHeadline}>You’re ready to start earning.</Text>
+                <Text style={styles.fundedSubhead}>
+                  Your money is here and ready to grow.
+                </Text>
+              </>
+            )}
 
-        <View style={styles.ctaCardDisabled} accessibilityRole="text">
-          <View style={styles.ctaIconWrapDisabled}>
-            <Text style={styles.ctaIconDisabled}>+</Text>
-          </View>
-          <View style={styles.ctaCopy}>
-            <Text style={styles.ctaLabelDisabled}>Add money</Text>
-            <Text style={styles.ctaSubDisabled}>Coming soon</Text>
-          </View>
-        </View>
+            <View style={styles.balanceCard}>
+              <Text style={styles.balanceLabel}>Available balance</Text>
+              <Text style={styles.balanceAmount}>${balance.availableUsd}</Text>
 
-        <Text style={styles.trustLine}>
-          Your balance is shown in dollars and updates after each transfer.
-        </Text>
-        <Text style={styles.trustLineMuted}>
-          Send, savings, and growth — Coming soon.
-        </Text>
-        <Text style={styles.balanceLine}>Balance · ${balance.totalDisplayUsd}</Text>
+              {hasAvailable ? (
+                <>
+                  <Text style={styles.yieldPrompt}>Put this to work</Text>
+                  <Pressable
+                    style={styles.primaryButton}
+                    onPress={onChooseYield}
+                    accessibilityRole="button"
+                    accessibilityLabel="Choose Yield"
+                  >
+                    <Text style={styles.primaryButtonLabel}>Choose Yield</Text>
+                    <Ionicons name="arrow-forward" size={16} color={colors.white} />
+                  </Pressable>
+                </>
+              ) : null}
 
-        <View style={styles.quickRow}>
-          {[
-            { icon: "arrow-up-outline" as const, label: "Send" },
-            { icon: "arrow-down-outline" as const, label: "Receive" },
-          ].map(({ icon, label }) => (
-            <View key={label} style={styles.quickItem} accessibilityRole="text">
-              <View style={styles.quickIconWrapDisabled}>
-                <Ionicons name={icon} size={16} color={colors.inkMuted} />
-              </View>
-              <Text style={styles.quickLabelDisabled}>{label}</Text>
-              <Text style={styles.quickComingSoon}>Coming soon</Text>
+              <View style={styles.balanceDivider} />
+
+              {isEarning ? (
+                <View style={styles.earningStatusRow}>
+                  <View style={styles.earningDot} />
+                  <Text style={styles.earningStatus}>Earning</Text>
+                </View>
+              ) : null}
+              <Text style={styles.balanceSecondaryLabel}>Earning yield</Text>
+              <Text style={styles.balanceSecondaryAmount}>
+                ${balance.growthAllocatedUsd}
+              </Text>
+              {isEarning ? (
+                <Text style={styles.earningMeta}>Est. {estimatedApyPercent}% APY</Text>
+              ) : null}
             </View>
-          ))}
-        </View>
 
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>Savings goals — Coming soon</Text>
-        </View>
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>Growth — Coming soon</Text>
-        </View>
+            <View style={styles.utilityRow}>
+              {(
+                [
+                  {
+                    icon: "arrow-up-outline" as const,
+                    label: "Send",
+                    onPress: onSend,
+                  },
+                  {
+                    icon: "arrow-down-outline" as const,
+                    label: "Receive",
+                    onPress: onReceive,
+                  },
+                ] as const
+              ).map(({ icon, label, onPress }) => (
+                <Pressable
+                  key={label}
+                  style={styles.utilityItem}
+                  onPress={onPress}
+                  accessibilityRole="button"
+                  accessibilityLabel={label}
+                >
+                  <View style={styles.utilityIconWrap}>
+                    <Ionicons name={icon} size={18} color={colors.raspberry} />
+                  </View>
+                  <Text style={styles.utilityLabel}>{label}</Text>
+                </Pressable>
+              ))}
+            </View>
 
-        <View style={styles.activityEmpty}>
-          <Text style={styles.activityTitle}>No activity yet</Text>
-          <Text style={styles.activitySub}>Your transfers will show up here</Text>
-        </View>
+            <Pressable
+              style={styles.addMoneyRow}
+              onPress={onAddMoney}
+              accessibilityRole="button"
+              accessibilityLabel="Add money"
+            >
+              <View style={styles.addMoneyIconWrap}>
+                <Text style={styles.addMoneyIcon}>+</Text>
+              </View>
+              <View style={styles.addMoneyCopy}>
+                <Text style={styles.addMoneyTitle}>Add money</Text>
+                <Text style={styles.addMoneySub}>Add more anytime</Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
+
+            <Text style={styles.activityHeader}>Recent activity</Text>
+            <View style={styles.activityEmptyCard}>
+              <Ionicons name="time-outline" size={20} color={colors.inkMuted} />
+              <Text style={styles.activityEmptyCopy}>
+                No activity yet. Your transfers will show up here.
+              </Text>
+            </View>
+          </>
+        ) : (
+          <>
+            <Text style={styles.headline}>You're all set.</Text>
+            <Text style={styles.subhead}>
+              Add money from your bank to fund your Olimpia balance.
+            </Text>
+
+            <Pressable
+              style={styles.ctaCard}
+              onPress={onAddMoney}
+              accessibilityRole="button"
+              accessibilityLabel="Add money"
+            >
+              <View style={styles.ctaIconWrap}>
+                <Text style={styles.ctaIcon}>+</Text>
+              </View>
+              <View style={styles.ctaCopy}>
+                <Text style={styles.ctaLabel}>Add money</Text>
+                <Text style={styles.ctaSub}>From your bank</Text>
+              </View>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
+
+            <Text style={styles.trustLine}>
+              Your balance is shown in dollars and updates after each transfer.
+            </Text>
+            <Text style={styles.trustLineMuted}>
+              Send, savings, and growth — Coming soon.
+            </Text>
+            <Text style={styles.balanceLine}>Balance · ${balance.totalDisplayUsd}</Text>
+
+            <View style={styles.quickRow}>
+              {[
+                { icon: "arrow-up-outline" as const, label: "Send" },
+                { icon: "arrow-down-outline" as const, label: "Receive" },
+              ].map(({ icon, label }) => (
+                <View key={label} style={styles.quickItem} accessibilityRole="text">
+                  <View style={styles.quickIconWrapDisabled}>
+                    <Ionicons name={icon} size={16} color={colors.inkMuted} />
+                  </View>
+                  <Text style={styles.quickLabelDisabled}>{label}</Text>
+                  <Text style={styles.quickComingSoon}>Coming soon</Text>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.placeholder}>
+              <Text style={styles.placeholderText}>Savings goals — Coming soon</Text>
+            </View>
+            <View style={styles.placeholder}>
+              <Text style={styles.placeholderText}>Growth — Coming soon</Text>
+            </View>
+
+            <View style={styles.activityEmpty}>
+              <Text style={styles.activityEmptyTitle}>No activity yet</Text>
+              <Text style={styles.activityEmptySub}>Your transfers will show up here</Text>
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <AppTabBar active="home" />
@@ -126,6 +265,7 @@ const styles = StyleSheet.create({
   greetingName: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 22,
+    lineHeight: 26,
     color: colors.ink,
     marginTop: 2,
   },
@@ -135,6 +275,198 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     borderWidth: 2,
     borderColor: colors.background,
+  },
+  fundedHeadline: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 28,
+    lineHeight: 34,
+    letterSpacing: -0.3,
+    color: colors.ink,
+    marginTop: spacing.block,
+  },
+  fundedSubhead: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 15,
+    lineHeight: 22,
+    color: colors.inkMuted,
+    marginTop: 8,
+  },
+  balanceCard: {
+    marginTop: 28,
+    paddingVertical: 20,
+    paddingHorizontal: spacing.card,
+    borderRadius: radius.card,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: "rgba(232, 225, 218, 0.4)",
+  },
+  earningStatusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+  },
+  earningDot: {
+    width: 7,
+    height: 7,
+    borderRadius: radius.pill,
+    backgroundColor: colors.raspberry,
+  },
+  earningStatus: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 12,
+    letterSpacing: 0.2,
+    color: colors.raspberry,
+  },
+  balanceLabel: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: colors.inkMuted,
+  },
+  balanceAmount: {
+    marginTop: 8,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 34,
+    lineHeight: 40,
+    letterSpacing: -0.5,
+    color: colors.ink,
+  },
+  balanceDivider: {
+    marginTop: 18,
+    marginBottom: 16,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "rgba(232, 225, 218, 0.7)",
+  },
+  balanceSecondaryLabel: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: colors.inkMuted,
+  },
+  balanceSecondaryAmount: {
+    marginTop: 6,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 22,
+    lineHeight: 28,
+    letterSpacing: -0.3,
+    color: colors.ink,
+  },
+  earningMeta: {
+    marginTop: 4,
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.inkMuted,
+  },
+  yieldPrompt: {
+    marginTop: 16,
+    fontFamily: "Inter_500Medium",
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.inkMuted,
+  },
+  primaryButton: {
+    marginTop: 12,
+    height: 48,
+    borderRadius: radius.card,
+    backgroundColor: colors.raspberry,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  primaryButtonLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    color: colors.white,
+  },
+  utilityRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 48,
+    marginTop: 32,
+  },
+  utilityItem: {
+    alignItems: "center",
+    gap: 8,
+    minWidth: 64,
+  },
+  utilityIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(251, 221, 230, 0.7)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  utilityLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: colors.ink,
+  },
+  addMoneyRow: {
+    marginTop: 28,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.card,
+    borderRadius: radius.card,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: "rgba(232, 225, 218, 0.4)",
+  },
+  addMoneyIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.raspberry,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addMoneyIcon: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 20,
+    color: colors.white,
+    marginTop: -1,
+  },
+  addMoneyCopy: {
+    flex: 1,
+  },
+  addMoneyTitle: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 15,
+    color: colors.ink,
+  },
+  addMoneySub: {
+    marginTop: 2,
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: colors.inkMuted,
+  },
+  activityHeader: {
+    marginTop: 32,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: colors.ink,
+  },
+  activityEmptyCard: {
+    marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 18,
+    paddingHorizontal: spacing.card,
+    borderRadius: radius.card,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: "rgba(232, 225, 218, 0.4)",
+  },
+  activityEmptyCopy: {
+    flex: 1,
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.inkMuted,
   },
   headline: {
     fontFamily: "Inter_600SemiBold",
@@ -166,18 +498,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     elevation: 2,
   },
-  ctaCardDisabled: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 20,
-    padding: spacing.card,
-    borderRadius: radius.card,
-    backgroundColor: "rgba(232, 225, 218, 0.35)",
-    borderWidth: 1,
-    borderColor: colors.border,
-    opacity: 0.85,
-  },
   ctaIconWrap: {
     width: 44,
     height: 44,
@@ -186,23 +506,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  ctaIconWrapDisabled: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(232, 225, 218, 0.6)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   ctaIcon: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 22,
     color: colors.raspberry,
-  },
-  ctaIconDisabled: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 22,
-    color: colors.inkMuted,
   },
   ctaCopy: {
     flex: 1,
@@ -212,23 +519,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.ink,
   },
-  ctaLabelDisabled: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    color: colors.inkMuted,
-  },
   ctaSub: {
     fontFamily: "Inter_400Regular",
     fontSize: 14,
     color: colors.inkMuted,
     marginTop: 2,
-  },
-  ctaSubDisabled: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 14,
-    color: colors.inkMuted,
-    marginTop: 2,
-    opacity: 0.85,
   },
   chevron: {
     fontSize: 22,
@@ -263,14 +558,6 @@ const styles = StyleSheet.create({
     gap: 4,
     opacity: 0.75,
   },
-  quickIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(251, 221, 230, 0.7)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   quickIconWrapDisabled: {
     width: 44,
     height: 44,
@@ -278,11 +565,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(232, 225, 218, 0.6)",
     alignItems: "center",
     justifyContent: "center",
-  },
-  quickLabel: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 14,
-    color: colors.inkMuted,
   },
   quickLabelDisabled: {
     fontFamily: "Inter_400Regular",
@@ -320,12 +602,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(232, 225, 218, 0.5)",
     alignItems: "center",
   },
-  activityTitle: {
+  activityEmptyTitle: {
     fontFamily: "Inter_500Medium",
     fontSize: 16,
     color: colors.ink,
   },
-  activitySub: {
+  activityEmptySub: {
     fontFamily: "Inter_400Regular",
     fontSize: 14,
     color: colors.inkMuted,

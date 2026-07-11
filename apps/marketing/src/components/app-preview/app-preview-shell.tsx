@@ -8,6 +8,11 @@ const previewScreens = [
   { id: "youre-in", label: "You're in", to: "/app-preview/youre-in" as const },
   { id: "home", label: "Empty Home", to: "/app-preview/home" as const },
   { id: "add-funds", label: "Add funds", to: "/app-preview/add-funds" as const },
+  {
+    id: "add-money",
+    label: "Add Money (P4)",
+    to: "/app-preview/add-money" as const,
+  },
   { id: "savings", label: "Savings", to: "/app-preview/savings" as const },
   { id: "card", label: "Card", to: "/app-preview/card" as const },
   { id: "profile", label: "Profile", to: "/app-preview/profile" as const },

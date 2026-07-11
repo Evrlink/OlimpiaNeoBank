@@ -34,6 +34,7 @@ export function AppTabBar({ active = "home" }: AppTabBarProps) {
               )}
             >
               <Icon className="h-5 w-5" strokeWidth={isActive ? 2.25 : 2} aria-hidden />
+              {/* Mockup-scale tab label — phone chrome only */}
               <span className={cn("text-[10px]", isActive ? "font-semibold" : "font-medium")}>
                 {label}
               </span>

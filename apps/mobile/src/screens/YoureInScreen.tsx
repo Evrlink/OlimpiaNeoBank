@@ -6,57 +6,27 @@ import { colors, radius, spacing } from "@/theme/colors";
 
 type YoureInScreenProps = {
   onExplore: () => void;
+  onAddMoney: () => void;
 };
 
 const valueProps = [
-  {
-    icon: "business-outline" as const,
-    title: "Add from your bank",
-    description: "Transfer USD securely to your Olimpia balance.",
-  },
-  {
-    icon: "sparkles-outline" as const,
-    title: "Simple by design",
-    description: "Your balance in dollars — no crypto setup.",
-  },
-  {
-    icon: "shield-checkmark-outline" as const,
-    title: "You're in control",
-    description: "A calm place to manage your money.",
-  },
+  { icon: "leaf-outline" as const, title: "Earn yield" },
+  { icon: "flag-outline" as const, title: "Set goals" },
+  { icon: "shield-checkmark-outline" as const, title: "You're in control" },
 ];
 
-const steps = [
-  {
-    icon: "business-outline" as const,
-    step: 1,
-    title: "Add from your bank",
-    description: "Transfer USD from your bank account.",
-  },
-  {
-    icon: "cash-outline" as const,
-    step: 2,
-    title: "Ready in your balance",
-    description: "Funds are converted behind the scenes — you see dollars.",
-  },
-  {
-    icon: "sparkles-outline" as const,
-    step: 3,
-    title: "More coming soon",
-    description: "Send, savings, and growth features are on the way.",
-  },
-];
+const steps = ["Add money", "Earn yield", "Grow money"] as const;
 
-const builtForYou = ["Secure transfers", "Clear dollar balance", "Full transparency"];
+const builtForYou = ["No lockups", "Withdraw anytime", "Higher yields than your bank"];
 
-export function YoureInScreen({ onExplore }: YoureInScreenProps) {
+export function YoureInScreen({ onExplore, onAddMoney }: YoureInScreenProps) {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <LinearGradient
-        colors={["rgba(229, 75, 122, 0.12)", "rgba(251, 221, 230, 0.2)", colors.background]}
+        colors={["rgba(252, 238, 242, 0.95)", colors.background, colors.background]}
         style={StyleSheet.absoluteFill}
-        start={{ x: 0.2, y: 0 }}
-        end={{ x: 0.8, y: 0.5 }}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 0.45 }}
       />
 
       <ScrollView
@@ -64,50 +34,36 @@ export function YoureInScreen({ onExplore }: YoureInScreenProps) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <View style={styles.sparkleRow}>
-            <Ionicons name="sparkles" size={14} color={colors.raspberry} />
-            <Ionicons name="sparkles" size={10} color={colors.raspberry} style={styles.sparkleSmall} />
-          </View>
-          <Text style={styles.wordmark}>Olimpia</Text>
-        </View>
+        <Text style={styles.wordmark}>Olimpia</Text>
 
         <View style={styles.hero}>
-          <Text style={styles.headline}>You're in!</Text>
-          <Text style={styles.subhead}>
-            Your Olimpia account is ready.{"\n"}
-            Add money from your bank to get started.
-          </Text>
+          <Text style={styles.headline}>Simple access to decentralized finance.</Text>
+          <Text style={styles.subhead}>Save, grow, and stay in control.</Text>
         </View>
 
         <View style={styles.valuePropRow}>
-          {valueProps.map(({ icon, title, description }) => (
+          {valueProps.map(({ icon, title }) => (
             <View key={title} style={styles.valueProp}>
               <View style={styles.valueIconWrap}>
                 <Ionicons name={icon} size={18} color={colors.raspberry} />
               </View>
               <Text style={styles.valueTitle}>{title}</Text>
-              <Text style={styles.valueDescription}>{description}</Text>
             </View>
           ))}
         </View>
 
         <Text style={styles.sectionTitle}>How it works</Text>
         <View style={styles.stepsRow}>
-          {steps.map(({ icon, step, title, description }, index) => (
-            <View key={title} style={styles.stepGroup}>
-              <View style={styles.stepItem}>
-                <View style={styles.stepIconWrap}>
-                  <Ionicons name={icon} size={16} color={colors.inkMuted} />
-                </View>
-                <View style={styles.stepBadge}>
-                  <Text style={styles.stepBadgeText}>{step}</Text>
-                </View>
-                <Text style={styles.stepTitle}>{title}</Text>
-                <Text style={styles.stepDescription}>{description}</Text>
-              </View>
+          {steps.map((label, index) => (
+            <View key={label} style={styles.stepGroup}>
+              <Text style={styles.stepLabel}>{label}</Text>
               {index < steps.length - 1 ? (
-                <Ionicons name="chevron-forward" size={14} color="rgba(107, 107, 107, 0.25)" />
+                <Ionicons
+                  name="chevron-forward"
+                  size={14}
+                  color="rgba(107, 107, 107, 0.35)"
+                  style={styles.stepChevron}
+                />
               ) : null}
             </View>
           ))}
@@ -127,19 +83,18 @@ export function YoureInScreen({ onExplore }: YoureInScreenProps) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <View style={styles.primaryButtonDisabled} accessibilityRole="text">
-          <Text style={styles.primaryLabelDisabled}>Add money from your bank — Coming soon</Text>
-        </View>
-        <Pressable style={styles.secondaryButton} onPress={onExplore}>
-          <Text style={styles.secondaryLabel}>Explore the app</Text>
+        <Pressable
+          style={styles.primaryButton}
+          onPress={onAddMoney}
+          accessibilityRole="button"
+          accessibilityLabel="Start earning"
+        >
+          <Text style={styles.primaryLabel}>Start earning</Text>
         </Pressable>
-        <View style={styles.disclaimerRow}>
-          <Ionicons name="shield-checkmark-outline" size={12} color={colors.inkMuted} />
-          <Text style={styles.disclaimer}>
-            Olimpia uses third-party providers for bank transfers. Additional features such as
-            yield, when offered, may be variable and are not guaranteed.
-          </Text>
-        </View>
+        <Pressable onPress={onExplore} accessibilityRole="button" accessibilityLabel="Explore">
+          <Text style={styles.exploreLink}>Explore</Text>
+        </Pressable>
+        <Text style={styles.disclaimer}>Yield is variable and not guaranteed.</Text>
       </View>
     </SafeAreaView>
   );
@@ -154,55 +109,41 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: spacing.screenX + 4,
+    paddingHorizontal: spacing.screenX + 8,
     paddingTop: spacing.card,
     paddingBottom: spacing.block,
-  },
-  header: {
-    alignItems: "center",
-    position: "relative",
-  },
-  sparkleRow: {
-    position: "absolute",
-    left: 0,
-    top: 4,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  sparkleSmall: {
-    opacity: 0.7,
   },
   wordmark: {
     fontFamily: "CormorantGaramond_400Regular",
     fontSize: 22,
     color: colors.berry,
+    textAlign: "center",
   },
   hero: {
-    marginTop: spacing.block,
+    marginTop: 32,
     alignItems: "center",
+    paddingHorizontal: 8,
   },
   headline: {
-    fontFamily: "CormorantGaramond_400Regular",
-    fontSize: 32,
-    lineHeight: 36,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 28,
+    lineHeight: 34,
     letterSpacing: -0.3,
     color: colors.ink,
     textAlign: "center",
   },
   subhead: {
     marginTop: 12,
-    maxWidth: 288,
     fontFamily: "Inter_400Regular",
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 14,
+    lineHeight: 22,
     color: colors.inkMuted,
     textAlign: "center",
   },
   valuePropRow: {
-    marginTop: spacing.block,
+    marginTop: 40,
     flexDirection: "row",
-    gap: 8,
+    gap: 12,
   },
   valueProp: {
     flex: 1,
@@ -213,93 +154,56 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: "rgba(229, 75, 122, 0.35)",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  valueTitle: {
-    marginTop: 8,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 11,
-    lineHeight: 14,
-    color: colors.raspberry,
-    textAlign: "center",
-  },
-  valueDescription: {
-    marginTop: 4,
-    fontFamily: "Inter_400Regular",
-    fontSize: 10,
-    lineHeight: 14,
-    color: colors.inkMuted,
-    textAlign: "center",
-  },
-  sectionTitle: {
-    marginTop: spacing.block,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 15,
-    color: colors.ink,
-    textAlign: "center",
-  },
-  stepsRow: {
-    marginTop: 16,
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  stepGroup: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  stepItem: {
-    flex: 1,
-    alignItems: "center",
-  },
-  stepIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: "rgba(229, 75, 122, 0.3)",
     backgroundColor: colors.card,
     alignItems: "center",
     justifyContent: "center",
   },
-  stepBadge: {
-    marginTop: 6,
-    width: 16,
-    height: 16,
-    borderRadius: radius.pill,
-    backgroundColor: colors.raspberry,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stepBadgeText: {
+  valueTitle: {
+    marginTop: 10,
     fontFamily: "Inter_600SemiBold",
-    fontSize: 9,
-    color: colors.white,
-  },
-  stepTitle: {
-    marginTop: 6,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 16,
     color: colors.ink,
     textAlign: "center",
   },
-  stepDescription: {
-    marginTop: 4,
-    fontFamily: "Inter_400Regular",
-    fontSize: 9,
-    lineHeight: 13,
-    color: colors.inkMuted,
+  sectionTitle: {
+    marginTop: 40,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: colors.ink,
     textAlign: "center",
   },
+  stepsRow: {
+    marginTop: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepGroup: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepLabel: {
+    flex: 1,
+    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    lineHeight: 16,
+    color: colors.ink,
+    textAlign: "center",
+  },
+  stepChevron: {
+    marginHorizontal: 2,
+  },
   builtForYouCard: {
-    marginTop: spacing.block,
+    marginTop: 40,
     borderRadius: radius.card,
-    backgroundColor: "rgba(251, 221, 230, 0.55)",
-    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "rgba(232, 225, 218, 0.4)",
+    backgroundColor: colors.card,
+    paddingHorizontal: spacing.card,
     paddingVertical: 16,
   },
   builtForYouTitle: {
@@ -308,10 +212,10 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   builtForYouRow: {
-    marginTop: 10,
+    marginTop: 12,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 10,
   },
   checkWrap: {
     width: 16,
@@ -323,71 +227,42 @@ const styles = StyleSheet.create({
   },
   builtForYouItem: {
     flex: 1,
-    fontFamily: "Inter_500Medium",
-    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
     color: colors.ink,
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: "rgba(232, 225, 218, 0.3)",
+    borderTopColor: "rgba(232, 225, 218, 0.4)",
     backgroundColor: "rgba(247, 244, 241, 0.95)",
-    paddingHorizontal: spacing.screenX + 4,
+    paddingHorizontal: spacing.screenX + 8,
     paddingTop: 12,
     paddingBottom: spacing.card,
-    gap: 10,
+    gap: 12,
+    alignItems: "center",
   },
   primaryButton: {
+    alignSelf: "stretch",
     height: 48,
     borderRadius: radius.card,
     backgroundColor: colors.raspberry,
     alignItems: "center",
     justifyContent: "center",
   },
-  primaryButtonDisabled: {
-    height: 48,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: "rgba(232, 225, 218, 0.5)",
-    alignItems: "center",
-    justifyContent: "center",
-    opacity: 0.85,
-  },
   primaryLabel: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 14,
     color: colors.white,
   },
-  primaryLabelDisabled: {
-    fontFamily: "Inter_600SemiBold",
+  exploreLink: {
+    fontFamily: "Inter_500Medium",
     fontSize: 14,
     color: colors.inkMuted,
   },
-  secondaryButton: {
-    height: 48,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  secondaryLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: colors.ink,
-  },
-  disclaimerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 6,
-    paddingHorizontal: 4,
-  },
   disclaimer: {
-    flex: 1,
     fontFamily: "Inter_400Regular",
-    fontSize: 9,
-    lineHeight: 13,
+    fontSize: 12,
+    lineHeight: 18,
     color: colors.inkMuted,
     textAlign: "center",
   },
