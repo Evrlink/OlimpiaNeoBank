@@ -90,7 +90,7 @@ function Nav() {
   return (
     <header className="sticky top-0 z-40 bg-background">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12">
-        <Link to="/" className="font-display text-h3 tracking-tight text-berry">
+        <Link to="/" className="font-display text-[1.58125rem] leading-[1.3] tracking-tight text-berry">
           Olimpia
         </Link>
         <nav className="hidden items-center gap-8 text-body-sm text-foreground/80 md:flex">
