@@ -8,7 +8,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-6 py-12 md:px-12 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-12">
           <SectionScrollReveal className="lg:col-span-5">
-            <Link to="/" className="font-display text-h3 tracking-tight text-raspberry">
+            <Link to="/" className="font-display text-h3 tracking-tight text-berry">
               Olimpia
             </Link>
             <p className="mt-4 max-w-md text-body text-ink-muted">
@@ -18,7 +18,7 @@ export function SiteFooter() {
           </SectionScrollReveal>
 
           <SectionScrollReveal delay={80} className="lg:col-span-3">
-            <p className="text-body-sm font-semibold uppercase tracking-[0.14em] text-foreground">
+            <p className="text-label font-semibold uppercase tracking-[0.18em] text-foreground">
               Contact
             </p>
             <a
@@ -30,7 +30,7 @@ export function SiteFooter() {
           </SectionScrollReveal>
 
           <SectionScrollReveal delay={160} className="lg:col-span-4">
-            <p className="text-body-sm font-semibold uppercase tracking-[0.14em] text-foreground">
+            <p className="text-label font-semibold uppercase tracking-[0.18em] text-foreground">
               Resources
             </p>
             <nav className="mt-4 flex flex-col gap-2.5 text-body text-ink-muted">

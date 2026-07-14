@@ -169,27 +169,36 @@
 
 @layer utilities {
   .marketing-eyebrow {
-    font-size: var(--text-body);
-    line-height: var(--text-body--line-height);
+    font-size: var(--text-label);
+    line-height: var(--text-label--line-height);
     font-weight: 600;
     letter-spacing: 0.18em;
+    text-transform: uppercase;
     color: var(--raspberry);
   }
 
-  .hero-eyebrow,
-  .hero-copy {
-    font-size: 1.5rem;
-    line-height: 1.65;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-  }
-
   .hero-eyebrow {
+    font-size: var(--text-label);
+    line-height: var(--text-label--line-height);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    /* Pearly light pink — dedicated hero eyebrow token on paper */
     color: var(--hero-pearl);
   }
 
   .hero-copy {
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    font-weight: 500;
     color: var(--berry);
+  }
+
+  @media (min-width: 1024px) {
+    .hero-copy {
+      font-size: var(--text-body-lg);
+      line-height: var(--text-body-lg--line-height);
+    }
   }
 
   .marquee {
@@ -244,7 +253,10 @@
       transition-delay: 0ms !important;
     }
 
-    .hero-phone-stage,
+    .hero-phone-stage {
+      animation: none !important;
+    }
+
     .hero-phone-device {
       animation: none !important;
       transform: none !important;
@@ -252,16 +264,6 @@
 
     .usdc-coin-tilt {
       transform: none !important;
-    }
-
-    .hero-phone-shadow-contact,
-    .hero-phone-shadow-ambient {
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .hero-phone-float-card {
-      backdrop-filter: none;
     }
   }
 
@@ -271,45 +273,49 @@
   }
 
   .hero-inner {
-    gap: 2rem;
-    padding-top: 2.25rem;
-    padding-bottom: 1.25rem;
+    gap: 1.25rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.75rem;
   }
 
   @media (min-width: 768px) {
     .hero-inner {
-      gap: 2.5rem;
-      padding-top: 3.25rem;
-      padding-bottom: 1.5rem;
+      gap: 1.5rem;
+      padding-top: 1.75rem;
+      padding-bottom: 2.25rem;
     }
   }
 
   @media (min-width: 1024px) {
     .hero-inner {
-      padding-bottom: 2rem;
+      padding-top: 2rem;
+      padding-bottom: 2.5rem;
     }
   }
 
   @media (max-width: 767px) {
     .hero-phone-stage {
-      padding-top: 1rem;
-      padding-bottom: 1rem;
+      padding-top: 0.25rem;
+      padding-bottom: 0.75rem;
     }
   }
 
   .trust-strip {
-    padding-top: 3.25rem;
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
   }
 
   @media (min-width: 768px) {
     .trust-strip {
-      padding-top: 4rem;
+      padding-top: 3rem;
+      padding-bottom: 3rem;
     }
   }
 
   @media (min-width: 1024px) {
     .trust-strip {
-      padding-top: 4.5rem;
+      padding-top: 3.5rem;
+      padding-bottom: 3.5rem;
     }
   }
 
@@ -680,90 +686,176 @@
   .hero-phone-stage {
     isolation: isolate;
     overflow: visible;
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .hero-phone-wrap {
     position: relative;
     width: fit-content;
-    max-width: 100%;
+    max-width: min(100%, 16rem);
+    overflow: visible;
+  }
+
+  /* Soft contact shadow — sits under the device, not a cream plate */
+  .hero-phone-wrap::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 16%;
+    right: 10%;
+    bottom: 2%;
+    height: 1.1rem;
+    border-radius: 50%;
+    background: rgb(28 28 30 / 0.22);
+    filter: blur(16px);
+    pointer-events: none;
   }
 
   .hero-phone-device {
     position: relative;
-    transform-origin: 58% 52%;
-  }
-
-  .hero-phone-device.hero-phone-device--interactive {
+    transform-origin: center center;
+    /* Mobile: nearly flat; modest scale for presence without bloating hero */
+    transform: rotate(2deg) scale(0.98);
     will-change: transform;
   }
 
-  .hero-phone-float-accent {
-    position: absolute;
-    z-index: 30;
-    top: 57%;
-    right: -6%;
-    display: none;
-    pointer-events: none;
+  /* Full graphite case — opaque metal shell + side buttons */
+  .hero-iphone-chassis {
+    border-radius: 2.65rem;
+    padding: 0.58rem;
+    background:
+      linear-gradient(
+        155deg,
+        #8a8a90 0%,
+        #525258 10%,
+        #2a2a2e 28%,
+        #141416 48%,
+        #3d3d42 68%,
+        #0a0a0c 88%,
+        #2f2f34 100%
+      );
+    box-shadow:
+      inset 0 1.5px 1px rgb(255 255 255 / 0.32),
+      inset 0 -2px 3px rgb(0 0 0 / 0.75),
+      inset 1.5px 0 1px rgb(255 255 255 / 0.08),
+      inset -1.5px 0 2px rgb(0 0 0 / 0.45),
+      0 14px 28px -14px rgb(28 28 30 / 0.4),
+      0 28px 42px -24px rgb(28 28 30 / 0.32);
   }
 
-  .hero-phone-float-card {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    max-width: 9.75rem;
-    border-radius: 1rem;
-    border-bottom-right-radius: 0.35rem;
-    border: 1px solid rgb(47 47 47 / 0.08);
-    background: rgb(251 221 230 / 0.88);
-    padding: 0.5rem 0.625rem;
-    box-shadow: 0 8px 22px -10px rgb(111 43 70 / 0.2);
-    backdrop-filter: blur(6px);
-  }
-
-  .hero-phone-screen {
-    width: 14.5rem;
-    height: 17rem;
+  .hero-iphone-bezel {
     overflow: hidden;
+    border-radius: 2.15rem;
+    background: #050505;
+    padding: 0.18rem;
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.12),
+      inset 0 0 0 2.5px #000;
+  }
+
+  .hero-iphone-btn {
+    position: absolute;
+    z-index: 2;
+    width: 0.18rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #8a8a90, #3a3a3e 40%, #161618);
+    box-shadow:
+      inset 0 0 0 0.5px rgb(255 255 255 / 0.2),
+      0 0 0 0.5px rgb(0 0 0 / 0.5);
+  }
+
+  .hero-iphone-btn--silent {
+    left: -0.12rem;
+    top: 16%;
+    height: 0.95rem;
+  }
+
+  .hero-iphone-btn--vol-up {
+    left: -0.12rem;
+    top: 24%;
+    height: 1.7rem;
+  }
+
+  .hero-iphone-btn--vol-down {
+    left: -0.12rem;
+    top: 34%;
+    height: 1.7rem;
+  }
+
+  .hero-iphone-btn--power {
+    right: -0.12rem;
+    top: 26%;
+    height: 3rem;
+  }
+
+  /* ~2.05 screen ratio (iPhone Pro-like); narrower + taller */
+  .hero-phone-screen {
+    width: 12.25rem;
+    height: 25.15rem;
+    border-radius: 1.95rem;
   }
 
   @media (min-width: 768px) {
     .hero-phone-screen {
-      width: 16rem;
-      height: 18.5rem;
+      width: 12.75rem;
+      height: 26.15rem;
+      border-radius: 2.05rem;
     }
 
-    .hero-phone-float-accent {
-      display: block;
-      top: 58%;
-      right: -8%;
+    .hero-iphone-chassis {
+      border-radius: 2.8rem;
+      padding: 0.62rem;
+    }
+
+    .hero-iphone-bezel {
+      border-radius: 2.25rem;
+    }
+
+    .hero-phone-stage {
+      align-self: center;
+      justify-self: center;
+    }
+
+    /*
+      Clockwise ~8° + slight rotateY for the right edge.
+      Slightly larger scale now that hero padding is tighter.
+    */
+    .hero-phone-device {
+      transform: perspective(1400px) rotateY(-12deg) rotate(8deg) scale(0.88);
+      transform-origin: 52% 48%;
+    }
+
+    .hero-phone-wrap {
+      max-width: min(100%, 16rem);
     }
   }
 
   @media (min-width: 1024px) {
     .hero-phone-screen {
-      width: 16.75rem;
-      height: 19.25rem;
+      width: 13.25rem;
+      height: 27.15rem;
+      border-radius: 2.15rem;
     }
 
-    .hero-phone-float-accent {
-      top: 59%;
-      right: -9%;
+    .hero-iphone-chassis {
+      border-radius: 2.95rem;
+      padding: 0.65rem;
     }
-  }
 
-  .hero-phone-screen-fade {
-    height: 50%;
-    background: linear-gradient(
-      to bottom,
-      rgb(247 244 241 / 0) 0%,
-      rgb(247 244 241 / 0.55) 32%,
-      rgb(247 244 241 / 0.92) 68%,
-      rgb(247 244 241 / 1) 100%
-    );
-  }
+    .hero-iphone-bezel {
+      border-radius: 2.35rem;
+    }
 
-  .hero-phone-goal-peek {
-    margin-bottom: -2rem;
+    .hero-phone-device {
+      transform: perspective(1400px) rotateY(-13deg) rotate(9deg) scale(0.9);
+    }
+
+    .hero-phone-wrap {
+      max-width: min(100%, 16.5rem);
+    }
   }
 
   .usdc-coin-tilt {
@@ -771,173 +863,21 @@
     transform-origin: center center;
   }
 
-  .hero-phone-shadow-contact {
-    position: absolute;
-    pointer-events: none;
-    z-index: -1;
-    bottom: 6%;
-    left: 56%;
-    height: 2.5rem;
-    width: 48%;
-    border-radius: 50%;
-    background: rgb(111 43 70 / 0.07);
-    filter: blur(28px);
-    transform: translateX(-50%);
-  }
-
-  .hero-phone-shadow-ambient {
-    position: absolute;
-    pointer-events: none;
-    z-index: -1;
-    bottom: 2%;
-    left: 58%;
-    height: 5rem;
-    width: 58%;
-    border-radius: 50%;
-    background: rgb(229 75 122 / 0.06);
-    filter: blur(40px);
-    transform: translateX(-50%);
-  }
-
-  @media (min-width: 768px) {
-    .hero-phone-stage {
-      transform: translate(-0.5rem, -10px);
-    }
-
-    .hero-phone-shadow-contact {
-      bottom: 7%;
-      left: 57%;
-      height: 2.75rem;
-      width: 46%;
-      filter: blur(30px);
-    }
-
-    .hero-phone-shadow-ambient {
-      bottom: 3%;
-      left: 59%;
-      height: 5.25rem;
-      width: 56%;
-      filter: blur(44px);
-    }
-
-    .hero-phone-device {
-      transform-origin: 58% 52%;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .hero-phone-stage {
-      transform: translate(-0.75rem, -10px);
-    }
-
-    .hero-phone-device {
-      transform-origin: 58% 52%;
-    }
-  }
-
   @media (prefers-reduced-motion: no-preference) {
     .hero-phone-stage {
       animation: hero-phone-enter 700ms cubic-bezier(0.33, 1, 0.68, 1) both;
-    }
-
-    .hero-phone-device {
-      animation: hero-phone-sway 5s ease-in-out 700ms infinite;
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
-    .hero-phone-device {
-      animation-name: hero-phone-sway-tilt;
-    }
-
-    .hero-phone-device.hero-phone-device--interactive {
-      animation: none;
     }
   }
 
   @keyframes hero-phone-enter {
     from {
       opacity: 0;
-      translate: 0 18px;
+      translate: 0 10px;
     }
 
     to {
       opacity: 1;
       translate: 0 0;
-    }
-  }
-
-  @keyframes hero-phone-sway {
-    0%,
-    100% {
-      transform: perspective(1200px) rotateY(3deg);
-    }
-
-    50% {
-      transform: perspective(1200px) rotateY(-3deg);
-    }
-  }
-
-  @keyframes hero-phone-sway-tilt {
-    0%,
-    100% {
-      transform: perspective(1300px) rotateY(-18deg);
-    }
-
-    50% {
-      transform: perspective(1300px) rotateY(-14deg);
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-phone-pia-bubble {
-      opacity: 0;
-      transform: translate3d(0, 6px, 0);
-      animation: hero-phone-bubble-in 0.65s cubic-bezier(0.33, 1, 0.68, 1) 0.85s forwards;
-    }
-
-    .hero-phone-yield-badge {
-      animation: hero-phone-yield-pulse 2.5s ease-in-out 2s infinite;
-    }
-
-    .hero-phone-month-gain {
-      opacity: 0;
-      animation: hero-phone-fade-in 0.55s ease-out 1.75s forwards;
-    }
-
-    .hero-phone-progress-bar {
-      width: 0;
-      animation: hero-phone-progress-fill 1.35s cubic-bezier(0.33, 1, 0.68, 1) 1.05s forwards;
-    }
-  }
-
-  @keyframes hero-phone-bubble-in {
-    to {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
-  }
-
-  @keyframes hero-phone-yield-pulse {
-    0%,
-    100% {
-      background-color: rgb(255 255 255 / 0.1);
-    }
-
-    50% {
-      background-color: rgb(255 255 255 / 0.2);
-    }
-  }
-
-  @keyframes hero-phone-fade-in {
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes hero-phone-progress-fill {
-    to {
-      width: 45%;
     }
   }
 
