@@ -6,17 +6,7 @@ import {
   Heart,
   MessageCircle,
   Plus,
-  ArrowUpRight,
   Send,
-  ArrowLeftRight,
-  MoreHorizontal,
-  Home as HomeIcon,
-  PiggyBank as SaveIcon,
-  Shield,
-  User,
-  Coffee,
-  Briefcase,
-  Target as TargetIcon,
   Wallet,
   Layers,
   LayoutGrid,
@@ -24,10 +14,9 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
-import eiffel from "@/assets/eiffel.jpg";
-import { SectionScrollReveal } from "@/components/scroll-reveal";
+import { SectionScrollReveal, ScrollReveal } from "@/components/scroll-reveal";
 import { HeroPaperBackground } from "@/components/hero-paper-background";
-import { HeroPhoneDevice, useHeroPhoneBalanceCount } from "@/components/hero-phone-device";
+import { HeroPhoneMockup } from "@/components/hero-phone-mockup";
 import {
   FAQ_ITEMS,
   OLIMPIA_DEFINITION,
@@ -101,7 +90,7 @@ function Nav() {
   return (
     <header className="sticky top-0 z-40 bg-background">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12">
-        <Link to="/" className="font-display text-[1.65rem] leading-[1.3] tracking-tight text-berry">
+        <Link to="/" className="font-display text-h3 tracking-tight text-berry">
           Olimpia
         </Link>
         <nav className="hidden items-center gap-8 text-body-sm text-foreground/80 md:flex">
@@ -133,55 +122,40 @@ function Nav() {
 /* ---------- HERO ---------- */
 function Hero() {
   return (
-    <section className="hero-section relative isolate overflow-hidden">
+    <section className="hero-section relative isolate overflow-x-clip">
       <HeroPaperBackground />
       <div className="hero-inner relative z-[1] mx-auto grid max-w-7xl items-center px-6 md:grid-cols-2 md:items-center md:px-12">
         <div className="max-w-xl lg:max-w-2xl">
-          <p className="marketing-eyebrow hero-eyebrow">
+          <p className="hero-eyebrow">
             Helping women participate in DeFi
           </p>
-          <h1 className="mt-6 text-h1 font-medium tracking-normal text-berry md:text-h1 lg:text-display-md">
+          <h1 className="mt-3 text-h1 font-semibold tracking-tight text-berry md:mt-3.5 md:text-display-md lg:text-display-lg">
             You belong here
           </h1>
-          <p className="mt-6 max-w-lg hero-copy">
-            DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created to help women participate in decentralized finance. Discover new opportunities beyond a traditional bank. Set savings goals, explore optional yield on USDC, and learn with Pia, your AI money bestie.
+          <p className="mt-4 max-w-md hero-copy md:mt-4 md:max-w-lg">
+            DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created to help women participate in decentralized finance. Set savings goals, explore optional yield on USDC, and learn with Pia, your AI money bestie.
           </p>
-          <p className="mt-6 max-w-lg marketing-eyebrow hero-eyebrow">
-            More choices. More freedom.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div className="mt-6 flex flex-wrap items-center gap-4 md:mt-7 md:gap-5">
             <button
               type="button"
               onClick={openWaitlist}
-              className="inline-flex h-14 min-w-[11.5rem] items-center justify-center gap-2 rounded-full bg-berry px-8 text-body font-semibold text-white shadow-soft transition hover:opacity-90"
+              className="inline-flex h-12 min-w-[10.5rem] items-center justify-center gap-2 rounded-full bg-berry px-7 text-body-sm font-semibold text-white shadow-soft transition hover:opacity-90 md:h-14 md:min-w-[11rem] md:px-8 md:text-body"
             >
               Download App
             </button>
             <a
               href="#features"
-              className="inline-flex h-14 min-w-[11.5rem] items-center justify-center gap-2 rounded-full border border-foreground/15 bg-card px-8 text-body font-semibold text-foreground shadow-soft transition hover:border-foreground/30"
+              className="inline-flex items-center gap-1 text-body-sm font-semibold text-berry transition hover:opacity-80 md:text-body"
             >
-              Learn More
+              See how it works
+              <span aria-hidden>→</span>
             </a>
           </div>
         </div>
 
-        <div className="hero-phone-stage relative z-20 flex justify-center md:justify-end">
+        <div className="hero-phone-stage relative z-20 flex justify-center">
           <div className="hero-phone-wrap relative">
-            <div className="hero-phone-shadow-contact" aria-hidden />
-            <div className="hero-phone-shadow-ambient" aria-hidden />
-            <HeroPhoneDevice>
-              <div className="hero-phone-float-accent" aria-hidden>
-                <div className="hero-phone-float-card">
-                  <img src={piaIllo} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-background" />
-                  <p className="text-body-sm leading-snug text-foreground">
-                    <span className="font-semibold text-raspberry">+4.2%</span>
-                    <span className="text-ink-muted"> yield on savings</span>
-                  </p>
-                </div>
-              </div>
-              <PhoneMockup variant="hero" />
-            </HeroPhoneDevice>
+            <HeroPhoneMockup />
           </div>
         </div>
       </div>
@@ -193,273 +167,30 @@ function Hero() {
 
 
 
-/* ---------- PHONE MOCKUP (pure CSS) ----------
- * Intentional exception to the design type scale:
- * the arbitrary text-[Npx] sizes below simulate a real phone UI at fixed scale.
- * Do not migrate them to the marketing type tokens. */
-function PhoneMockup({ variant = "full" }: { variant?: "hero" | "full" }) {
-  const isHero = variant === "hero";
-  const [motionEnabled, setMotionEnabled] = useState(false);
-  const heroBalance = useHeroPhoneBalanceCount(isHero && motionEnabled);
-
-  useEffect(() => {
-    setMotionEnabled(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
-
-  const tabItems = [
-    { Icon: HomeIcon, label: "Home", active: true },
-    { Icon: CreditCard, label: "Card" },
-    { Icon: SaveIcon, label: "Save" },
-    { Icon: User, label: "Pia" },
-    { Icon: Shield, label: "Learn" },
-  ];
-
-  return (
-    <div className="relative w-full">
-      {/* Phone frame */}
-      <div
-        className={`relative rounded-[3.25rem] bg-[#111] p-[10px] ${
-          isHero
-            ? "shadow-[0_14px_28px_-12px_rgba(47,47,47,0.5),0_36px_64px_-24px_rgba(47,47,47,0.28),0_22px_48px_-20px_rgba(229,75,122,0.16)]"
-            : "shadow-[0_40px_80px_-20px_rgba(47,47,47,0.28),0_15px_40px_-15px_rgba(229,75,122,0.22)]"
-        }`}
-      >
-        {isHero && (
-          <>
-            <div
-              className="pointer-events-none absolute -left-[2px] top-[28%] h-8 w-[3px] rounded-l-sm bg-[#2a2a2a]"
-              aria-hidden
-            />
-            <div
-              className="pointer-events-none absolute -left-[2px] top-[36%] h-12 w-[3px] rounded-l-sm bg-[#2a2a2a]"
-              aria-hidden
-            />
-            <div
-              className="pointer-events-none absolute -right-[2px] top-[22%] h-16 w-[3px] rounded-r-sm bg-[#2a2a2a]"
-              aria-hidden
-            />
-          </>
-        )}
-        <div
-          className="pointer-events-none absolute inset-0 rounded-[3.25rem] ring-1 ring-inset ring-white/[0.12]"
-          aria-hidden
-        />
-        <div
-          className={`relative overflow-hidden rounded-[2.75rem] bg-background ${
-            isHero ? "hero-phone-screen flex flex-col" : ""
-          }`}
-        >
-          {/* Status bar */}
-          <div className="relative flex h-11 items-center justify-between px-7 pt-3 text-[11px] font-semibold text-foreground">
-            <span>9:41</span>
-            {/* Notch / dynamic island */}
-            <div className="absolute left-1/2 top-2.5 h-6 w-24 -translate-x-1/2 rounded-full bg-[#111]" />
-            <div className="flex items-center gap-1.5">
-              <svg width="14" height="9" viewBox="0 0 14 9" fill="currentColor"><rect x="0" y="6" width="2" height="3" rx="0.5"/><rect x="3.5" y="4" width="2" height="5" rx="0.5"/><rect x="7" y="2" width="2" height="7" rx="0.5"/><rect x="10.5" y="0" width="2" height="9" rx="0.5"/></svg>
-              <svg width="18" height="10" viewBox="0 0 18 10" fill="none"><rect x="0.5" y="0.5" width="14" height="9" rx="2" stroke="currentColor" opacity="0.5"/><rect x="2" y="2" width="11" height="6" rx="1" fill="currentColor"/><rect x="15.5" y="3.5" width="1.5" height="3" rx="0.5" fill="currentColor" opacity="0.5"/></svg>
-            </div>
-          </div>
-
-          {/* Screen content */}
-          <div className="relative px-6 pt-3 pb-5">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] text-ink-muted">Good morning</p>
-                <p className="text-[15px] font-semibold text-foreground">Jennifer</p>
-              </div>
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-rose to-raspberry/60 ring-2 ring-background" />
-            </div>
-
-            {isHero ? (
-              <div className="hero-phone-pia-bubble mt-3 flex items-start gap-2 rounded-2xl rounded-bl-md border border-border/40 bg-card/95 px-2.5 py-2 shadow-soft">
-                <img
-                  src={piaIllo}
-                  alt=""
-                  className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-background"
-                />
-                <p className="text-[10px] leading-snug text-foreground">
-                  <span className="font-semibold text-raspberry">Pia</span>
-                  <span className="text-ink-muted"> · You&apos;re on track for Europe!</span>
-                </p>
-              </div>
-            ) : null}
-
-            {/* Balance card */}
-            <div className={`rounded-2xl bg-[#111] p-5 text-background shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${isHero ? "mt-4" : "mt-6"}`}>
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] uppercase tracking-[0.18em] text-background/60">
-                  Total balance
-                </p>
-                <span className="text-[10px] text-background/60">USD</span>
-              </div>
-              <p className="hero-phone-balance mt-2 text-[28px] font-semibold tracking-tight">
-                ${isHero ? heroBalance.toLocaleString("en-US") : "4,280"}
-                <span className="text-background/50">.00</span>
-              </p>
-              <div className="mt-3 flex items-center gap-1.5 text-[11px]">
-                <span className="hero-phone-yield-badge inline-flex items-center gap-1 rounded-full bg-background/10 px-2 py-0.5 font-medium">
-                  <ArrowUpRight className="h-3 w-3" strokeWidth={2.5} />
-                  4.2%
-                </span>
-                <span className="text-background/60 hero-phone-month-gain">+$280.00 this month</span>
-              </div>
-            </div>
-
-            {!isHero && (
-            <div className="mt-5 grid grid-cols-4 gap-2.5">
-              {[
-                { Icon: Plus, label: "Add" },
-                { Icon: Send, label: "Send" },
-                { Icon: ArrowLeftRight, label: "Swap" },
-                { Icon: MoreHorizontal, label: "More" },
-              ].map(({ Icon, label }) => (
-                <div
-                  key={label}
-                  className="flex flex-col items-center gap-1.5"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-rose/70">
-                    <Icon className="h-4 w-4 text-raspberry" strokeWidth={2} />
-                  </div>
-                  <span className="text-[10px] font-medium text-foreground/80">{label}</span>
-                </div>
-              ))}
-            </div>
-            )}
-
-            {/* Savings goal card */}
-            <div
-              className={`rounded-2xl border border-border/60 bg-card p-4 ${
-                isHero ? "hero-phone-goal-peek mt-5" : "mt-5"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <img
-                  src={eiffel}
-                  alt=""
-                  width={512}
-                  height={512}
-                  loading="lazy"
-                  className="h-14 w-14 rounded-xl object-cover"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[13px] font-semibold text-foreground">
-                      Europe Trip
-                    </p>
-                    <span className="text-[10px] font-medium text-ink-muted">45%</span>
-                  </div>
-                  <p className="mt-0.5 text-[11px] text-ink-muted">
-                    <span className="font-semibold text-foreground">$2,250</span> of $5,000
-                  </p>
-                  <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-surface">
-                    <div
-                      className={`h-full rounded-full bg-raspberry ${isHero ? "hero-phone-progress-bar w-[45%]" : "w-[45%]"}`}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {!isHero && (
-            <div className="mt-5">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Recent activity</p>
-                <a className="text-[11px] font-medium text-raspberry">See all</a>
-              </div>
-              <div className="mt-3 space-y-3.5">
-                <TxRow Icon={Briefcase} title="Received" sub="Jun 18 · Deposit" amount="+$2,500.00" positive />
-                <TxRow Icon={TargetIcon} title="Yield earned" sub="Jun 17 · Yield earned" amount="+$14.00" positive />
-                <TxRow Icon={Coffee} title="Blue Bottle Coffee" sub="Today · Cafe" amount="−$5.45" />
-              </div>
-            </div>
-            )}
-          </div>
-
-          {isHero && (
-            <div className="hero-phone-screen-fade pointer-events-none absolute inset-x-0 bottom-0 z-10" aria-hidden />
-          )}
-
-          {!isHero && (
-          <div className="grid grid-cols-5 border-t border-border/50 bg-background px-3 pb-5 pt-3">
-            {tabItems.map(({ Icon, label, active }) => (
-              <div key={label} className="flex flex-col items-center gap-1">
-                <Icon
-                  className={`h-[18px] w-[18px] ${active ? "text-raspberry" : "text-ink-muted/70"}`}
-                  strokeWidth={2}
-                />
-                <span
-                  className={`text-[9px] ${
-                    active ? "font-semibold text-raspberry" : "text-ink-muted/70"
-                  }`}
-                >
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TxRow({
-  Icon,
-  title,
-  sub,
-  amount,
-  positive,
-}: {
-  Icon: typeof Coffee;
-  title: string;
-  sub: string;
-  amount: string;
-  positive?: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rose/70">
-        <Icon className="h-3.5 w-3.5 text-raspberry" strokeWidth={2.2} />
-      </div>
-      <div className="flex-1">
-        <p className="text-xs font-medium text-foreground">{title}</p>
-        <p className="text-[10px] text-ink-muted">{sub}</p>
-      </div>
-      <p
-        className={`text-xs font-semibold ${positive ? "text-success" : "text-foreground"}`}
-      >
-        {amount}
-      </p>
-    </div>
-  );
-}
-
 /* ---------- TRUST STRIP ---------- */
 function TrustStrip() {
   const partners = ["Circle", "Bridge", "Plaid", "Visa", "MoonPay", "Stripe"];
   const loop = [...partners, ...partners];
   return (
     <section
-      className="trust-strip section-pad relative overflow-hidden border-b border-border/50 bg-surface"
+      className="trust-strip relative overflow-hidden border-b border-border/50 bg-surface"
     >
       <div className="mx-auto max-w-7xl px-6 text-center md:px-12">
         <SectionScrollReveal>
-          <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
+          <h2 className="text-h2 font-semibold text-foreground md:text-h1">
             Built on trusted infrastructure
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-body text-ink-muted">
+          <p className="mx-auto mt-4 max-w-2xl text-body text-ink-muted">
             Powered by industry-leading providers in security, compliance, and payments.
           </p>
         </SectionScrollReveal>
-        <SectionScrollReveal delay={110} className="marquee mt-12">
+        <SectionScrollReveal delay={110} className="marquee mt-10">
           <div className="marquee-track gap-x-16 md:gap-x-24 opacity-70">
             {loop.map((p, i) => (
               <span
                 key={`${p}-${i}`}
                 aria-hidden={i >= partners.length}
-                className="font-display text-h3 tracking-tight text-foreground/70 shrink-0"
+                className="text-h3 font-semibold tracking-tight text-foreground/70 shrink-0"
               >
                 {p}
               </span>
@@ -479,7 +210,7 @@ function GoalsSection() {
       title: "Send USDC",
       body: "Send USDC in seconds to anyone anywhere in the world.",
       details:
-        "Send USDC in seconds to anyone anywhere in the world.",
+        "Move money globally without bank hours or high fees. Enter an address or username, confirm, and it's on the way — usually in seconds.",
     },
     {
       icon: CreditCard,
@@ -510,7 +241,7 @@ function GoalsSection() {
     <section id="features" className="section-pad section-bridge-out relative overflow-hidden bg-gradient-to-b from-background via-rose-soft/18 to-background">
       <div className="relative mx-auto max-w-7xl px-6 md:px-12">
         <SectionScrollReveal className="mx-auto max-w-3xl text-center">
-          <h2 className="text-balance text-h2 font-semibold text-foreground md:text-h1">
+          <h2 className="text-balance text-h1 font-semibold text-foreground md:text-display-md">
             A financial ecosystem, offering more opportunity than your bank
           </h2>
           <p className="mt-6 text-body text-ink-muted">
@@ -521,7 +252,7 @@ function GoalsSection() {
           {items.map(({ icon: Icon, title, body, details }, index) => {
             const isFlipped = !!flipped[title];
             return (
-              <SectionScrollReveal key={title} delay={index * 50} className="h-full">
+              <ScrollReveal key={title} delay={index * 40} className="h-full">
               <div
                 className="goal-card-shell group relative h-full perspective-1000 md:transition-transform md:duration-300 md:ease-out md:hover:-translate-y-1.5"
               >
@@ -578,7 +309,7 @@ function GoalsSection() {
                   </button>
                 </div>
               </div>
-              </SectionScrollReveal>
+              </ScrollReveal>
             );
           })}
         </div>
@@ -635,13 +366,14 @@ function WhyUsdcSection() {
             seconds, every day, 24/7.
           </p>
           <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {benefits.map(({ title, body }, index) => (
-              <SectionScrollReveal key={title} delay={index * 50}>
-                <div className="rounded-2xl border border-border/40 bg-card p-4 shadow-soft">
-                  <h3 className="text-body-sm font-semibold text-foreground">{title}</h3>
-                  <p className="mt-1.5 text-body-sm text-ink-muted">{body}</p>
-                </div>
-              </SectionScrollReveal>
+            {benefits.map(({ title, body }) => (
+              <div
+                key={title}
+                className="rounded-3xl border border-border/40 bg-card p-4 shadow-soft"
+              >
+                <h3 className="text-body-sm font-semibold text-foreground">{title}</h3>
+                <p className="mt-1.5 text-body-sm text-ink-muted">{body}</p>
+              </div>
             ))}
           </div>
         </SectionScrollReveal>
@@ -744,7 +476,7 @@ function EmpoweringCards() {
         </SectionScrollReveal>
         <div className="mx-auto mt-12 grid max-w-5xl auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-14 lg:gap-8">
           {items.map(({ icon: Icon, t, b }, index) => (
-            <SectionScrollReveal key={t} delay={index * 50} className="h-full">
+            <ScrollReveal key={t} delay={index * 40} className="h-full">
               <div className="group relative h-full">
                 <div
                   className="pointer-events-none invisible flex flex-col p-9 text-left lg:p-10"
@@ -768,7 +500,7 @@ function EmpoweringCards() {
                   <p className="mt-3 text-body text-ink-muted">{b}</p>
                 </div>
               </div>
-            </SectionScrollReveal>
+            </ScrollReveal>
           ))}
         </div>
       </div>
@@ -781,13 +513,9 @@ function PiaSection() {
   return (
     <section
       id="pia"
-      className="section-pad section-bridge-out relative overflow-hidden bg-gradient-to-b from-rose-soft/40 via-rose/25 to-rose-soft/20 md:bg-gradient-to-br md:from-rose-soft/35 md:via-rose/30 md:to-rose-soft/45"
-      style={{ "--bridge-out-opacity": "0.44" } as CSSProperties}
+      className="section-pad section-bridge-out relative overflow-hidden bg-background"
+      style={{ "--bridge-out-opacity": "0.16" } as CSSProperties}
     >
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(229,75,122,0.14),transparent_58%)]"
-        aria-hidden
-      />
       <div className="relative z-[2] mx-auto w-full max-w-3xl px-6 md:px-8">
         <SectionScrollReveal className="flex w-full flex-col items-center text-center">
           <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-card/95 px-4 py-1.5 text-body font-semibold text-raspberry shadow-soft ring-1 ring-raspberry/25">
@@ -805,15 +533,11 @@ function PiaSection() {
 
         <SectionScrollReveal delay={120} className="relative mx-auto mt-10 w-full md:mt-12">
           <div
-            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-72 w-[92%] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose/55 blur-[72px]"
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-64 w-[88%] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose/40 blur-[72px]"
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-56 w-[78%] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-full bg-raspberry/28 blur-[56px]"
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-40 w-[65%] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-full bg-berry/18 blur-[40px]"
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-44 w-[70%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-full bg-raspberry/18 blur-[56px]"
             aria-hidden
           />
           <div className="relative z-[1]">
@@ -822,13 +546,14 @@ function PiaSection() {
         </SectionScrollReveal>
 
         <SectionScrollReveal delay={200} className="mt-8 flex justify-center">
-          <a
-            href="#download"
+          <button
+            type="button"
+            onClick={openWaitlist}
             className="inline-flex h-14 min-w-[11.5rem] items-center justify-center gap-2 rounded-full bg-raspberry px-8 text-body font-semibold text-primary-foreground shadow-soft transition hover:opacity-90"
           >
             <MessageCircle className="h-4 w-4" />
             Chat with Pia
-          </a>
+          </button>
         </SectionScrollReveal>
       </div>
     </section>
@@ -869,7 +594,7 @@ function Faq() {
       <div className="relative z-[2] mx-auto max-w-3xl px-6 md:px-12">
         <SectionScrollReveal>
           <h2 className="text-center text-h1 font-semibold text-foreground md:text-display-md">
-            <span className="font-display italic">FAQ</span>
+            FAQ
           </h2>
         </SectionScrollReveal>
         <SectionScrollReveal delay={110}>
@@ -925,8 +650,8 @@ function StayTunedSection() {
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
           <SectionScrollReveal className="max-w-md shrink-0">
-            <h2 className="font-display text-h1 italic text-foreground md:text-display-md">
-              Stay tuned
+            <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
+              Stay <span className="font-display italic">tuned</span>
             </h2>
             <p className="mt-3 text-body text-ink-muted">
               Be first to know when Olimpia launches.
@@ -1093,7 +818,7 @@ function WaitlistModal() {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="mt-8 inline-flex h-[52px] items-center justify-center rounded-full bg-raspberry px-6 text-body-sm font-semibold text-primary-foreground transition hover:opacity-90"
+              className="mt-8 inline-flex h-[52px] items-center justify-center rounded-full bg-berry px-6 text-body-sm font-semibold text-white transition hover:opacity-90"
             >
               Close
             </button>
@@ -1134,7 +859,7 @@ function WaitlistModal() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex h-[52px] w-full items-center justify-center rounded-full bg-raspberry px-6 text-body-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:pointer-events-none disabled:opacity-60"
+                className="inline-flex h-[52px] w-full items-center justify-center rounded-full bg-berry px-6 text-body-sm font-semibold text-white transition hover:opacity-90 disabled:pointer-events-none disabled:opacity-60"
               >
                 {isSubmitting ? "Joining..." : "Join the waitlist"}
               </button>
