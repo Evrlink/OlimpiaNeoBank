@@ -4,6 +4,7 @@
  * sizes simulate a real phone UI at fixed scale.
  * Screen content mirrors the marketed Home reference mock.
  */
+import { useEffect, useState } from "react";
 import {
   Bell,
   ChevronDown,
@@ -13,13 +14,38 @@ import {
   Plus,
   User,
 } from "lucide-react";
-import { HeroPhoneDevice } from "@/components/hero-phone-device";
+import piaIllo from "@/assets/pia-raspberry.png";
+import {
+  HeroPhoneDevice,
+  useHeroPhoneBalanceCount,
+} from "@/components/hero-phone-device";
 
 const RANGES = ["1D", "1W", "1M", "3M", "1Y", "ALL"] as const;
 
 export function HeroPhoneMockup() {
+  const [motionEnabled, setMotionEnabled] = useState(false);
+  const balance = useHeroPhoneBalanceCount(motionEnabled, 2450, 2670);
+
+  useEffect(() => {
+    setMotionEnabled(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+
   return (
     <HeroPhoneDevice>
+      <div className="hero-phone-float-accent" aria-hidden>
+        <div className="hero-phone-float-card">
+          <img
+            src={piaIllo}
+            alt=""
+            className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-background"
+          />
+          <p className="text-body-sm leading-snug text-foreground">
+            <span className="font-semibold text-raspberry">+4.2%</span>
+            <span className="text-ink-muted"> yield on savings</span>
+          </p>
+        </div>
+      </div>
+
       <div className="hero-iphone relative mx-auto w-fit">
         <div className="hero-iphone-chassis relative">
           <span className="hero-iphone-btn hero-iphone-btn--silent" aria-hidden />
@@ -63,8 +89,8 @@ export function HeroPhoneMockup() {
                 {/* Positive balance card */}
                 <div className="mt-2.5 rounded-[1.15rem] bg-card px-3.5 py-3 text-center shadow-[0_6px_18px_-10px_rgba(47,47,47,0.28)] ring-1 ring-border/40">
                   <p className="text-[10px] font-medium text-ink-muted">Positive Balance</p>
-                  <p className="mt-0.5 text-[25px] font-semibold tracking-tight text-[#2BB673]">
-                    +$2,670.00
+                  <p className="hero-phone-balance mt-0.5 text-[25px] font-semibold tracking-tight text-[#2BB673]">
+                    +${balance.toLocaleString("en-US")}.00
                   </p>
                   <button
                     type="button"
@@ -86,7 +112,7 @@ export function HeroPhoneMockup() {
                     </span>
                   </div>
 
-                  <svg viewBox="0 0 260 78" className="mt-1.5 h-[4.5rem] w-full" aria-hidden>
+                  <svg viewBox="0 0 260 78" className="hero-phone-chart mt-1.5 h-[4.5rem] w-full" aria-hidden>
                     <defs>
                       <linearGradient id="heroChartFill" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#E54B7A" stopOpacity="0.28" />
@@ -95,10 +121,12 @@ export function HeroPhoneMockup() {
                       </linearGradient>
                     </defs>
                     <path
+                      className="hero-phone-chart-fill"
                       d="M4 58 C28 56 42 42 62 46 S98 62 118 40 S152 18 178 28 S210 48 236 24 S250 16 256 18 L256 78 L4 78 Z"
                       fill="url(#heroChartFill)"
                     />
                     <path
+                      className="hero-phone-chart-line"
                       d="M4 58 C28 56 42 42 62 46 S98 62 118 40 S152 18 178 28 S210 48 236 24 S250 16 256 18"
                       fill="none"
                       stroke="#6F2B46"
@@ -106,7 +134,7 @@ export function HeroPhoneMockup() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
-                    <circle cx="256" cy="18" r="3.75" fill="#6F2B46" />
+                    <circle className="hero-phone-chart-dot" cx="256" cy="18" r="3.75" fill="#6F2B46" />
                     <circle cx="256" cy="18" r="6.5" fill="#6F2B46" fillOpacity="0.16" />
                   </svg>
 
@@ -116,7 +144,7 @@ export function HeroPhoneMockup() {
                         key={range}
                         className={
                           range === "1W"
-                            ? "inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-soft px-1.5 text-berry"
+                            ? "hero-phone-range-pill inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-soft px-1.5 text-berry"
                             : undefined
                         }
                       >
@@ -126,7 +154,7 @@ export function HeroPhoneMockup() {
                   </div>
 
                   {/* Accounts */}
-                  <div className="mt-2 space-y-1.5">
+                  <div className="hero-phone-accounts mt-2 space-y-1.5">
                     <div className="flex items-center gap-2.5 rounded-2xl bg-card px-2.5 py-2 ring-1 ring-border/45">
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose text-[10px] font-semibold text-berry ring-1 ring-berry/20">
                         G
@@ -139,7 +167,9 @@ export function HeroPhoneMockup() {
                       </div>
                       <div className="text-right">
                         <p className="text-[11px] font-semibold text-[#2BB673]">+$670.00</p>
-                        <p className="text-[9px] font-medium text-[#2BB673]/80">+$220.00</p>
+                        <p className="hero-phone-secondary-gain text-[9px] font-medium text-[#2BB673]/80">
+                          +$220.00
+                        </p>
                       </div>
                     </div>
 
