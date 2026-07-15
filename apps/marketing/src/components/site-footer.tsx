@@ -8,7 +8,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-6 py-12 md:px-12 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-12">
           <SectionScrollReveal className="lg:col-span-5">
-            <Link to="/" className="font-display text-h3 tracking-tight text-berry">
+            <Link to="/" className="font-display font-medium text-[1.58125rem] leading-[1.3] tracking-tight text-berry">
               Olimpia
             </Link>
             <p className="mt-4 max-w-md text-body text-ink-muted">
