@@ -90,17 +90,17 @@ function Nav() {
   return (
     <header className="sticky top-0 z-40 bg-background">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12">
-        <Link to="/" className="font-display text-[1.58125rem] leading-[1.3] tracking-tight text-berry">
+        <Link to="/" className="font-display font-medium text-[1.58125rem] leading-[1.3] tracking-tight text-berry">
           Olimpia
         </Link>
-        <nav className="hidden items-center gap-8 text-body-sm text-foreground/80 md:flex">
+        <nav className="hidden items-center gap-8 text-body-sm font-medium text-foreground/90 md:flex">
           {navLinks.map(({ href, label, id }) => (
             <a
               key={id}
               href={href}
               className={cn(
-                "relative transition hover:text-foreground",
-                activeSection === id && "nav-link-active",
+                "relative transition hover:text-berry",
+                activeSection === id && "nav-link-active font-semibold text-berry",
               )}
             >
               {label}
@@ -127,19 +127,19 @@ function Hero() {
       <div className="hero-inner relative z-[1] mx-auto grid max-w-7xl items-center px-6 md:grid-cols-2 md:items-center md:px-12">
         <div className="max-w-xl lg:max-w-2xl">
           <p className="hero-eyebrow">
-            Helping women participate in DeFi
+            Helping women participate in Decentralized Finance
           </p>
-          <h1 className="mt-3 text-h1 font-semibold tracking-tight text-berry md:mt-3.5 md:text-display-md lg:text-display-lg">
+          <h1 className="mt-6 text-h1 font-semibold tracking-tight text-berry md:text-display-md lg:text-display-lg">
             You belong here
           </h1>
-          <p className="mt-4 max-w-md hero-copy md:mt-4 md:max-w-lg">
+          <p className="mt-4 max-w-sm hero-copy md:max-w-md">
             DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created to help women participate in decentralized finance. Set savings goals, explore optional yield on USDC, and learn with Pia, your AI money bestie.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-4 md:mt-7 md:gap-5">
             <button
               type="button"
               onClick={openWaitlist}
-              className="inline-flex h-12 min-w-[10.5rem] items-center justify-center gap-2 rounded-full bg-berry px-7 text-body-sm font-semibold text-white shadow-soft transition hover:opacity-90 md:h-14 md:min-w-[11rem] md:px-8 md:text-body"
+              className="inline-flex h-14 min-w-[10.5rem] items-center justify-center gap-2 rounded-full bg-berry px-7 text-body-sm font-semibold text-white shadow-soft transition hover:opacity-90 md:h-[3.75rem] md:min-w-[11rem] md:px-8 md:text-body"
             >
               Download App
             </button>
@@ -153,7 +153,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hero-phone-stage relative z-20 flex justify-center">
+        <div className="hero-phone-stage relative z-20 flex justify-center md:justify-end">
           <div className="hero-phone-wrap relative">
             <HeroPhoneMockup />
           </div>
@@ -169,7 +169,7 @@ function Hero() {
 
 /* ---------- TRUST STRIP ---------- */
 function TrustStrip() {
-  const partners = ["Circle", "Bridge", "Plaid", "Visa", "MoonPay", "Stripe"];
+  const partners = ["Circle", "Plaid", "Visa", "MoonPay", "Stripe"];
   const loop = [...partners, ...partners];
   return (
     <section
@@ -651,7 +651,7 @@ function StayTunedSection() {
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
           <SectionScrollReveal className="max-w-md shrink-0">
             <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
-              Stay <span className="font-display italic">tuned</span>
+              Stay <span className="font-display italic font-normal">tuned</span>
             </h2>
             <p className="mt-3 text-body text-ink-muted">
               Be first to know when Olimpia launches.
