@@ -129,13 +129,14 @@ function Hero() {
           <p className="hero-eyebrow">
             Helping women participate in Decentralized Finance
           </p>
-          <h1 className="mt-6 text-h1 font-semibold tracking-tight text-berry md:text-display-md lg:text-display-lg">
+          <h1 className="mt-5 text-h1 font-semibold tracking-tight text-berry md:text-display-md lg:text-display-lg">
             You belong here
           </h1>
-          <p className="mt-4 max-w-sm hero-copy md:max-w-md">
-            DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created to help women participate in decentralized finance. Set savings goals, explore optional yield on USDC, and learn with Pia, your AI money bestie.
+          <p className="mt-5 max-w-sm hero-copy md:max-w-md">
+            DeFi shouldn&apos;t feel confusing or out of reach. Set savings goals,
+            explore optional yield on USDC, and learn with Pia, your AI money bestie.
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-4 md:mt-7 md:gap-5">
+          <div className="mt-5 flex flex-wrap items-center gap-4 md:gap-5">
             <button
               type="button"
               onClick={openWaitlist}

@@ -179,7 +179,7 @@
   .hero-eyebrow {
     font-size: var(--text-label);
     line-height: var(--text-label--line-height);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--berry);
@@ -189,7 +189,7 @@
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
     font-weight: 500;
-    color: var(--berry);
+    color: color-mix(in srgb, var(--berry) 80%, transparent);
   }
 
   @media (min-width: 1024px) {
