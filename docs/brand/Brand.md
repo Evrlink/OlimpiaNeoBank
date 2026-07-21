@@ -587,12 +587,10 @@ Built on trusted infrastructure.
 |----------|
 | Privy |
 | Base |
-| Bridge |
-| Gnosis Pay |
-| LI.FI |
-| Morpho |
+| Dakota — only after partnership/brand-use approval |
+| Aave — only after V1 strategy confirmation and brand-use approval |
 
-**Rules:** Logos only — no technical explanations, no protocol deep-dives in this section. Plain trust, not crypto education.
+**Rules:** Logos only — no technical explanations or protocol deep-dives. Show only providers with a confirmed relationship and permission to use their marks. Do not show a candidate Privy fiat-onramp provider (including Coinbase) as selected before validation.
 
 **Anchor:** `id="infrastructure"`
 
@@ -628,7 +626,7 @@ Add money  →  Receive USDC  →  Grow your money  →  Spend anytime
 
 | Step | User-facing meaning |
 |------|---------------------|
-| 1. **Add money** | Fund from bank or card |
+| 1. **Add Funds** | Choose Bank Transfer, Apple Pay or Card, or Transfer USDC |
 | 2. **Receive USDC** | Dollars arrive in your account (invisible conversion — user sees dollars) |
 | 3. **Grow your money** | Optional growth on savings — estimated, variable |
 | 4. **Spend anytime** | Card, send, and everyday use |

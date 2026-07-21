@@ -52,8 +52,8 @@ Design as **native mobile screens** (iOS + Android parity). Light theme only. Mi
 | 1 | **Welcome** | Pre-auth. Static rose→raspberry gradient on `#F7F4F1`. Pill CTAs pinned above safe area. |
 | 2 | **Sign up / Login** | Single auth flow; mode from entry path. Four preview states. Centered Olimpia wordmark top bar. |
 | 3 | **“You're in!” confirmation** | Post sign-up only. Pia-free. Full reassurance layout per brief §3.3. |
-| 4 | **Add Funds** | Shared stub — same layout from onboarding **Add funds and start earning** and Home **Add money**. |
-| 5 | **Empty Home** | State 1 new user. Headline + Add money card are hero; balance is quiet `$0.00` line. |
+| 4 | **Add Funds** | Shared entry from onboarding and Home; V1 method chooser follows PRD conceptual requirements. |
+| 5 | **Empty Home** | State 1 new user. *Your account is ready* + Add Funds are primary; balance is quiet `$0.00` line. |
 | 6 | **Savings empty state** | Centered EmptyState inside tab shell. |
 | 7 | **Card empty state** | Same EmptyState pattern as Savings. |
 | 8 | **Profile** | Account header + static Pia Coming Soon card + settings rows + Sign out. |
@@ -68,13 +68,13 @@ Design as **native mobile screens** (iOS + Android parity). Light theme only. Mi
 Welcome
   ├─ Get started → Sign up
   │     └─ Account sync → “You're in!” [no Pia]
-  │           ├─ Add funds and start earning → Add Funds → Back
+  │           ├─ Add Funds → Add Funds chooser → Back
   │           └─ Explore the app → Empty Home [tabs visible]
   └─ Sign in → Auth
         └─ Account sync → Empty Home [skip “You're in!”]
 
 Empty Home ↔ Tabs: Savings · Card · Profile
-Empty Home “Add money” → Add Funds (same screen as onboarding)
+Empty Home “Add Funds” → Add Funds (same screen as onboarding)
 Profile → Sign out → Welcome
 
 Pia: Profile Coming Soon card ONLY — no tab, no screen, no chat
@@ -169,14 +169,14 @@ Use verbatim. Do not paraphrase. Full A3 detail in brief §3.3.
 | Headline | You're in! |
 | Subhead (line 1) | Simple access to decentralized finance |
 | Subhead (line 2) | so you can save, grow, and reach your goals. |
-| Value prop 1 | **Earn yield** — Your money can grow over time. |
+| Value prop 1 | **Choose Growth** — Eligible funds can be moved to Growth when you're ready. |
 | Value prop 2 | **Set goals** — Create savings goals for what matters most. |
 | Value prop 3 | **You're in control** — Move your money anytime, always your choice. |
 | Step 1 | **Add USD** — Add funds from your bank. |
-| Step 2 | **Convert to USDC** — Convert to USDC, earn yield. |
-| Step 3 | **Earn and access** — USDC earns the yield. Cash out to your bank any time. |
+| Step 2 | **Funds settle** — Funding completes after provider and compliance checks. |
+| Step 3 | **Choose Growth later** — Eligible funds can be moved to Growth with user authorization. |
 | Built for you | No lock ups · Withdraw anytime · Full transparency |
-| Primary CTA | Add funds and start earning |
+| Primary CTA | Add Funds |
 | Secondary CTA | Explore the app |
 | Footer | Olimpia provides access to third party financial services. Yield is variable and not guaranteed. |
 
@@ -195,9 +195,9 @@ Use verbatim. Do not paraphrase. Full A3 detail in brief §3.3.
 | Element | Copy |
 |---------|------|
 | Greeting | Hi {firstName} ✨ |
-| Headline | Let's get started. |
-| Subhead | Add funds to begin building toward the life you choose. |
-| Primary CTA | Add money |
+| Headline | Your account is ready. |
+| Subhead | Add your first funds to begin using Olimpia. |
+| Primary CTA | Add Funds |
 | Balance | Money available · $0.00 |
 | Quick actions | Send · Receive |
 | Goal placeholder | Your first savings goal will appear here |
@@ -214,7 +214,7 @@ See [`MobilePhase2ScreenBrief.md`](MobilePhase2ScreenBrief.md) §3.5–3.8 and �
 
 | Tier | Screens | Language |
 |------|---------|------------|
-| **Neobank default** | Welcome, Auth, Home, Savings, Card, Profile, Add funds stub | No DeFi/USDC/wallet/Bridge in user-facing copy |
+| **Neobank default** | Welcome, Auth, Home, Savings, Card, Profile, Add funds stub | No DeFi/wallet/provider names in user-facing copy; Transfer USDC safety details are the explicit exception |
 | **Onboarding education** | **You're in! (A3) only** | USD, USDC, yield, bank, decentralized finance OK + disclaimer |
 | **Marketing website** | `/`, `/learn/usdc`, FAQ | Educational DeFi/USDC unchanged |
 
@@ -231,9 +231,9 @@ See [`MobilePhase2ScreenBrief.md`](MobilePhase2ScreenBrief.md) §3.5–3.8 and �
 
 ## 10. Add Funds rules
 
-- **One shared screen** for onboarding **Add funds and start earning** and Home **Add money**.
+- **One shared Add Funds entry** from onboarding and Home.
 - Stub copy: title **Add funds**, body **Choose how you'd like to add funds to your Olimpia balance.**, button **Continue**.
-- **Do not show or name on stub:** bank account, debit card, Bridge, USDC, Base, wallet.
+- **Do not show or name on the Phase 2 stub:** live funding methods or provider names. The V1 Transfer USDC flow later shows USDC, Base, and the wallet address only where required for safe receipt.
 - *(Exception: A3 confirmation screen may name USDC/yield/bank — not the Add funds stub.)*
 
 ---

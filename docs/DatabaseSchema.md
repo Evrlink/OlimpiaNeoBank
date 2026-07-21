@@ -20,7 +20,8 @@ This document explains **what information Olimpia stores**, **why it exists**, a
 
 - User accounts and invisible wallets (Privy)
 - Balances, transactions, and activity history
-- Add money (Bridge on-ramp) and withdraw to bank (Bridge off-ramp)
+- Add Funds through Dakota bank transfer, a Privy-configured fiat onramp, or external USDC on Base
+- Withdraw to bank through a replacement provider that is still to be selected
 - Send and receive money (Olimpia users only)
 - Savings goals (logical envelopes)
 - Growth account (USDC yield via **Aave first**)
@@ -81,7 +82,7 @@ Total balance (what the user sees)
 
 ## MVP entities (what to store)
 
-Each row below maps to Architecture §13. Fields are logical names — exact SQL types are **TBD** at implementation.
+Each row below maps to Architecture §10–13. Fields are logical names — exact SQL types are **TBD** at implementation.
 
 ### Core identity
 
@@ -96,8 +97,8 @@ Each row below maps to Architecture §13. Fields are logical names — exact SQL
 |--------|---------------|------------|-----------|
 | **BalanceSnapshot** | Point-in-time balance breakdown | `user_id`, `available_usd`, `goals_allocated_usd`, `growth_allocated_usd`, `total_display_usd` | Dashboard — may be computed or stored (**TBD**) |
 | **Transaction** | One line in activity feed | `id`, `user_id`, `type`, `amount_usd`, `status`, `counterparty_id`, `provider_ref`, `metadata`, `created_at` | Activity list |
-| **Deposit** | Add money (fiat → account) | `id`, `user_id`, `amount_usd`, `status`, `bridge_intent_id`, `created_at` | Add money flow |
-| **Withdrawal** | Cash out to bank | `id`, `user_id`, `amount_usd`, `status`, `bridge_payout_id`, `destination_id`, `created_at` | Withdraw flow |
+| **Deposit** | Any Add Funds method | `id`, `user_id`, `funding_method`, `provider`, `provider_transaction_id`, `blockchain_transaction_hash`, `destination_wallet_address`, `chain_id`, `asset`, `gross_amount`, `provider_fee`, `olimpia_fee`, `net_amount`, `status`, `failure_code`, `failure_message`, `confirmed_at`, `credited_at`, `created_at` | **Planning fields only; migration review required** |
+| **Withdrawal** | Cash out to bank | `id`, `user_id`, `amount_usd`, `status`, `provider`, `provider_transaction_id`, `destination_id`, `created_at` | Provider unresolved |
 | **Transfer** | Send money to another user | `id`, `sender_id`, `recipient_id`, `amount_usd`, `note`, `status`, `tx_hash` (internal) | Send / receive |
 
 ### Savings goals
@@ -115,7 +116,7 @@ Goals are **logical envelopes** in MVP — not separate bank accounts or on-chai
 |--------|---------------|------------|
 | **GrowthAllocation** | Money in optional yield | `id`, `user_id`, `principal_usd`, `estimated_earnings_usd`, `provider` (= aave for MVP), `status` |
 
-**MVP yield provider:** Aave on Base first (Architecture §11A Option A). Do not build multi-provider routing in MVP.
+**V1 yield direction:** Aave on Base is intended (Architecture §13). Do not build multi-provider routing in V1.
 
 ### Debit card
 
@@ -131,6 +132,16 @@ Never store full card number or CVV in Olimpia’s database.
 | Entity | Plain English | Key fields |
 |--------|---------------|------------|
 | **WebhookEvent** | Log of provider callbacks (prevent double-processing) | `id`, `provider`, `event_id`, `payload`, `processed_at` |
+
+### Funding field values under review
+
+- `funding_method`: `bank_transfer` · `fiat_onramp` · `external_usdc`
+- `provider`: `dakota` · the provider configured through Privy · `base_blockchain`
+- `status`: `pending` · `processing` · `completed` · `failed` · `cancelled` · `reversed`
+
+The ledger remains authoritative. Provider webhook and blockchain event references must be idempotent so retries cannot create duplicate credits. External deposits are credited only after validating the Base chain, destination wallet, supported USDC token contract, amount, transaction hash, and confirmation threshold.
+
+> These are expected schema changes for implementation review. **Do not create migrations from this document alone.**
 
 ### Marketing waitlist (Supabase today)
 
@@ -223,7 +234,7 @@ create table goals (
 
 ## Future — Pia AI coach (not MVP)
 
-When Pia is approved for a later release, add these entities (from Architecture §12B). **Do not create these tables in MVP.**
+When Pia is approved for a later release, add these entities under a separate approved design. **Do not create these tables in V1.**
 
 | Entity | Purpose |
 |--------|---------|

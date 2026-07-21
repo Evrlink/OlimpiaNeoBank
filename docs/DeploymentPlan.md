@@ -30,7 +30,7 @@ This document explains **where each part of Olimpia runs** (website, API, mobile
 |---------|---------|-----|
 | **Supabase** | Marketing waitlist table | Yes (live pattern today) |
 | **PostgreSQL** | Main app database | Yes — **TBD** host |
-| **Privy, Bridge, Gnosis, Aave, Resend, LI.FI, Base** | Provider sandboxes → production | Phased by BuildPlan |
+| **Privy, Dakota, configured fiat onramp, Base monitor, replacement off-ramp, Gnosis, Aave, Resend, LI.FI** | Provider sandboxes → production | Phased by BuildPlan |
 
 ### Out of MVP deployment scope
 
@@ -90,11 +90,12 @@ Mapped to [BuildPlan.md](./build/BuildPlan.md). **Pia Phase 7 is Future — not 
 | **1** | Marketing website | Vercel production + Supabase waitlist | Site live; waitlist signup stores email |
 | **2** | Auth and shell | Mobile builds to TestFlight / internal testing **TBD** | Login works against staging API |
 | **3** | Dashboard | Same staging stack | Balance and activity visible (test data OK) |
-| **4** | Add money | Bridge sandbox webhooks → staging API | Deposit flow completes in sandbox |
+| **4A–4E** | Add Funds | Dakota + fiat-onramp sandboxes and Base monitor → staging API | Three funding methods complete and reconcile |
 | **5** | Savings goals | No new hosts | Goals work on staging |
 | **6** | Send and receive | No new hosts | P2P between test users on staging |
 | **8** | Growth account | Aave on Base (sandbox) | Growth deposit/withdraw on staging |
-| **9** | Withdraw and card | Gnosis sandbox | Off-ramp + virtual card on staging |
+| **9** | Withdraw | Replacement provider sandbox | Off-ramp completes on staging |
+| **9B** | Virtual card | Gnosis sandbox | Virtual card works on staging |
 | **10** | Release | Production API + production providers + store submission | Apps submitted; marketing on production domain |
 
 ---
@@ -160,7 +161,10 @@ Replace `{api-host}` with staging then production URL:
 
 | Provider | Path |
 |----------|------|
-| Bridge | `https://{api-host}/api/v1/webhooks/bridge` |
+| Dakota | `https://{api-host}/api/v1/webhooks/dakota` **proposed; confirm provider requirements** |
+| Configured fiat onramp | Provider-specific callback/webhook **TBD** |
+| Base monitor | Provider webhook or secure backend RPC polling **TBD** |
+| Replacement off-ramp | Provider-specific webhook **TBD** |
 | Gnosis Pay | `https://{api-host}/api/v1/webhooks/gnosis-pay` |
 | Yield | `https://{api-host}/api/v1/webhooks/yield` **TBD** |
 

@@ -5,7 +5,7 @@
 **Scope:** Backend foundation for Phase 2 (Welcome → Auth → onboarding shell → empty Home → Profile)  
 **Sources:** [BuildPlan.md](../build/BuildPlan.md) · [Architecture.md](../architecture/Architecture.md) · [DatabaseSchema.md](../DatabaseSchema.md) · [EnvironmentVariables.md](../EnvironmentVariables.md) · [MobilePhase2ScreenBrief.md](../design/MobilePhase2ScreenBrief.md) · `apps/api/`
 
-**Out of scope for this document:** Mobile UI implementation, Privy theming, Pia API, Bridge funding flows, marketing waitlist migration.
+**Out of scope for this document:** Mobile UI implementation, Privy theming, Pia API, funding-provider integrations, marketing waitlist migration.
 
 **V1 alignment:** See [V1Scope.md](../product/V1Scope.md). **Savings goals** and **USDC yield** are V1 launch requirements (Build Phases 5 and 8). **Functional Pia** and **virtual card** are post-V1.
 
@@ -326,7 +326,7 @@ interface EligibilityFlags {
 **Explicit exclusions from Phase 2 responses**
 
 - Wallet address, chain name, USDC, Privy user id
-- Linked bank accounts (**Bridge.xyz — V1 money loop / Build Phases 4 & 9**; see [V1Scope.md](../product/V1Scope.md))
+- Linked bank accounts (Dakota bank funding and replacement off-ramp responsibilities require provider validation; see [V1Scope.md](../product/V1Scope.md))
 - Pia thread or coach data (Future)
 - Notification preferences (defer `PATCH /me` to later MVP phase)
 
@@ -385,7 +385,7 @@ Compute `totalDisplayUsd` in API responses; optional generated column later.
 
 ## 7. Security requirements
 
-Phase 2 auth must meet Architecture §17 minimum bar.
+Phase 2 auth must meet Architecture §15 security requirements.
 
 ### Authentication and authorization
 

@@ -6,7 +6,7 @@ Product requirements, user flows, screens, navigation, and product scope for **O
 
 | Document | Purpose |
 |----------|---------|
-| [`V1Scope.md`](./V1Scope.md) | **Founder-confirmed V1 launch scope** — money loop (Bridge on/off-ramp, send, receive), balance, activity, **savings goals**, **USDC yield**, and **Pia Coming soon** preview on Profile |
+| [`V1Scope.md`](./V1Scope.md) | **Founder-confirmed V1 launch scope** — provider-neutral Add Funds (Dakota bank transfer, Privy fiat onramp, external USDC), withdrawal provider TBD, send/receive, balance, activity, **savings goals**, **USDC yield**, and **Pia Coming soon** preview |
 | [`PRD.md`](./PRD.md) | Product requirements, MVP scope, open questions |
 | [`UserFlows.md`](./UserFlows.md) | End-to-end user flows and acceptance criteria |
 | [`ScreenInventory.md`](./ScreenInventory.md) | Screen-level spec, APIs, and components |

@@ -3,7 +3,7 @@
 **Version:** 1.3  
 **Status:** Draft for review  
 **Purpose:** Define what the user experiences — and **why it matters** — before implementation planning (`BuildPlan.md`)  
-**Source of truth:** [PRD.md](./PRD.md) (v1.10) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v1.5)  
+**Source of truth:** [PRD.md](./PRD.md) (v2.0) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v2.0)
 **Scope:** Experience definition only — no code, no build tasks, no product redesign
 
 **V1 launch (see [V1Scope.md](./V1Scope.md)):** Working **savings goals** and **USDC yield** are V1. **Pia** is visible as a static **Coming soon** card on Profile only — no Ask Pia buttons, no chat, no AI. **Virtual card** is **post-V1**.
@@ -24,7 +24,7 @@
 
 **User-facing rule:** Balances, amounts, and actions are in **dollars**. No wallets, gas, chains, tokens, or protocol names in the mobile app.
 
-**Async money flows** use four normalized states (Architecture §21): `pending` · `processing` · `completed` · `failed`.
+**Async money flows** use the normalized backend states from Architecture §9: `pending` · `processing` · `completed` · `failed` · `cancelled` · `reversed`. The UI may combine pending and processing, and only shows cancelled/reversed where a rail can emit them.
 
 **Outcome-driven framing:** Each flow includes **Why This Matters** — the benefit to the user, not what the product does. Copy connects actions to the brand mission: *More choices. More freedom.*
 
@@ -142,14 +142,14 @@ Getting started is about **opening a door** — not mastering a system. The soon
 4. *(Automatic)* Invisible wallet and Olimpia account provisioned — **no user step**
 5. See brief confirmation moment (sign-up path) or land directly on Home (sign-in path)
 6. **V1 — Pia:** No onboarding chat or introduction. User discovers Pia later as a static **Coming soon** card on **Profile** (no interaction).
-7. Choose **Add money now** or **Explore app** (sign-up path)
+7. Choose **Add Funds** or **Explore app** (sign-up path)
 8. Arrive on Home dashboard
 
 **Success state:**
 
 - Account created; user is authenticated
 - User has seen optional sign-up confirmation; Pia teased on Profile as Coming soon only
-- Home displays with balance (may be $0.00) and quick actions
+- Zero-balance Home leads with **Your account is ready** and **Add your first funds to begin using Olimpia**; `$0.00` may appear as secondary information
 - Zero crypto vocabulary shown during onboarding
 - Target: reach Home in under ~3 minutes (PRD)
 
@@ -160,7 +160,7 @@ Getting started is about **opening a door** — not mastering a system. The soon
 
 **Exit state:**
 
-- User on **Home** tab (explore path) or **Add Money** stack (fund-now path)
+- User on **Home** tab (explore path) or **Add Funds** stack (fund-now path)
 - Returning users with existing session may skip Welcome → see [Login](#3-login)
 
 ---
@@ -295,39 +295,51 @@ Quick actions (Add · Send · Receive) and recent activity sit below this encour
 
 ---
 
-## 5. Add money
+## 5. Add Funds
 
 ### Why This Matters
 
 Funding is the moment money becomes **real and usable** — and the starting point for everything she wants to build. A user adds money because she wants to:
 
-- Add funds and start growing your money
-- Begin growing savings instead of leaving them idle
+- Add funds so the account is ready to use
+- Choose a method based on what she already has and how quickly she needs it
 - Start working toward named goals — a trip, a cushion, a dream she actually cares about
 - Create more **financial flexibility** over time — to spend, save, send, or adapt when life shifts
 
 Adding money is not about "activating a product." It is about **giving future-you more options**. *More choices. More freedom.*
 
-**User goal:** Move dollars from bank or card into Olimpia balance.
+**User goal:** Add funds by bank transfer, Apple Pay/card, or existing USDC on Base.
 
-**Entry point:** Home → **Add Money** quick action.
+**Entry point:** Home → **Add Funds** quick action.
 
 **Screens involved:**
 
 | Screen | PRD # | Role |
 |--------|-------|------|
-| Add Money | 4 | Amount, funding method, review, inline async states |
+| Add Funds | 4 | Provider-neutral method selection and inline async states |
 | Home | 3 | Updated balance after success |
 
 **User actions:**
 
-1. Tap **Add Money** on Home
-2. Enter amount (USD)
-3. Select funding method (bank or card — per launch configuration)
-4. Review summary (*$X will be added to your balance*)
-5. Confirm → complete Bridge-hosted funding step (WebView or redirect)
-6. Wait through inline states: *Preparing your deposit* → *Adding money to your account*
-7. See success → updated balance on Home; new activity row
+1. Tap **Add Funds** on Home.
+2. Choose **Bank Transfer**, **Apple Pay or Card**, or **Transfer USDC**.
+3. **Bank Transfer:** enter amount; review connected bank, **Your Olimpia account**, deposit amount, $1 fee (after approval), full bank withdrawal, exact account credit, and provider-confirmed expected arrival; choose **Review Transfer** or **Review & Continue**.
+4. **Apple Pay or Card:** enter/confirm amount; continue to the supported onramp experience; review the provider's final USDC quote and fee; complete any required identity verification.
+5. **Transfer USDC:** open **Receive USDC**; view the authenticated address, QR, Copy Address, and prominent **Base network** label; follow beginner Coinbase instructions or send from another compatible wallet.
+6. Wait through normalized inline states; the backend distinguishes pending/processing and may also return failed, cancelled, or reversed.
+7. See success → updated balance on Home; new activity row.
+
+**Method chooser hierarchy:** Bank Transfer first; Apple Pay or Card second; Transfer USDC third and readily visible. Bank Transfer is marked Recommended only when confirmed as lowest-cost or most suitable. Provider names never replace these labels.
+
+**Disclosure rules:**
+
+- Never hardcode the conceptual 1–2 business-day estimate; use confirmed provider data.
+- Apple Pay/card is the speed option, but its fee is not assumed to be $1.
+- Never promise an exact USDC amount before the provider quote or guarantee three-to-five-second wallet arrival.
+- Funds become eligible for Growth only after settlement, compliance checks, and required authorization; no automatic earning claim.
+- Keep normal navigation unless user testing validates focus mode. Provider checkout/confirmation always has cancel, close, or return.
+
+> Wireframe copy and layout are conceptual requirements, not final spacing, visual design, or pixel-perfect screens.
 
 **Success state:**
 
@@ -343,7 +355,7 @@ Adding money is not about "activating a product." It is about **giving future-yo
 
 **Exit state:**
 
-- Dismiss Add Money → return to **Home** with success or neutral state
+- Dismiss Add Funds → return to **Home** with success or neutral state
 - User may chain into Send, Goals, or Growth flows
 
 ---
@@ -362,7 +374,7 @@ Withdrawal is an act of **control**, not exit. When it feels straightforward, sh
 
 **User goal:** Move available dollars from Olimpia back to a linked bank account.
 
-**Entry point:** Home or Profile → **Withdraw** (stack/modal flow — Architecture §7).
+**Entry point:** Home or Profile → **Withdraw** (stack/modal flow — Architecture §14).
 
 **Screens involved:**
 
@@ -375,7 +387,7 @@ Withdrawal is an act of **control**, not exit. When it feels straightforward, sh
 
 1. Tap **Withdraw**
 2. Enter amount
-3. Select linked bank destination (Bridge)
+3. Select linked bank destination (replacement off-ramp provider TBD)
 4. Review summary (*$X will be sent to your bank*)
 5. Confirm
 6. Wait: *Preparing your withdrawal* → *Sending money to your bank*
@@ -745,7 +757,7 @@ Supporting copy (below headline/subhead) may note that earnings are **estimated*
 - Return to **Home** or **Savings**
 - Goals do **not** auto-earn yield — growth is separate from goal envelopes
 
-**Notes:** Single yield provider for MVP (Architecture §11A). User never sees USDC, wallets, or DeFi mechanics in this flow.
+**Notes:** Aave is the intended provider behind one Growth Account (Architecture §13). User never sees provider or DeFi mechanics in this flow.
 
 ---
 
@@ -857,7 +869,7 @@ History is not about auditing every cent. It is about **peace of mind** — the 
 
 - Return to **Home**, **Card**, or **Goal Detail**
 
-**Notes:** Dedicated full transaction history screen is **deferred** (PRD P1). MVP = Home preview + Transaction Detail.
+**Notes:** Dedicated full transaction history screen is deferred (PRD §21). V1 uses Home preview + Transaction Detail.
 
 ---
 
@@ -891,7 +903,7 @@ Taking care of account basics supports the deeper outcome: **trusting** that thi
 2. View name, email, username (receive handle)
 3. Adjust notification preferences
 4. Toggle security options (e.g. biometric)
-5. View linked funding destination (bank via Bridge)
+5. View linked withdrawal destination (replacement off-ramp provider TBD)
 6. Tap **Help / Support** → support email or link
 7. View inline **Pia Coming soon** card (static — no chat, input, or navigation at V1)
 8. Tap **Sign out** → confirm → Privy logout
@@ -910,7 +922,7 @@ Taking care of account basics supports the deeper outcome: **trusting** that thi
 **Exit state:**
 
 - Remain on **Profile**, navigate to another tab, or **Welcome** after sign out
-- Withdraw entry may also live here (Architecture §7)
+- Withdraw entry may also live here (Architecture §14)
 
 ---
 
@@ -986,7 +998,7 @@ Pia is not there to impress her with expertise. She is there so money feels **ta
 - Back to **Home** or **Profile** via back navigation or tab switch
 - Conversation persisted for return visits (one thread per user, MVP)
 
-**Notes:** Anthropic API is server-side only. No Pia chat on marketing website. Functional Pia is **post-V1** — distinct from V1 **Coming soon** preview on Profile and from future **AI Financial Advisor** (PRD §17).
+**Notes:** Anthropic API is server-side only. No Pia chat on marketing website. Functional Pia and AI advisory are post-V1 (PRD §21).
 
 ---
 
@@ -1086,7 +1098,7 @@ Before `BuildPlan.md`:
 - [ ] **Your Growth** documented as future only — not a score or ranking
 - [ ] Pia AI chat agent confirmed as **post-V1** (flow 16 — not required for V1 launch)
 - [ ] Marketing website flow aligned with Brand.md section map
-- [ ] Async failure and success copy direction accepted (Architecture §21)
+- [ ] Async failure and success copy direction accepted (Architecture §9)
 - [ ] Growth account entry surface confirmed (Savings vs Home — implementation detail)
 - [ ] Withdraw entry confirmed (Home and/or Profile)
 - [ ] Base App explicitly out of scope

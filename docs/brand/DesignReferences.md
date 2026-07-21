@@ -161,7 +161,7 @@ Use a **modular scale** — editorial headings, calm body. Suggested starting po
 
 ## 3. Layout references
 
-### Marketing page rhythm (Architecture §3A · Brand.md site structure)
+### Marketing page rhythm (Brand.md site structure)
 
 Single scrolling landing page. Section order is **fixed**:
 
@@ -193,7 +193,7 @@ Trusted Infrastructure → Features → How It Works → FAQ → Final CTA → F
 ### `/learn/usdc` layout
 
 - Same nav/footer pattern as M1 where possible
-- One H1; H2 per education topic (Architecture §3A)
+- One H1; H2 per education topic
 - Narrow reading column (~680px) for long-form comfort
 - Optional CTA back to home / download at bottom
 
@@ -235,7 +235,7 @@ Five cards: **Save · Spend · Grow · Learn · Own** — icon + headline + one 
 
 Large **messaging-style** bubble/card — warm, encouraging. **Static preview only** on the marketing site (no live chat, no API calls).
 
-**V1 rule (founder confirmed):** Website and mobile app at V1 launch = **static Coming soon preview only** (Profile card + marketing `#pia`). Functional Pia AI coach is **post-V1** (Architecture §12B Future).
+**V1 rule:** Website and mobile app show a **static Coming soon preview only** (Profile card + marketing `#pia`). Functional Pia is post-V1 (PRD §21).
 
 ### Product Preview mockup (`#preview`)
 
@@ -351,7 +351,7 @@ Motion should feel **calm and supportive** — never flashy, never “crypto tra
 
 ### Marketing site (responsive web)
 
-| Requirement | Spec (Architecture §3A) |
+| Requirement | Spec |
 |-------------|---------------------------|
 | **Approach** | Mobile-first CSS |
 | **Touch targets** | ≥ 44×44px for buttons, nav, FAQ, modal |
@@ -418,7 +418,7 @@ Motion should feel **calm and supportive** — never flashy, never “crypto tra
 | Blank empty states with no CTA | UserFlows — always forward path |
 | Hidden fees / surprise crypto steps | Wrapper model — invisible infrastructure |
 | Live Pia chat on marketing site | Architecture — static preview only |
-| Keyword-stuffed SEO blocks | Architecture §3A |
+| Keyword-stuffed SEO blocks | Avoid |
 | FAQ answers only in images | SEO + accessibility failure |
 
 ### Brand personality failures (Brand.md)
@@ -443,7 +443,7 @@ Traditional banks · trading platforms · crypto exchanges · aggressive finance
 | Raspberry | `#C73E72` | Highlights, sparingly |
 | Success | `#5B8A72` | Positive states, earnings |
 
-**Accessibility:** All text combinations must meet **WCAG AA** (Architecture §3A).
+**Accessibility:** All text combinations must meet **WCAG AA**.
 
 ---
 

@@ -107,7 +107,7 @@
 | **Parent** | A2 (signup path only) |
 | **Children** | A4 · A5 |
 | **Entry points** | A2 after first registration (**skipped on login**) |
-| **Exit points** | Continue → A4 · Add money now → A5 · Explore → A4 |
+| **Exit points** | Continue → A4 · Add Funds → A5 · Explore → A4 |
 | **Back behavior** | Back → A2 (discouraged but allowed) or non-skippable forward-only per product choice at implementation |
 | **Tab behavior** | Tabs hidden until A4 reached |
 
@@ -132,7 +132,7 @@
 
 | Field | Detail |
 |-------|--------|
-| **Parent** | A4 · A3 (add money now) |
+| **Parent** | A4 · A3 (Add Funds) |
 | **Children** | None (inline states only) |
 | **Entry points** | A4 Add · A3 fund-now |
 | **Exit points** | Success/dismiss/cancel → A4 |
@@ -289,7 +289,7 @@ Single-page primary experience (M1) with one secondary route (M2) and one modal 
 [M2 /learn/usdc] ── back/home ──► [M1]
 ```
 
-**No authenticated marketing nav.** No hamburger-heavy IA (PRD §12).
+**No authenticated marketing nav.** No hamburger-heavy IA (PRD §18).
 
 ---
 
@@ -354,7 +354,7 @@ Money flows return to **tab root or parent** on success — not orphaned success
 |-------------|--------|
 | Tap different tab | Show that tab's stack (preserved) |
 | Tap same tab again | Pop to tab root |
-| Tab visible during stack | Always (except full-screen Bridge WebView — implementation detail) |
+| Tab visible during stack | Keep normal navigation available by default. Hide/reduce only during provider checkout or confirmation when user testing supports focus without trapping users |
 
 **Avoided (PRD):** 5th tab · hamburger for core destinations · Crypto/Invest tab.
 
@@ -369,9 +369,9 @@ Money flows return to **tab root or parent** on success — not orphaned success
 | **A3** Pia intro | Card/modal | A2 | A4 / A5 |
 | **CVV reveal** | Inline/modal | A14 | A14 |
 | **Send success** | Inline/modal | A7 | A4 or A9 |
-| **Bridge funding** | WebView/modal | A5 | A5 (inline state) |
+| **Privy fiat-onramp checkout** | Provider-controlled sheet/browser/modal as supported | A5 | A5 (inline state) |
 
-Sheets/modals **do not** appear in tab bar. Dismiss always returns to presenter unless success explicitly navigates (A11 → A12).
+Sheets/modals **do not** appear in tab bar. Dismiss always returns to presenter unless success explicitly navigates (A11 → A12). Every provider checkout and transaction confirmation must provide a clear cancel, close, or return path.
 
 ---
 
@@ -379,7 +379,7 @@ Sheets/modals **do not** appear in tab bar. Dismiss always returns to presenter 
 
 | Link type | MVP status | Target | Source |
 |-----------|------------|--------|--------|
-| **Receive / referral** | **Optional** (Architecture §3B) | A8 Receive or A4 Home | Universal links / app links — PRD §18 open question |
+| **Receive / referral** | **Optional** | A8 Receive or A4 Home | Universal links / app links; separate from Receive USDC funding |
 | **App Store / Play** | MVP (marketing) | Store listing → install → A1 | M1 footer / M3 |
 | **Marketing `/learn/usdc`** | MVP | M2 | HTTPS route |
 | **Email magic links** | Privy auth | A2 | Privy SDK (not custom) |
@@ -405,7 +405,7 @@ Sheets/modals **do not** appear in tab bar. Dismiss always returns to presenter 
 | **Auth/sync fail (A2)** | A2 | Retry · support | Back → A1 |
 | **Waitlist fail (M3)** | M3 | Retry · support | Close → M1 |
 
-**Global:** No dead-end error screens without **Back**, **Retry**, or **support** path (Architecture §21).
+**Global:** No dead-end error screens without **Back**, **Retry**, or **support** path (Architecture §9).
 
 ---
 
@@ -420,7 +420,7 @@ Sheets/modals **do not** appear in tab bar. Dismiss always returns to presenter 
 | **A13 Growth** | $0 in growth | Inline grow action (stay on A13); needs available balance → A5 if empty |
 | **A14 Card** | No spends yet | Card still usable; → A5 if no balance |
 | **A15 Pia** | No chat history | Suggested prompt chips (stay on A15) |
-| **A6 Withdraw** | No linked bank | → stay on A6 with link/setup copy toward Profile/Bridge |
+| **A6 Withdraw** | No linked bank | → stay on A6 with provider-neutral link/setup copy; off-ramp provider TBD |
 
 Empty states **always offer a forward path** — never a visual dead end.
 
@@ -455,7 +455,7 @@ Login path: A1 → A2 (login) → A4 (no A3).
 ### First deposit journey
 
 ```
-A4 [empty/prompt] or A3 [add money now]
+A4 [empty/prompt] or A3 [Add Funds]
   → A5 Add Money
       → amount + method + review + confirm
       → inline processing
@@ -625,7 +625,7 @@ flowchart TB
 | A5/A6/A7/A13 failed | Low | Retry + back + support |
 | A8 after share | Low | Dismiss → A4 |
 | A15 rate limit | Low | Retry message + back |
-| Bridge WebView | Med | User must complete or cancel back to A5 — implement cancel |
+| Provider checkout | Med | User must complete or cancel back to A5; do not use a hidden background WebView |
 
 **No screen lacks an exit** except transient provider WebView (A5) — requires explicit cancel.
 
@@ -678,7 +678,7 @@ flowchart TB
 ## Validation checklist
 
 - [ ] All 19 surfaces mapped with parent/child/entry/exit/back/tab
-- [ ] Bottom tab model matches PRD §12
+- [ ] Bottom tab model matches PRD §18
 - [ ] Onboarding path matches UserFlows §2–§3
 - [ ] Withdraw: Profile primary, Home secondary — confirmed
 - [ ] No separate Settings or Card Management screens
