@@ -760,54 +760,162 @@
     width: 340px;
     align-items: center;
     justify-content: center;
+    perspective: 1200px;
   }
 
-  .claude-usdc-coin-glow {
+  .claude-usdc-coin-glow-core {
     position: absolute;
-    z-index: -1;
-    border-radius: 999px;
+    left: 50%;
+    top: 50%;
+    width: 280px;
+    height: 280px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(229, 75, 122, 0.35), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .claude-usdc-coin-glow-core--anim {
+    animation: ol-coin-glow 5.2s ease-in-out infinite;
+  }
+
+  .claude-usdc-coin-float {
+    position: relative;
+    z-index: 1;
+  }
+
+  .claude-usdc-coin-float--anim {
+    animation: ol-coin-float 5.2s ease-in-out infinite;
+  }
+
+  .claude-usdc-coin-shadow {
+    position: absolute;
+    left: 50%;
+    bottom: -30px;
+    width: 190px;
+    height: 36px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(122, 43, 58, 0.5), transparent 72%);
+    filter: blur(4px);
+    z-index: 0;
     pointer-events: none;
   }
 
-  .claude-usdc-coin-glow--a {
-    left: 56%;
-    top: 57%;
-    width: 74%;
-    height: 32px;
-    transform: translateX(-50%);
-    background: rgba(122, 43, 58, 0.14);
-    filter: blur(32px);
-  }
-
-  .claude-usdc-coin-glow--b {
-    left: 50%;
-    top: 55%;
-    width: 62%;
-    height: 20px;
-    transform: translateX(-50%);
-    background: rgba(122, 43, 58, 0.22);
-    filter: blur(16px);
-  }
-
-  .claude-usdc-coin-glow--c {
-    left: 46%;
-    top: 50%;
-    width: 128px;
-    height: 128px;
-    transform: translate(-50%, -50%);
-    background: rgba(251, 221, 230, 0.18);
-    filter: blur(24px);
+  .claude-usdc-coin-shadow--anim {
+    animation: ol-coin-shadow-pulse 5.2s ease-in-out infinite;
   }
 
   .claude-usdc-coin-tilt {
-    transform: perspective(1200px) rotateY(-7deg);
+    position: relative;
+    z-index: 1;
+    transform-style: preserve-3d;
+  }
+
+  .claude-usdc-coin-spin {
+    position: relative;
     transform-origin: center;
+    transform-style: preserve-3d;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  .claude-usdc-coin-spin--anim {
+    animation: ol-coin-spin 7s ease-in-out infinite;
   }
 
   .claude-usdc-coin-svg {
     width: min(288px, 72vw);
     height: min(288px, 72vw);
     filter: drop-shadow(0 24px 48px rgba(111, 43, 70, 0.36));
+    display: block;
+  }
+
+  .claude-usdc-coin-sheen {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 60%;
+    height: 220%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    animation: ol-coin-sheen 6.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes ol-coin-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-14px);
+    }
+  }
+
+  @keyframes ol-coin-spin {
+    0% {
+      transform: perspective(1200px) rotateY(-7deg) scale(1);
+    }
+    46% {
+      transform: perspective(1200px) rotateY(370deg) scale(1);
+    }
+    50% {
+      transform: perspective(1200px) rotateY(373deg) scale(1.06);
+    }
+    54% {
+      transform: perspective(1200px) rotateY(376deg) scale(1);
+    }
+    100% {
+      transform: perspective(1200px) rotateY(353deg) scale(1);
+    }
+  }
+
+  @keyframes ol-coin-shadow-pulse {
+    0%,
+    100% {
+      transform: translateX(-50%) scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: translateX(-50%) scale(0.8);
+      opacity: 0.18;
+    }
+  }
+
+  @keyframes ol-coin-glow {
+    0%,
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.5;
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.15);
+      opacity: 0.25;
+    }
+  }
+
+  @keyframes ol-coin-sheen {
+    0% {
+      transform: translate(-130%, -130%) rotate(20deg);
+    }
+    100% {
+      transform: translate(130%, 130%) rotate(20deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .claude-usdc-coin-float--anim,
+    .claude-usdc-coin-spin--anim,
+    .claude-usdc-coin-shadow--anim,
+    .claude-usdc-coin-glow-core--anim,
+    .claude-usdc-coin-sheen {
+      animation: none !important;
+    }
+
+    .claude-usdc-coin-spin {
+      transform: perspective(1200px) rotateY(-7deg);
+    }
   }
 
   .hero-inner {
