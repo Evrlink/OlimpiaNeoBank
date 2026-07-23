@@ -163,6 +163,7 @@ function Hero() {
           <p className="claude-hero-eyebrow">
             Helping women participate in decentralized finance
           </p>
+          <p className="claude-hero-greeting">Hello ladies,</p>
           <h1 className="claude-hero-title">You belong here</h1>
           <p className="claude-hero-copy">
             DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created
@@ -380,7 +381,9 @@ function WhyUsdcSection() {
       <div className="claude-usdc-inner">
         <SectionScrollReveal className="claude-usdc-copy">
           <p className="claude-usdc-eyebrow">Money, faster and more flexible</p>
-          <h2 className="claude-usdc-title">USDC</h2>
+          <h2 className="usdc-section-heading text-h1 font-semibold text-foreground md:text-display-md">
+            USDC
+          </h2>
           <p className="claude-usdc-lead">Your dollars can do more as USDC.</p>
           <p className="claude-usdc-body">
             USDC is a stablecoin pegged 1:1 to the US dollar. Send and receive it within
@@ -536,7 +539,9 @@ function PiaSection() {
           <span aria-hidden>♥</span>
           <span>Your money bestie</span>
         </span>
-        <h2 className="claude-pia-title">Meet Pia</h2>
+        <h2 className="pia-section-heading text-h1 font-semibold text-foreground md:text-display-md">
+          Meet Pia
+        </h2>
         <p className="claude-pia-copy">
           A warm guide that explains, encourages, and cheers you on, whether you&apos;re saving
           your first $100 or planning your next big move.
@@ -586,8 +591,8 @@ function Faq() {
       style={{ "--bridge-in-opacity": "0.2" } as CSSProperties}
     >
       <div className="relative z-[2] mx-auto max-w-3xl px-6 md:px-12">
-        <SectionScrollReveal>
-          <h2 className="text-center text-h1 font-semibold text-foreground md:text-display-md">
+        <SectionScrollReveal className="claude-section-header">
+          <h2 className="claude-section-title mx-auto text-center">
             FAQ
           </h2>
         </SectionScrollReveal>
@@ -643,11 +648,11 @@ function StayTunedSection() {
     <section id="download" className="section-pad border-t border-border/40 bg-background">
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
-          <SectionScrollReveal className="max-w-md shrink-0">
-            <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
-              Stay <span className="font-display italic font-normal">tuned</span>
+          <SectionScrollReveal className="claude-section-header max-w-md shrink-0">
+            <h2 className="claude-section-title">
+              Stay <span className="italic font-normal">tuned</span>
             </h2>
-            <p className="mt-3 text-body text-ink-muted">
+            <p className="mt-4 text-body text-ink-muted">
               Be first to know when Olimpia launches.
             </p>
           </SectionScrollReveal>

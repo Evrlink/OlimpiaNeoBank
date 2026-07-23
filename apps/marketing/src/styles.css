@@ -293,12 +293,13 @@
   .claude-nav,
   .claude-nav :where(:not(.claude-nav-logo)),
   .hero-section--design,
-  .hero-section--design :where(:not(.font-claude-display):not(.claude-hero-title)) {
+  .hero-section--design :where(:not(.font-claude-display):not(.claude-hero-title):not(.claude-hero-greeting)) {
     font-family: var(--font-claude-sans) !important;
   }
 
   .claude-nav-logo,
   .claude-hero-title,
+  .claude-hero-greeting,
   .hero-section--design .font-claude-display {
     font-family: var(--font-claude-display) !important;
   }
@@ -353,7 +354,15 @@
     letter-spacing: 2.5px;
     text-transform: uppercase;
     color: #7a2b3a;
-    margin-bottom: 22px;
+    margin-bottom: 14px;
+  }
+
+  .claude-hero-greeting {
+    font-size: clamp(1.35rem, 2.4vw, 28px);
+    font-weight: 600;
+    color: #7a2b3a;
+    margin: 0 0 10px;
+    line-height: 1.2;
   }
 
   .claude-hero-title {
@@ -393,14 +402,52 @@
     font-size: 16px;
   }
 
+  /* Shared section H2 — calmer Playfair (overrides tight type-scale utilities) */
+  .claude-section-title {
+    font-family: var(--font-claude-display) !important;
+    font-size: clamp(1.75rem, 3.2vw, 2.25rem) !important;
+    font-weight: 500 !important;
+    color: #3a3028 !important;
+    line-height: 1.35 !important;
+    letter-spacing: 0.015em !important;
+  }
+
+  .claude-section-title.text-center,
+  .claude-section-title.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .claude-section-title.claude-section-title--wide {
+    max-width: 14rem;
+  }
+
+  @media (min-width: 768px) {
+    .claude-section-title.claude-section-title--wide {
+      max-width: 22rem;
+    }
+  }
+
+  .claude-section-title + p {
+    margin-top: 1.25rem !important;
+    line-height: 1.7 !important;
+    max-width: 32rem;
+    color: #6b6258;
+  }
+
+  .claude-section-header {
+    margin-bottom: 0.25rem;
+  }
+
   /* Claude redesign — Meet Pia section only */
   .claude-pia-section,
-  .claude-pia-section :where(:not(.claude-pia-title)) {
+  .claude-pia-section :where(:not(.claude-pia-title):not(.pia-section-heading)) {
     font-family: var(--font-claude-sans) !important;
   }
 
-  .claude-pia-title {
-    font-family: var(--font-claude-display) !important;
+  .claude-pia-title,
+  .pia-section-heading {
+    font-family: var(--font-sans) !important;
   }
 
   .claude-pia-section {
@@ -440,12 +487,8 @@
     margin-bottom: 16px;
   }
 
-  .claude-pia-title {
-    font-size: clamp(2rem, 4vw, 40px);
-    font-weight: 600;
-    color: #2b2b2b;
-    margin: 0 0 14px;
-    line-height: 1.15;
+  .pia-section-heading {
+    margin: 0 0 1.25rem;
   }
 
   .claude-pia-copy {
@@ -558,12 +601,13 @@
 
   /* Claude redesign — USDC section only */
   .claude-usdc-section,
-  .claude-usdc-section :where(:not(.claude-usdc-title)) {
+  .claude-usdc-section :where(:not(.claude-usdc-title):not(.usdc-section-heading)) {
     font-family: var(--font-claude-sans) !important;
   }
 
-  .claude-usdc-title {
-    font-family: var(--font-claude-display) !important;
+  .claude-usdc-title,
+  .usdc-section-heading {
+    font-family: var(--font-sans) !important;
   }
 
   .claude-usdc-section {
@@ -623,12 +667,8 @@
     margin: 0 0 12px;
   }
 
-  .claude-usdc-title {
-    font-size: clamp(2rem, 4vw, 40px);
-    font-weight: 600;
-    color: #2b2b2b;
-    margin: 0 0 14px;
-    line-height: 1.15;
+  .usdc-section-heading {
+    margin: 0 0 1rem;
   }
 
   .claude-usdc-lead {
