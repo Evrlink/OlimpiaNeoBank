@@ -273,7 +273,9 @@ function GoalsSection() {
       <div className="relative mx-auto max-w-7xl px-6 md:px-12">
         <SectionScrollReveal className="mx-auto max-w-3xl text-center">
           <h2 className="text-balance text-h1 font-semibold text-foreground md:text-display-md">
-            Your Bank Stores Money. Olimpia helps it do more.
+            Your Bank Stores Money
+            <br />
+            Olimpia helps it do more
           </h2>
           <p className="mt-6 text-body text-ink-muted">
             Earn higher yield on your savings, send money globally in seconds, enjoy rewards, learn about new financial tools with an ai guide!
