@@ -175,7 +175,7 @@ function Hero() {
               Download App
             </button>
             <a href="#features" className="claude-hero-link no-underline transition hover:opacity-80">
-              See how it works
+              How it works
               <span aria-hidden> →</span>
             </a>
           </div>
