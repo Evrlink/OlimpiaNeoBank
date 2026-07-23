@@ -52,12 +52,12 @@ function Home() {
       <Nav />
       <main>
         <Hero />
-        <TrustStrip />
         <GoalsSection />
         <EmpoweringCards />
         <PiaSection />
         <WhyUsdcSection />
         <Faq />
+        <TrustStrip />
         <StayTunedSection />
       </main>
       <SiteFooter />
@@ -269,7 +269,10 @@ function GoalsSection() {
   const toggle = (title: string) =>
     setFlipped((p) => ({ ...p, [title]: !p[title] }));
   return (
-    <section id="features" className="section-pad section-bridge-out relative overflow-hidden bg-gradient-to-b from-background via-rose-soft/18 to-background">
+    <section
+      id="features"
+      className="section-pad section-bridge-out relative overflow-hidden bg-gradient-to-b from-background via-rose-soft/18 to-background"
+    >
       <div className="relative mx-auto max-w-7xl px-6 md:px-12">
         <SectionScrollReveal className="mx-auto max-w-3xl text-center">
           <h2 className="text-balance text-h1 font-semibold text-foreground md:text-display-md">
@@ -523,10 +526,10 @@ function EmpoweringCards() {
   return (
     <section
       id="how"
-      className="section-pad section-bridge-in relative overflow-hidden bg-gradient-to-b from-rose-soft/40 via-rose/25 to-rose-soft/20 md:bg-gradient-to-br md:from-rose-soft/35 md:via-rose/30 md:to-rose-soft/45"
+      className="section-pad section-bridge-in relative overflow-hidden bg-gradient-to-b from-[#F7F4F1] via-[#F9F1F3] to-[#F7F4F1]"
     >
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(229,75,122,0.14),transparent_58%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(229,75,122,0.05),transparent_62%)]"
         aria-hidden
       />
       <div className="relative z-[2] mx-auto max-w-7xl px-6 md:px-12">
