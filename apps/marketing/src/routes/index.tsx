@@ -676,7 +676,7 @@ function StayTunedSection() {
     setError("");
     setIsSubmitting(true);
 
-    const result = await submitWaitlistEmail(trimmed);
+    const result = await submitWaitlistEmail(trimmed, "marketing_stay_tuned");
 
     setIsSubmitting(false);
 
