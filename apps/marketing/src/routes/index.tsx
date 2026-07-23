@@ -4,7 +4,6 @@ import {
   TrendingUp,
   GraduationCap,
   Heart,
-  MessageCircle,
   Plus,
   Send,
   Wallet,
@@ -539,75 +538,51 @@ function EmpoweringCards() {
   );
 }
 
-/* ---------- SECTION 6: MEET PIA ---------- */
+/* ---------- SECTION 6: MEET PIA (Claude design handoff — local preview) ---------- */
 function PiaSection() {
   return (
-    <section
-      id="pia"
-      className="section-pad section-bridge-out relative overflow-hidden bg-background"
-      style={{ "--bridge-out-opacity": "0.16" } as CSSProperties}
-    >
-      <div className="relative z-[2] mx-auto w-full max-w-3xl px-6 md:px-8">
-        <SectionScrollReveal className="flex w-full flex-col items-center text-center">
-          <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-card/95 px-4 py-1.5 text-body font-semibold text-raspberry shadow-soft ring-1 ring-raspberry/25">
-            <Heart className="h-3.5 w-3.5 shrink-0 fill-current text-raspberry" />
-            Your money bestie
-          </span>
-          <h2 className="mt-5 w-full text-h1 font-semibold text-foreground md:text-display-md">
-            Meet Pia
-          </h2>
-          <p className="mt-5 w-full text-body-lg text-ink-muted">
-            A warm guide that explains, encourages, and cheers you on, whether you&apos;re saving
-            your first $100 or planning your next big move.
-          </p>
-        </SectionScrollReveal>
+    <section id="pia" className="claude-pia-section">
+      <SectionScrollReveal className="flex w-full flex-col items-center text-center">
+        <p className="claude-pia-eyebrow">Let&apos;s talk money</p>
+        <span className="claude-pia-badge">
+          <span aria-hidden>♥</span>
+          <span>Your money bestie</span>
+        </span>
+        <h2 className="claude-pia-title">Meet Pia</h2>
+        <p className="claude-pia-copy">
+          A warm guide that explains, encourages, and cheers you on, whether you&apos;re saving
+          your first $100 or planning your next big move.
+        </p>
+      </SectionScrollReveal>
 
-        <SectionScrollReveal delay={120} className="relative mx-auto mt-10 w-full md:mt-12">
-          <div
-            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-64 w-[88%] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose/40 blur-[72px]"
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-44 w-[70%] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-full bg-raspberry/18 blur-[56px]"
-            aria-hidden
-          />
-          <div className="relative z-[1]">
-            <ChatPreview />
-          </div>
-        </SectionScrollReveal>
-
-        <SectionScrollReveal delay={200} className="mt-8 flex justify-center">
-          <button
-            type="button"
-            onClick={openWaitlist}
-            className="inline-flex h-14 min-w-[11.5rem] items-center justify-center gap-2 rounded-full bg-raspberry px-8 text-body font-semibold text-primary-foreground shadow-soft transition hover:opacity-90"
-          >
-            <MessageCircle className="h-4 w-4" />
-            Chat with Pia
-          </button>
-        </SectionScrollReveal>
-      </div>
+      <SectionScrollReveal delay={120} className="mx-auto mt-0 w-full max-w-[480px]">
+        <ChatPreview />
+      </SectionScrollReveal>
     </section>
   );
 }
 
 function ChatPreview() {
   return (
-    <div className="w-full rounded-[32px] border border-border/40 bg-card/95 p-6 shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)] backdrop-blur-sm md:p-7">
-      <div className="flex items-center gap-3 border-b border-border/50 pb-5">
-        <div className="h-11 w-11 overflow-hidden rounded-full bg-rose ring-2 ring-background">
-          <img src={piaIllo} alt="" className="h-full w-full object-cover" />
+    <div className="claude-pia-card">
+      <div className="claude-pia-card-header">
+        <div className="claude-pia-avatar" aria-hidden>
+          <img src={piaIllo} alt="" className="h-full w-full rounded-full object-cover" />
         </div>
-        <p className="text-body font-semibold text-foreground">Pia</p>
+        <p className="claude-pia-name">Pia</p>
+        <span className="claude-pia-online" aria-label="Online" />
       </div>
-      <div className="space-y-4 pt-5">
-        <div className="max-w-[88%] rounded-2xl rounded-tl-md bg-surface px-5 py-3.5 text-body text-foreground">
-          What can I help you with today?
-        </div>
-        <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-md bg-raspberry px-5 py-3.5 text-body text-background">
-          How can I start saving for a trip?
-        </div>
-      </div>
+
+      <div className="claude-pia-bubble-pia">What can I help you with today?</div>
+
+      <button type="button" tabIndex={-1} className="claude-pia-bubble-user">
+        How can I start saving for a trip?
+      </button>
+
+      <button type="button" onClick={openWaitlist} className="claude-pia-cta">
+        <span aria-hidden>💬</span>
+        <span>Chat with Pia</span>
+      </button>
     </div>
   );
 }
