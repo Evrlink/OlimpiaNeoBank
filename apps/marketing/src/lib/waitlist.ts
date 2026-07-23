@@ -1,6 +1,7 @@
+import { getSupabase } from "@/lib/supabase";
+
 const DEFAULT_SOURCE = "marketing_modal";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-/** Must match the FormSubmit destination used by /api/waitlist (founder inbox). */
 const CLIENT_NOTIFY_FALLBACK = "alexandretamara@gmail.com";
 
 export type WaitlistSubmitResult = { ok: true } | { ok: false; error: string };
@@ -22,7 +23,22 @@ async function postJson(url: string, payload: unknown) {
   } catch {
     data = null;
   }
-  return { response, text, data };
+  return { response, data };
+}
+
+async function submitViaSupabase(email: string, source: string): Promise<boolean> {
+  const supabase = getSupabase();
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase.from("waitlist_emails").insert({ email, source });
+    if (!error || error.code === "23505") return true;
+    console.error("[waitlist] supabase insert failed", error.code, error.message);
+    return false;
+  } catch (error) {
+    console.error("[waitlist] supabase unreachable", error);
+    return false;
+  }
 }
 
 async function submitViaApi(email: string, source: string): Promise<boolean> {
@@ -83,10 +99,15 @@ export async function submitWaitlistEmail(
     return { ok: false, error: "Please enter a valid email address." };
   }
 
-  // Prefer same-origin API, then browser FormSubmit (works even if API path is cached oddly).
+  // 1) Direct Supabase (preferred once project is restored)
+  if (await submitViaSupabase(trimmed, normalizedSource)) {
+    return { ok: true };
+  }
+  // 2) Same-origin API (server uses Supabase env + FormSubmit fallback)
   if (await submitViaApi(trimmed, normalizedSource)) {
     return { ok: true };
   }
+  // 3) Browser FormSubmit last resort
   if (await submitViaFormSubmit(trimmed, normalizedSource)) {
     return { ok: true };
   }

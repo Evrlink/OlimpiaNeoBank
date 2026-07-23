@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-/** Inbox that receives waitlist signup notifications (FormSubmit destination). */
 const DEFAULT_NOTIFY_EMAIL = "alexandretamara@gmail.com";
 
 type WaitlistBody = {
@@ -13,11 +13,39 @@ function json(data: unknown, status = 200) {
   return Response.json(data, { status });
 }
 
+async function insertViaSupabase(email: string, source: string): Promise<boolean> {
+  const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const key = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    console.warn("[waitlist] supabase env missing");
+    return false;
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    const supabase = createClient(url, key, {
+      global: {
+        fetch: (input, init) => fetch(input, { ...init, signal: controller.signal }),
+      },
+    });
+    const { error } = await supabase.from("waitlist_emails").insert({ email, source });
+    if (!error || error.code === "23505") return true;
+    console.error("[waitlist] supabase insert failed", error.code, error.message);
+    return false;
+  } catch (error) {
+    console.error("[waitlist] supabase unreachable", error);
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function deliverViaFormSubmit(
   signupEmail: string,
   source: string,
   requestUrl: string,
-): Promise<{ ok: boolean; detail: string }> {
+): Promise<boolean> {
   const notify =
     process.env.WAITLIST_NOTIFY_EMAIL ||
     process.env.VITE_WAITLIST_NOTIFY_EMAIL ||
@@ -58,20 +86,17 @@ async function deliverViaFormSubmit(
     } | null;
 
     if (response.ok && (body?.success === true || body?.success === "true")) {
-      return { ok: true, detail: "formsubmit" };
+      return true;
     }
-
     if (body?.message && /activate|confirm|check your email/i.test(body.message)) {
-      // First-time FormSubmit setup: activation mail is sent to notify inbox.
       console.warn("[waitlist] FormSubmit activation email sent to", notify);
-      return { ok: true, detail: "formsubmit_activation" };
+      return true;
     }
-
     console.error("[waitlist] formsubmit failed", response.status, body);
-    return { ok: false, detail: `formsubmit_${response.status}` };
+    return false;
   } catch (error) {
     console.error("[waitlist] formsubmit error", error);
-    return { ok: false, detail: "formsubmit_error" };
+    return false;
   }
 }
 
@@ -103,13 +128,15 @@ export const Route = createFileRoute("/api/waitlist")({
           JSON.stringify({ email, source, at: new Date().toISOString() }),
         );
 
-        const delivered = await deliverViaFormSubmit(email, source, request.url);
-        if (delivered.ok) {
-          return json({ ok: true, stored: delivered.detail });
+        if (await insertViaSupabase(email, source)) {
+          return json({ ok: true, stored: "supabase" });
         }
 
-        // Always accept after logging so the form never hard-fails while storage is being activated.
-        return json({ ok: true, stored: "log" });
+        if (await deliverViaFormSubmit(email, source, request.url)) {
+          return json({ ok: true, stored: "formsubmit" });
+        }
+
+        return json({ ok: false, error: "Something went wrong. Please try again." }, 502);
       },
     },
   },
