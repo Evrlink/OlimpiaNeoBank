@@ -556,6 +556,220 @@
     background: #661f2c;
   }
 
+  /* Claude redesign — USDC section only */
+  .claude-usdc-section,
+  .claude-usdc-section :where(:not(.claude-usdc-title)) {
+    font-family: var(--font-claude-sans) !important;
+  }
+
+  .claude-usdc-title {
+    font-family: var(--font-claude-display) !important;
+  }
+
+  .claude-usdc-section {
+    position: relative;
+    overflow: hidden;
+    background: #fbdde6;
+    padding: 56px 24px 64px;
+  }
+
+  @media (min-width: 768px) {
+    .claude-usdc-section {
+      padding: 72px 64px 84px;
+    }
+  }
+
+  .claude-usdc-wash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 45% 55% at 80% 40%,
+      rgba(229, 75, 122, 0.14),
+      transparent 70%
+    );
+  }
+
+  .claude-usdc-inner {
+    position: relative;
+    z-index: 1;
+    margin: 0 auto;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+  }
+
+  @media (min-width: 768px) {
+    .claude-usdc-inner {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  .claude-usdc-copy {
+    max-width: 560px;
+    width: 100%;
+  }
+
+  .claude-usdc-eyebrow {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #e54b7a;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+  }
+
+  .claude-usdc-title {
+    font-size: clamp(2rem, 4vw, 40px);
+    font-weight: 600;
+    color: #2b2b2b;
+    margin: 0 0 14px;
+    line-height: 1.15;
+  }
+
+  .claude-usdc-lead {
+    font-size: 16px;
+    font-weight: 700;
+    color: #3a3028;
+    margin: 0 0 10px;
+  }
+
+  .claude-usdc-body {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #6b6258;
+    max-width: 420px;
+    margin: 0 0 28px;
+  }
+
+  .claude-usdc-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  @media (min-width: 640px) {
+    .claude-usdc-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .claude-usdc-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 12px 28px -16px rgba(90, 30, 40, 0.16);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .claude-usdc-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px -16px rgba(90, 30, 40, 0.22);
+  }
+
+  .claude-usdc-card-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: #fbdde6;
+    color: #b8425a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+
+  .claude-usdc-card-title {
+    font-weight: 700;
+    font-size: 13px;
+    color: #2b2b2b;
+    margin: 0 0 4px;
+  }
+
+  .claude-usdc-card-body {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #7a726a;
+    margin: 0;
+  }
+
+  .claude-usdc-coin-wrap {
+    display: flex;
+    width: 100%;
+    max-width: 340px;
+    justify-content: center;
+  }
+
+  @media (min-width: 768px) {
+    .claude-usdc-coin-wrap {
+      justify-content: flex-end;
+    }
+  }
+
+  .claude-usdc-coin {
+    position: relative;
+    display: flex;
+    width: 340px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .claude-usdc-coin-glow {
+    position: absolute;
+    z-index: -1;
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  .claude-usdc-coin-glow--a {
+    left: 56%;
+    top: 57%;
+    width: 74%;
+    height: 32px;
+    transform: translateX(-50%);
+    background: rgba(122, 43, 58, 0.14);
+    filter: blur(32px);
+  }
+
+  .claude-usdc-coin-glow--b {
+    left: 50%;
+    top: 55%;
+    width: 62%;
+    height: 20px;
+    transform: translateX(-50%);
+    background: rgba(122, 43, 58, 0.22);
+    filter: blur(16px);
+  }
+
+  .claude-usdc-coin-glow--c {
+    left: 46%;
+    top: 50%;
+    width: 128px;
+    height: 128px;
+    transform: translate(-50%, -50%);
+    background: rgba(251, 221, 230, 0.18);
+    filter: blur(24px);
+  }
+
+  .claude-usdc-coin-tilt {
+    transform: perspective(1200px) rotateY(-7deg);
+    transform-origin: center;
+  }
+
+  .claude-usdc-coin-svg {
+    width: min(288px, 72vw);
+    height: min(288px, 72vw);
+    filter: drop-shadow(0 24px 48px rgba(111, 43, 70, 0.36));
+  }
+
   .hero-inner {
     gap: 1.25rem;
     padding-top: 1.5rem;
