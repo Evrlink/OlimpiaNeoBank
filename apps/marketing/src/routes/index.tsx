@@ -199,7 +199,7 @@ function Hero() {
 
 /* ---------- TRUST STRIP ---------- */
 function TrustStrip() {
-  const partners = ["Circle", "Plaid", "Visa", "MoonPay", "Stripe"];
+  const partners = ["Privy", "Coinbase", "Base", "Circle", "Moonpay"];
   const loop = [...partners, ...partners];
   return (
     <section
