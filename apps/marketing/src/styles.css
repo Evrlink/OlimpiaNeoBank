@@ -46,6 +46,9 @@
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  /* Claude hero redesign override */
+  --font-claude-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-claude-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
 
   /* Locked type scale — see .agents/skills/design-consistency */
   --text-display-xl: 4.5rem;
@@ -273,6 +276,121 @@
   .hero-section {
     background-color: var(--background);
     isolation: isolate;
+  }
+
+  /*
+   * Claude redesign font override — Playfair Display + Manrope.
+   * !important beats body Inter / Cormorant utilities on nav + hero only.
+   */
+  .font-claude-display {
+    font-family: var(--font-claude-display) !important;
+  }
+
+  .font-claude-sans {
+    font-family: var(--font-claude-sans) !important;
+  }
+
+  .claude-nav,
+  .claude-nav :where(:not(.claude-nav-logo)),
+  .hero-section--design,
+  .hero-section--design :where(:not(.font-claude-display):not(.claude-hero-title)) {
+    font-family: var(--font-claude-sans) !important;
+  }
+
+  .claude-nav-logo,
+  .claude-hero-title,
+  .hero-section--design .font-claude-display {
+    font-family: var(--font-claude-display) !important;
+  }
+
+  .hero-section--design {
+    background-color: #FBDDE6;
+  }
+
+  /* Claude redesign — nav + hero type (Playfair + Manrope) */
+  .claude-nav {
+    background: #ffffff;
+    border-bottom: 1px solid #ece4d8;
+  }
+
+  .claude-nav-logo {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #7a2b3a;
+    line-height: 1.2;
+  }
+
+  .claude-nav-link {
+    font-size: 15px;
+    font-weight: 500;
+    color: #4a4a4a;
+  }
+
+  .claude-nav-link.is-active {
+    font-weight: 600;
+    color: #2b2b2b;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #b8425a;
+  }
+
+  .claude-nav-cta {
+    background: #7a2b3a;
+    color: #fdf3f4;
+    padding: 13px 26px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .claude-nav-cta:hover {
+    background: #661f2c;
+  }
+
+  .claude-hero-eyebrow {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #7a2b3a;
+    margin-bottom: 22px;
+  }
+
+  .claude-hero-title {
+    font-size: clamp(2.5rem, 5vw, 60px);
+    line-height: 1.05;
+    font-weight: 600;
+    color: #2b2b2b;
+    margin: 0 0 22px;
+  }
+
+  .claude-hero-copy {
+    font-size: 17px;
+    line-height: 1.55;
+    font-weight: 400;
+    color: #4a4038;
+    max-width: 480px;
+    margin: 0 0 32px;
+  }
+
+  .claude-hero-cta {
+    background: #7a2b3a;
+    color: #fdf3f4;
+    border: none;
+    padding: 17px 34px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .claude-hero-cta:hover {
+    background: #661f2c;
+  }
+
+  .claude-hero-link {
+    color: #3a3028;
+    font-weight: 700;
+    font-size: 16px;
   }
 
   .hero-inner {
@@ -1163,5 +1281,226 @@
     height: 2px;
     border-radius: 999px;
     background: var(--raspberry);
+  }
+
+  /* Claude Design hero phone — handoff rebuild */
+  .hero-anim-stage {
+    position: relative;
+    flex-shrink: 0;
+    perspective: 1400px;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  @media (min-width: 768px) {
+    .hero-anim-stage {
+      padding: 70px 60px 100px;
+    }
+  }
+
+  .hero-anim-arc {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .hero-anim-arc--outer {
+    width: min(520px, 92vw);
+    height: min(520px, 92vw);
+    border: 1.5px solid rgba(229, 75, 122, 0.28);
+  }
+
+  .hero-anim-arc--inner {
+    width: min(420px, 78vw);
+    height: min(420px, 78vw);
+    border: 1px solid rgba(229, 75, 122, 0.16);
+  }
+
+  .hero-anim-shadow {
+    position: absolute;
+    left: 50%;
+    bottom: 36px;
+    width: 170px;
+    height: 34px;
+    background: radial-gradient(ellipse, rgba(80, 20, 30, 0.55), transparent 72%);
+    border-radius: 50%;
+    z-index: 1;
+    filter: blur(2px);
+    animation: ol-shadow-pulse 5.2s ease-in-out infinite;
+  }
+
+  .hero-anim-silhouette {
+    position: absolute;
+    top: 34px;
+    left: 14px;
+    width: 250px;
+    height: 508px;
+    border-radius: 36px;
+    background: #3a1420;
+    opacity: 0.3;
+    filter: blur(22px);
+    transform: rotateX(5deg) rotateY(-20deg) rotateZ(-3.5deg) translateZ(-40px);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .hero-anim-chip {
+    position: absolute;
+    top: -18px;
+    right: -26px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 10px 14px;
+    box-shadow: 0 18px 30px -8px rgba(90, 30, 40, 0.35);
+    animation: ol-chip-float 6s ease-in-out infinite;
+  }
+
+  .hero-anim-chip-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #f6e9eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+  }
+
+  .hero-anim-float {
+    animation: ol-float 5.2s ease-in-out infinite;
+    transform-style: preserve-3d;
+    position: relative;
+    z-index: 3;
+  }
+
+  .hero-anim-frame {
+    width: 250px;
+    height: 508px;
+    border-radius: 36px;
+    background: #141414;
+    padding: 11px;
+    box-shadow:
+      0 40px 80px -20px rgba(90, 30, 40, 0.45),
+      0 10px 30px rgba(0, 0, 0, 0.15),
+      inset 1px 0 0 rgba(255, 255, 255, 0.18);
+  }
+
+  .hero-anim-screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 26px;
+    background: #fff;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .hero-anim-notch {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 84px;
+    height: 20px;
+    background: #141414;
+    border-radius: 12px;
+    z-index: 5;
+  }
+
+  .hero-anim-plus {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #7a2b3a;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    margin-top: -20px;
+    box-shadow: 0 8px 16px rgba(122, 43, 58, 0.4);
+  }
+
+  .hero-anim-sheen {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: 26px;
+  }
+
+  .hero-anim-sheen-band {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 60%;
+    height: 220%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+    animation: ol-sheen-sweep 6.5s ease-in-out infinite;
+  }
+
+  @keyframes ol-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-16px);
+    }
+  }
+
+  @keyframes ol-shadow-pulse {
+    0%,
+    100% {
+      transform: translateX(-50%) scale(1);
+      opacity: 0.32;
+    }
+    50% {
+      transform: translateX(-50%) scale(0.88);
+      opacity: 0.22;
+    }
+  }
+
+  @keyframes ol-chip-float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-4deg);
+    }
+    50% {
+      transform: translateY(-12px) rotate(-2deg);
+    }
+  }
+
+  @keyframes ol-sheen-sweep {
+    0% {
+      transform: translate(-120%, -120%) rotate(20deg);
+    }
+    100% {
+      transform: translate(120%, 120%) rotate(20deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-anim-float,
+    .hero-anim-shadow,
+    .hero-anim-chip,
+    .hero-anim-sheen-band {
+      animation: none !important;
+    }
+
+    .hero-anim-chip {
+      transform: rotate(-4deg);
+    }
+
+    .hero-anim-shadow {
+      transform: translateX(-50%);
+      opacity: 0.28;
+    }
   }
 }

@@ -12,11 +12,11 @@ import {
   LayoutGrid,
   Fuel,
 } from "lucide-react";
-import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
 import { SectionScrollReveal, ScrollReveal } from "@/components/scroll-reveal";
-import { HeroPaperBackground } from "@/components/hero-paper-background";
-import { HeroPhoneMockup } from "@/components/hero-phone-mockup";
+import { HeroDesignBackground } from "@/components/hero-design-background";
+import { HeroAnimatedPhone } from "@/components/hero-animated-phone";
 import {
   FAQ_ITEMS,
   OLIMPIA_DEFINITION,
@@ -88,30 +88,26 @@ function Nav() {
   const activeSection = useActiveSection(NAV_SECTIONS);
 
   return (
-    <header className="sticky top-0 z-40 bg-background">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-12">
-        <Link to="/" className="font-display font-medium text-[1.58125rem] leading-[1.3] tracking-tight text-berry">
+    <header className="claude-nav sticky top-0 z-40">
+      <div className="mx-auto flex items-center justify-between px-6 py-[22px] md:px-16">
+        <Link to="/" className="claude-nav-logo">
           Olimpia
         </Link>
-        <nav className="hidden items-center gap-8 text-body-sm font-medium text-foreground/90 md:flex">
+        <nav className="hidden items-center gap-10 md:flex">
           {navLinks.map(({ href, label, id }) => (
             <a
               key={id}
               href={href}
               className={cn(
-                "relative transition hover:text-berry",
-                activeSection === id && "nav-link-active font-semibold text-berry",
+                "claude-nav-link no-underline transition hover:text-[#2b2b2b]",
+                activeSection === id && "is-active",
               )}
             >
               {label}
             </a>
           ))}
         </nav>
-        <button
-          type="button"
-          onClick={openWaitlist}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-berry px-4 text-body-sm font-semibold text-white transition hover:opacity-90"
-        >
+        <button type="button" onClick={openWaitlist} className="claude-nav-cta cursor-pointer border-0">
           Download App
         </button>
       </div>
@@ -121,42 +117,77 @@ function Nav() {
 
 /* ---------- HERO ---------- */
 function Hero() {
+  const [rotX, setRotX] = useState(0);
+  const [rotY, setRotY] = useState(0);
+  const [scrollY, setScrollY] = useState(0);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduceMotion(mq.matches);
+    const onChange = () => setReduceMotion(mq.matches);
+    mq.addEventListener("change", onChange);
+
+    const onScroll = () => setScrollY(window.scrollY || 0);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      mq.removeEventListener("change", onChange);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  const handleMouseMove = (e: MouseEvent<HTMLElement>) => {
+    if (reduceMotion) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    setRotY(px * 18);
+    setRotX(-py * 14);
+  };
+
+  const handleMouseLeave = () => {
+    setRotX(0);
+    setRotY(0);
+  };
+
   return (
-    <section className="hero-section relative isolate overflow-x-clip">
-      <HeroPaperBackground />
-      <div className="hero-inner relative z-[1] mx-auto grid max-w-7xl items-center px-6 md:grid-cols-2 md:items-center md:px-12">
-        <div className="max-w-xl lg:max-w-2xl">
-          <p className="hero-eyebrow">
-            Helping women participate in Decentralized Finance
+    <section
+      className="hero-section hero-section--design relative isolate overflow-x-clip"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <HeroDesignBackground />
+      <div className="hero-inner relative z-[1] mx-auto grid max-w-7xl items-center px-6 md:grid-cols-2 md:items-center md:gap-8 md:px-16 md:pb-16 md:pt-14">
+        <div className="relative z-[3] max-w-xl lg:max-w-[600px]">
+          <p className="claude-hero-eyebrow">
+            Helping women participate in decentralized finance
           </p>
-          <h1 className="mt-6 text-h1 font-semibold tracking-tight text-berry md:text-display-md lg:text-display-lg">
-            You belong here
-          </h1>
-          <p className="mt-4 max-w-sm hero-copy md:max-w-md">
-            DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created to help women participate in decentralized finance. Set savings goals, explore optional yield on USDC, and learn with Pia, your AI money bestie.
+          <h1 className="claude-hero-title">You belong here</h1>
+          <p className="claude-hero-copy">
+            DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created
+            to help women participate in decentralized finance. Set savings goals,
+            explore optional yield on USDC, and learn with Pia, your money bestie.
           </p>
-          <div className="mt-6 flex flex-wrap items-center gap-4 md:mt-7 md:gap-5">
-            <button
-              type="button"
-              onClick={openWaitlist}
-              className="inline-flex h-14 min-w-[10.5rem] items-center justify-center gap-2 rounded-full bg-berry px-7 text-body-sm font-semibold text-white shadow-soft transition hover:opacity-90 md:h-[3.75rem] md:min-w-[11rem] md:px-8 md:text-body"
-            >
+          <div className="flex flex-wrap items-center gap-7">
+            <button type="button" onClick={openWaitlist} className="claude-hero-cta cursor-pointer">
               Download App
             </button>
-            <a
-              href="#features"
-              className="inline-flex items-center gap-1 text-body-sm font-semibold text-berry transition hover:opacity-80 md:text-body"
-            >
+            <a href="#features" className="claude-hero-link no-underline transition hover:opacity-80">
               See how it works
-              <span aria-hidden>→</span>
+              <span aria-hidden> →</span>
             </a>
           </div>
         </div>
 
-        <div className="hero-phone-stage relative z-20 flex justify-center md:justify-end">
-          <div className="hero-phone-wrap relative">
-            <HeroPhoneMockup />
-          </div>
+        <div className="relative z-[3] flex justify-center md:justify-end">
+          <HeroAnimatedPhone
+            rotX={rotX}
+            rotY={rotY}
+            scrollY={reduceMotion ? 0 : scrollY}
+            reduceMotion={reduceMotion}
+          />
         </div>
       </div>
     </section>
