@@ -273,10 +273,10 @@ function GoalsSection() {
       <div className="relative mx-auto max-w-7xl px-6 md:px-12">
         <SectionScrollReveal className="mx-auto max-w-3xl text-center">
           <h2 className="text-balance text-h1 font-semibold text-foreground md:text-display-md">
-            A financial ecosystem, offering more opportunity than your bank
+            Your Bank Stores Money. Olimpia helps it do more.
           </h2>
           <p className="mt-6 text-body text-ink-muted">
-            Stablecoin payments, virtual debit card, yield on USDC, and learning tools to support your growth.
+            Earn higher yield on your savings, send money globally in seconds, enjoy rewards, learn about new financial tools with an ai guide!
           </p>
         </SectionScrollReveal>
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:mt-16 lg:grid-cols-4 lg:gap-7">
