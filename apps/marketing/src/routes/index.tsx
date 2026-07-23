@@ -349,66 +349,57 @@ function GoalsSection() {
 }
 
 
-/* ---------- SECTION 3: WHY USDC ---------- */
+/* ---------- SECTION 3: WHY USDC (Claude design handoff — local preview) ---------- */
 function WhyUsdcSection() {
   const benefits = [
     {
+      icon: "1:1",
       title: "Pegged one-to-one to USD",
       body: "One USDC is designed to equal one U.S. dollar.",
     },
     {
+      icon: "⏱",
       title: "Move money 24/7",
       body: "Send and receive globally within seconds, anytime.",
     },
     {
+      icon: "📈",
       title: "Optional yield through DeFi",
       body: "Access optional yield opportunities through DeFi.",
     },
     {
+      icon: "💳",
       title: "Digital dollar you can use online",
       body: "Save, send, and spend in the digital economy.",
     },
   ];
 
   return (
-    <section
-      className="section-pad section-bridge-in section-bridge-out relative overflow-hidden bg-gradient-to-br from-background via-rose-soft/12 to-rose-soft/28 md:bg-gradient-to-r md:from-background md:via-rose-soft/12 md:to-rose-soft/28"
-      style={
-        {
-          "--bridge-in-opacity": "0.28",
-          "--bridge-out-opacity": "0.22",
-        } as CSSProperties
-      }
-    >
-      <div className="relative z-[2] mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-16 md:px-12 lg:gap-20">
-        <SectionScrollReveal className="max-w-xl">
-          <p className="marketing-eyebrow">
-            Money, faster and more flexible
-          </p>
-          <h2 className="mt-4 text-h1 font-semibold text-foreground md:text-display-md">
-            USDC
-          </h2>
-          <p className="mt-6 text-body font-medium text-foreground">
-            Your dollars can do more as USDC.
-          </p>
-          <p className="mt-4 text-body text-ink-muted">
+    <section className="claude-usdc-section">
+      <div className="claude-usdc-wash" aria-hidden />
+      <div className="claude-usdc-inner">
+        <SectionScrollReveal className="claude-usdc-copy">
+          <p className="claude-usdc-eyebrow">Money, faster and more flexible</p>
+          <h2 className="claude-usdc-title">USDC</h2>
+          <p className="claude-usdc-lead">Your dollars can do more as USDC.</p>
+          <p className="claude-usdc-body">
             USDC is a stablecoin pegged 1:1 to the US dollar. Send and receive it within
             seconds, every day, 24/7.
           </p>
-          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {benefits.map(({ title, body }) => (
-              <div
-                key={title}
-                className="rounded-3xl border border-border/40 bg-card p-4 shadow-soft"
-              >
-                <h3 className="text-body-sm font-semibold text-foreground">{title}</h3>
-                <p className="mt-1.5 text-body-sm text-ink-muted">{body}</p>
+          <div className="claude-usdc-grid">
+            {benefits.map(({ icon, title, body }) => (
+              <div key={title} className="claude-usdc-card">
+                <div className="claude-usdc-card-icon" aria-hidden>
+                  {icon}
+                </div>
+                <h3 className="claude-usdc-card-title">{title}</h3>
+                <p className="claude-usdc-card-body">{body}</p>
               </div>
             ))}
           </div>
         </SectionScrollReveal>
 
-        <SectionScrollReveal delay={160} className="relative flex justify-center md:justify-end">
+        <SectionScrollReveal delay={160} className="claude-usdc-coin-wrap">
           <UsdcProductPreview />
         </SectionScrollReveal>
       </div>
@@ -419,38 +410,35 @@ function WhyUsdcSection() {
 /* Official USDC symbol geometry with Olimpia raspberry fill. */
 function UsdcProductPreview() {
   return (
-    <div
-      className="relative flex w-[340px] items-center justify-center md:w-[360px]"
-      aria-hidden
-    >
-      <div className="pointer-events-none absolute left-[56%] top-[57%] -z-10 h-8 w-[74%] -translate-x-1/2 rounded-full bg-berry/14 blur-[32px]" />
-      <div className="pointer-events-none absolute left-1/2 top-[55%] -z-10 h-5 w-[62%] -translate-x-1/2 rounded-full bg-berry/22 blur-lg" />
-      <div className="pointer-events-none absolute left-[46%] top-1/2 -z-10 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose/18 blur-2xl" />
-      <div className="usdc-coin-tilt relative">
+    <div className="claude-usdc-coin" aria-hidden>
+      <div className="claude-usdc-coin-glow claude-usdc-coin-glow--a" />
+      <div className="claude-usdc-coin-glow claude-usdc-coin-glow--b" />
+      <div className="claude-usdc-coin-glow claude-usdc-coin-glow--c" />
+      <div className="claude-usdc-coin-tilt">
         <svg
           viewBox="0 0 96 96"
           fill="none"
-          className="relative h-72 w-72 drop-shadow-[0_24px_48px_-14px_rgba(111,43,70,0.36)] md:h-80 md:w-80"
+          className="claude-usdc-coin-svg"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden
         >
-        <path
-          d="M48 95C73.9574 95 95 73.9574 95 48C95 22.0426 73.9574 1 48 1C22.0426 1 1 22.0426 1 48C1 73.9574 22.0426 95 48 95Z"
-          fill="#E54B7A"
-        />
-        <path
-          d="M56.4609 13.7778V19.8291C68.5341 23.4716 77.3759 34.6928 77.3759 47.9997C77.3759 61.3066 68.5341 72.5278 56.4609 76.1703V82.2216C71.8534 78.4616 83.2509 64.5672 83.2509 47.9997C83.2509 31.4322 71.8534 17.5378 56.4609 13.7778Z"
-          fill="white"
-        />
-        <path
-          d="M18.625 47.9997C18.625 34.6928 27.4669 23.4716 39.54 19.8291V13.7778C24.1475 17.5378 12.75 31.4322 12.75 47.9997C12.75 64.5672 24.1475 78.4616 39.54 82.2216V76.1703C27.4669 72.5572 18.625 61.3066 18.625 47.9997Z"
-          fill="white"
-        />
-        <path
-          d="M60.6319 54.5506C60.6319 42.5362 41.8025 47.4713 41.8025 40.8325C41.8025 38.4531 43.7119 36.9256 47.3544 36.9256C51.7019 36.9256 53.2 39.0406 53.67 41.89H59.6625C59.1279 36.5426 56.0588 33.1662 50.9382 32.1604V27.4375H45.0632V31.9918C39.4534 32.7062 35.9275 35.973 35.9275 40.8325C35.9275 52.9056 54.7863 48.3819 54.7863 54.9031C54.7863 57.3706 52.4069 59.0156 48.3825 59.0156C43.1244 59.0156 41.3913 56.695 40.745 53.4931H34.8994C35.2781 59.3502 38.8897 63.0159 45.0632 63.9307V68.5625H50.9382V63.9923C56.9633 63.2139 60.6319 59.7089 60.6319 54.5506Z"
-          fill="white"
-        />
-      </svg>
+          <path
+            d="M48 95C73.9574 95 95 73.9574 95 48C95 22.0426 73.9574 1 48 1C22.0426 1 1 22.0426 1 48C1 73.9574 22.0426 95 48 95Z"
+            fill="#E54B7A"
+          />
+          <path
+            d="M56.4609 13.7778V19.8291C68.5341 23.4716 77.3759 34.6928 77.3759 47.9997C77.3759 61.3066 68.5341 72.5278 56.4609 76.1703V82.2216C71.8534 78.4616 83.2509 64.5672 83.2509 47.9997C83.2509 31.4322 71.8534 17.5378 56.4609 13.7778Z"
+            fill="white"
+          />
+          <path
+            d="M18.625 47.9997C18.625 34.6928 27.4669 23.4716 39.54 19.8291V13.7778C24.1475 17.5378 12.75 31.4322 12.75 47.9997C12.75 64.5672 24.1475 78.4616 39.54 82.2216V76.1703C27.4669 72.5572 18.625 61.3066 18.625 47.9997Z"
+            fill="white"
+          />
+          <path
+            d="M60.6319 54.5506C60.6319 42.5362 41.8025 47.4713 41.8025 40.8325C41.8025 38.4531 43.7119 36.9256 47.3544 36.9256C51.7019 36.9256 53.2 39.0406 53.67 41.89H59.6625C59.1279 36.5426 56.0588 33.1662 50.9382 32.1604V27.4375H45.0632V31.9918C39.4534 32.7062 35.9275 35.973 35.9275 40.8325C35.9275 52.9056 54.7863 48.3819 54.7863 54.9031C54.7863 57.3706 52.4069 59.0156 48.3825 59.0156C43.1244 59.0156 41.3913 56.695 40.745 53.4931H34.8994C35.2781 59.3502 38.8897 63.0159 45.0632 63.9307V68.5625H50.9382V63.9923C56.9633 63.2139 60.6319 59.7089 60.6319 54.5506Z"
+            fill="white"
+          />
+        </svg>
       </div>
     </div>
   );
