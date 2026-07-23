@@ -22,6 +22,7 @@ import { Route as AppPreviewCardRouteImport } from './routes/app-preview/card'
 import { Route as AppPreviewAuthRouteImport } from './routes/app-preview/auth'
 import { Route as AppPreviewAddMoneyRouteImport } from './routes/app-preview/add-money'
 import { Route as AppPreviewAddFundsRouteImport } from './routes/app-preview/add-funds'
+import { Route as ApiWaitlistRouteImport } from './routes/api/waitlist'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -88,11 +89,17 @@ const AppPreviewAddFundsRoute = AppPreviewAddFundsRouteImport.update({
   path: '/app-preview/add-funds',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWaitlistRoute = ApiWaitlistRouteImport.update({
+  id: '/api/waitlist',
+  path: '/api/waitlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/api/waitlist': typeof ApiWaitlistRoute
   '/app-preview/add-funds': typeof AppPreviewAddFundsRoute
   '/app-preview/add-money': typeof AppPreviewAddMoneyRoute
   '/app-preview/auth': typeof AppPreviewAuthRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/api/waitlist': typeof ApiWaitlistRoute
   '/app-preview/add-funds': typeof AppPreviewAddFundsRoute
   '/app-preview/add-money': typeof AppPreviewAddMoneyRoute
   '/app-preview/auth': typeof AppPreviewAuthRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/api/waitlist': typeof ApiWaitlistRoute
   '/app-preview/add-funds': typeof AppPreviewAddFundsRoute
   '/app-preview/add-money': typeof AppPreviewAddMoneyRoute
   '/app-preview/auth': typeof AppPreviewAuthRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/terms'
+    | '/api/waitlist'
     | '/app-preview/add-funds'
     | '/app-preview/add-money'
     | '/app-preview/auth'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/terms'
+    | '/api/waitlist'
     | '/app-preview/add-funds'
     | '/app-preview/add-money'
     | '/app-preview/auth'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/'
     | '/privacy'
     | '/terms'
+    | '/api/waitlist'
     | '/app-preview/add-funds'
     | '/app-preview/add-money'
     | '/app-preview/auth'
@@ -187,6 +199,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  ApiWaitlistRoute: typeof ApiWaitlistRoute
   AppPreviewAddFundsRoute: typeof AppPreviewAddFundsRoute
   AppPreviewAddMoneyRoute: typeof AppPreviewAddMoneyRoute
   AppPreviewAuthRoute: typeof AppPreviewAuthRoute
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPreviewAddFundsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/waitlist': {
+      id: '/api/waitlist'
+      path: '/api/waitlist'
+      fullPath: '/api/waitlist'
+      preLoaderRoute: typeof ApiWaitlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -299,6 +319,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  ApiWaitlistRoute: ApiWaitlistRoute,
   AppPreviewAddFundsRoute: AppPreviewAddFundsRoute,
   AppPreviewAddMoneyRoute: AppPreviewAddMoneyRoute,
   AppPreviewAuthRoute: AppPreviewAuthRoute,
