@@ -411,7 +411,7 @@ function EmpoweringCards() {
                 onMouseLeave={() => tilt.handleLeave(index)}
               >
                 <div
-                  className="claude-how-spotlight"
+                  className="claude-how-card-spotlight"
                   style={tilt.getSpotlightStyle(index)}
                   aria-hidden
                 />

@@ -552,7 +552,7 @@
       box-shadow 0.2s ease;
   }
 
-  .claude-how-spotlight {
+  .claude-how-card-spotlight {
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -615,7 +615,7 @@
     }
   }
 
-  /* Features section — handoff layout */
+  /* Features section — zip handoff: soft linear wash only (no mesh) */
   .features-section {
     position: relative;
     overflow: hidden;
@@ -1110,7 +1110,7 @@
   .claude-usdc-section {
     position: relative;
     overflow: hidden;
-    background: #faf6ef;
+    background: #fbdde6;
     padding: 72px 24px 80px;
   }
 
@@ -1125,9 +1125,9 @@
     inset: 0;
     pointer-events: none;
     background: radial-gradient(
-      ellipse 45% 50% at 82% 50%,
-      rgba(229, 75, 122, 0.12),
-      transparent 72%
+      ellipse 45% 55% at 80% 40%,
+      rgba(229, 75, 122, 0.14),
+      transparent 70%
     );
   }
 
