@@ -24,6 +24,7 @@ import {
 import { SiteFooter } from "@/components/site-footer";
 import { submitWaitlistEmail } from "@/lib/waitlist";
 import { useActiveSection } from "@/hooks/use-active-section";
+import { useCardPointerTilt } from "@/hooks/use-card-pointer-tilt";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -259,6 +260,7 @@ function GoalsSection() {
     },
   ];
   const [flipped, setFlipped] = useState<Record<string, boolean>>({});
+  const tilt = useCardPointerTilt();
   const toggle = (title: string) =>
     setFlipped((p) => ({ ...p, [title]: !p[title] }));
   return (
@@ -283,7 +285,14 @@ function GoalsSection() {
             const isFlipped = !!flipped[title];
             return (
               <ScrollReveal key={title} delay={index * 120} className="h-full">
-                <div className="feature-card-shell group relative h-full perspective-1000">
+                <div
+                  className="feature-card-shell group relative h-full"
+                  style={isFlipped ? undefined : tilt.getTiltStyle(title)}
+                  onMouseMove={(e) => {
+                    if (!isFlipped) tilt.handleMove(title, e);
+                  }}
+                  onMouseLeave={() => tilt.handleLeave(title)}
+                >
                   <div
                     className="pointer-events-none invisible flex flex-col px-8 pb-8 pt-10 text-left"
                     aria-hidden="true"
@@ -309,6 +318,11 @@ function GoalsSection() {
                       aria-label={`${title}. Learn more`}
                       className="goal-card-face feature-card-face backface-hidden absolute inset-0 flex h-full w-full cursor-pointer flex-col px-8 pb-8 pt-10 text-left font-inherit text-inherit"
                     >
+                      <div
+                        className="feature-card-spotlight"
+                        style={tilt.getSpotlightStyle(title)}
+                        aria-hidden
+                      />
                       <div className="feature-card-icon" aria-hidden>
                         <Icon className="h-6 w-6" strokeWidth={2} />
                       </div>
@@ -342,81 +356,72 @@ function GoalsSection() {
 }
 
 
-/* ---------- THE UPSIDE IS YOURS ---------- */
+/* ---------- HOW IT WORKS (Claude design handoff) ---------- */
 function EmpoweringCards() {
   const items = [
     {
       icon: Wallet,
       t: "You stay in charge",
-      b: "Your wallet belongs to you. When you sign up, Olimpia creates a secure digital wallet only you control. Olimpia can't access, freeze, or move your funds.",
+      b: "Your wallet belongs to you. Olimpia can never access, freeze, or move your funds.",
     },
     {
       icon: Layers,
-      t: "Complexity Removed",
-      b: "Olimpia makes decentralized finance simple. Trusted protocols power saving, spending, and optional USDC yield. No blockchain expertise required.",
+      t: "Complexity removed",
+      b: "Trusted protocols power saving, spending, and optional yield, with no blockchain expertise required.",
     },
     {
       icon: LayoutGrid,
       t: "Everything in one place",
-      b: "Save, spend, and explore optional yield from a single app. No juggling wallets, exchanges, or extra tools.",
+      b: "Save, spend, and explore optional yield, all from a single app.",
     },
     {
       icon: Fuel,
       t: "We cover network fees",
-      b: "For supported transactions, Olimpia covers network fees so you don't have to. The blockchain stays in the background.",
+      b: "Olimpia covers network fees on supported transactions, so you don't have to.",
     },
   ];
 
-  const sizeTemplate = items.reduce((longest, item) =>
-    item.b.length > longest.b.length ? item : longest,
-  );
+  const tilt = useCardPointerTilt();
 
   return (
-    <section
-      id="how"
-      className="section-pad section-bridge-in relative overflow-hidden bg-gradient-to-b from-[#F7F4F1] via-[#F9F1F3] to-[#F7F4F1]"
-    >
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(229,75,122,0.05),transparent_62%)]"
-        aria-hidden
-      />
-      <div className="relative z-[2] mx-auto max-w-7xl px-6 md:px-12">
-        <SectionScrollReveal className="mx-auto max-w-2xl text-center">
-          <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
+    <section id="how" className="claude-how-section">
+      <div className="claude-how-inner">
+        <SectionScrollReveal className="claude-how-header">
+          <p className="claude-how-eyebrow">How It Works</p>
+          <h2 className="how-section-heading text-h1 font-semibold text-foreground md:text-display-md">
             The upside is yours
           </h2>
-          <p className="mt-6 text-body text-ink-muted">
+          <p className="claude-how-lead">
             More growth, less complexity, with you in charge. Simple tools that give you easy access
             to decentralized finance (DeFi).
           </p>
         </SectionScrollReveal>
-        <div className="mx-auto mt-12 grid max-w-5xl auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-14 lg:gap-8">
+
+        <div className="claude-how-grid">
           {items.map(({ icon: Icon, t, b }, index) => (
-            <ScrollReveal key={t} delay={index * 40} className="h-full">
-              <div className="group relative h-full">
+            <div
+              key={t}
+              className={cn(!tilt.reduceMotion && "claude-how-card-enter")}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div
+                className="claude-how-card"
+                style={tilt.getTiltStyle(index)}
+                onMouseMove={(e) => tilt.handleMove(index, e)}
+                onMouseLeave={() => tilt.handleLeave(index)}
+              >
                 <div
-                  className="pointer-events-none invisible flex flex-col p-9 text-left lg:p-10"
-                  aria-hidden="true"
-                >
-                  <div className="h-16 w-16 shrink-0" />
-                  <div className="mt-7 h-[4.5rem] w-full shrink-0">
-                    <h3 className="text-h3 font-semibold text-foreground line-clamp-2">
-                      {sizeTemplate.t}
-                    </h3>
-                  </div>
-                  <p className="mt-3 text-body text-ink-muted">{sizeTemplate.b}</p>
+                  className="claude-how-spotlight"
+                  style={tilt.getSpotlightStyle(index)}
+                  aria-hidden
+                />
+                <div className="claude-how-icon" aria-hidden>
+                  <Icon className="h-[22px] w-[22px]" strokeWidth={2} />
                 </div>
-                <div className="absolute inset-0 flex flex-col rounded-[32px] border border-border/30 bg-gradient-to-br from-card via-card to-rose-soft/35 p-9 text-left shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)] transition-[transform,box-shadow] duration-300 ease-out motion-reduce:transition-none lg:p-10 md:group-hover:-translate-y-1.5 md:group-hover:shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)] motion-reduce:hover:transform-none">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-card ring-2 ring-raspberry/25 shadow-soft">
-                    <Icon className="h-7 w-7 text-berry" strokeWidth={1.5} />
-                  </div>
-                  <div className="mt-7 flex h-[4.5rem] w-full shrink-0 items-start">
-                    <h3 className="text-h3 font-semibold text-foreground line-clamp-2">{t}</h3>
-                  </div>
-                  <p className="mt-3 text-body text-ink-muted">{b}</p>
-                </div>
+                <h3 className="claude-how-card-title">{t}</h3>
+                <p className="claude-how-card-body">{b}</p>
               </div>
-            </ScrollReveal>
+            </div>
           ))}
         </div>
       </div>
