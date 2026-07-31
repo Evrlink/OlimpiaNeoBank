@@ -444,7 +444,7 @@ function UsdcVsUsdSection() {
             Your money deserves to do more than sit in a bank.
           </h2>
           <p className="claude-compare-lead">
-            Put your money to work with digital dollars (USDC).
+            Put your money to work with digital currency (USDC).
           </p>
           <p className="claude-compare-body">
             Traditional banks store your money. USDC helps it work for you, earning yield, moving
@@ -462,7 +462,7 @@ function UsdcVsUsdSection() {
                 Traditional Bank Account (USD)
               </div>
               <div className="claude-compare-col-usdc" role="columnheader">
-                Digital Dollars (USDC)
+                Digital Currency (USDC)
               </div>
             </div>
             {compareRows.map(({ bank, usdc }, index) => (
@@ -499,10 +499,10 @@ function WhyUsdcSection() {
             <p className="claude-usdc-eyebrow">Why USDC matters</p>
           </div>
           <h2 className="usdc-section-heading text-h1 font-semibold text-foreground md:text-display-md">
-            Your dollars can do more as digital dollars
+            Your dollars can do more as digital currency
           </h2>
           <p className="claude-usdc-body">
-            USDC is a digital dollar always pegged one-to-one with USD. The only difference is
+            USDC is a digital currency always pegged one-to-one with USD. The only difference is
             speed, flexibility, low transfer costs, and earning yield on what you hold.
           </p>
           <div className="claude-usdc-callout">
@@ -512,7 +512,7 @@ function WhyUsdcSection() {
             <div>
               <h3 className="claude-usdc-callout-title">Pegged one-to-one to USD</h3>
               <p className="claude-usdc-callout-body">
-                USDC is a digital dollar designed to always be worth one U.S. dollar. It moves
+                USDC is a digital currency designed to always be worth one U.S. dollar. It moves
                 globally in seconds, for pennies, 24/7, while giving your balance the opportunity
                 to earn yield. Olimpia makes it simple to use, so you can enjoy the benefits
                 without needing to understand the technology behind it.

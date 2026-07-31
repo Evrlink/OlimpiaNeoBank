@@ -25,7 +25,7 @@ export const FAQ_ITEMS = [
   },
   {
     q: "What is USDC?",
-    a: "USDC is a digital dollar, also known as a stablecoin. One USDC is designed to maintain a value equal to one U.S. dollar, making it easier to save, spend, send money, and earn yield without the price swings associated with many cryptocurrencies.",
+    a: "USDC is a digital currency, also known as a stablecoin. One USDC is designed to maintain a value equal to one U.S. dollar, making it easier to save, spend, send money, and earn yield without the price swings associated with many cryptocurrencies.",
   },
   {
     q: "What is a stablecoin?",
@@ -53,7 +53,7 @@ export const FAQ_ITEMS = [
   },
   {
     q: "Do I need to verify my identity?",
-    a: "In some cases, yes. Identity verification may be required when connecting traditional banking services or moving money between your bank account and digital dollars. This helps our partners meet financial regulations and keep the platform secure.",
+    a: "In some cases, yes. Identity verification may be required when connecting traditional banking services or moving money between your bank account and digital currency. This helps our partners meet financial regulations and keep the platform secure.",
   },
   {
     q: "What are the risks?",
