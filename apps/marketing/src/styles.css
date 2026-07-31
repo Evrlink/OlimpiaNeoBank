@@ -403,9 +403,9 @@
     font-size: 16px;
   }
 
-  /* Shared section H2 — brand Inter scale */
+  /* Shared section H2 — Playfair, sizes unchanged */
   .claude-section-title {
-    font-family: var(--font-sans) !important;
+    font-family: var(--font-claude-display) !important;
     font-size: clamp(1.75rem, 3.2vw, 2.25rem) !important;
     font-weight: 600 !important;
     color: #3a3028 !important;
@@ -440,7 +440,14 @@
     margin-bottom: 0.25rem;
   }
 
-  /* Features section — handoff layout, brand fonts */
+  /* Section headlines — Playfair Display; keep existing size utilities */
+  .features-section h2,
+  .trust-strip h2,
+  #how h2 {
+    font-family: var(--font-claude-display) !important;
+  }
+
+  /* Features section — handoff layout */
   .features-section {
     position: relative;
     overflow: hidden;
@@ -569,7 +576,7 @@
 
   .claude-pia-title,
   .pia-section-heading {
-    font-family: var(--font-sans) !important;
+    font-family: var(--font-claude-display) !important;
   }
 
   .claude-pia-section {
@@ -728,7 +735,7 @@
   }
 
   .compare-section-heading {
-    font-family: var(--font-sans) !important;
+    font-family: var(--font-claude-display) !important;
     margin: 0 0 1rem;
   }
 
@@ -897,7 +904,10 @@
   }
 
   .claude-usdc-title,
-  .usdc-section-heading,
+  .usdc-section-heading {
+    font-family: var(--font-claude-display) !important;
+  }
+
   .claude-usdc-callout-mark {
     font-family: var(--font-sans) !important;
   }
