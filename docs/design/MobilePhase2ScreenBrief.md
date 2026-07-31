@@ -3,7 +3,7 @@
 **Version:** 2.3  
 **Status:** **Approved** — all founder design decisions complete; **Phase 2 app previews founder-approved** (Welcome, Auth, You're in, Empty Home, Add funds stub, Savings empty, Card empty, Profile, bottom nav shell)  
 **Scope:** Build Plan Phase 2 — first implementation screens only  
-**Source of truth:** [Brand.md](../brand/Brand.md) · [PRD.md](../product/PRD.md) (v1.10) · [BuildPlan.md](../build/BuildPlan.md) (v1.1) · [Architecture.md](../architecture/Architecture.md) · [UserFlows.md](../product/UserFlows.md) · [NavigationMap.md](../product/NavigationMap.md) · Marketing site (`apps/marketing`)
+**Source of truth:** [Brand.md](../brand/Brand.md) · [PRD.md](../product/PRD.md) (v2.0) · [BuildPlan.md](../build/BuildPlan.md) (v2.0) · [Architecture.md](../architecture/Architecture.md) (v2.0) · [UserFlows.md](../product/UserFlows.md) · [NavigationMap.md](../product/NavigationMap.md) · Marketing site (`apps/marketing`)
 
 **Out of scope for this brief:** Code, backend files, live Pia chat, separate Pia screen or tab, product scope changes.
 
@@ -181,13 +181,13 @@ From marketing implementation:
 **Banned from Phase 2 app UI by default** (Welcome, Auth, Home, Savings, Card, Profile, **Add funds stub**):
 
 - crypto · DeFi · Base · USDC · wallet · yield · blockchain · protocol  
-- (Also per Add funds stub: bank account, debit card, Bridge — user-facing Phase 2 stub)
+- (Also per Add funds stub: live funding methods and provider names — user-facing Phase 2 stub)
 
 **Copy tiers (founder approved):**
 
 | Tier | Screens | Language |
 |------|---------|------------|
-| **Neobank default** | Welcome, Auth, Empty Home, Savings, Card, Profile, Add funds stub | Plain *save · spend · grow* — no DeFi/USDC/wallet/Bridge in user-facing copy |
+| **Neobank default** | Welcome, Auth, Empty Home, Savings, Card, Profile, Add funds stub | Plain *save · spend · grow* — no DeFi/wallet/provider names in default copy |
 | **Onboarding education** | **You're in confirmation (A3) only** — §3.3 | USD, USDC, yield, bank, decentralized finance allowed; footer disclaimer required |
 | **Marketing website** | `/`, `/learn/usdc`, FAQ, etc. | Educational DeFi/USDC content unchanged |
 
@@ -390,7 +390,7 @@ Abstract **static gradient only**. The background supports the approved copy and
 **Reference:** Reassurance onboarding layout (founder-approved mock); preview at `/app-preview/youre-in`  
 **Build Plan Phase 2:** Sign-up path only; sign-in skips this screen and routes directly to Empty Home
 
-**Status:** **Founder approved** — preview component `apps/marketing/src/components/app-preview/youre-in-screen.tsx`. Step 2 (*Convert to USDC*) approved.
+**Status:** Previous preview copy is superseded by the V1 funding requirements in PRD §§3–10. This documentation update does not redesign or modify the existing component.
 
 **Founder approved:** Dedicated Pia-free **“You're in!”** confirmation screen for Phase 2. No modal, no banner substitute, no Pia greeting or chat preview. Uses **onboarding-education copy tier** (§1.4) — USDC, yield, bank, and decentralized finance allowed on this screen only.
 
@@ -399,7 +399,7 @@ Abstract **static gradient only**. The background supports the approved copy and
 
 | CTA | Action |
 |-----|--------|
-| **Add funds and start earning** (primary) | Push shared **Add funds screen** (stub until money-loop phases — **V1 launch requires add, send, receive, withdraw, savings goals, and USDC yield**) |
+| **Add Funds** (primary) | Push shared **Add funds screen** (stub until money-loop phases — funding does not automatically start yield) |
 | **Explore the app** (secondary) | Empty Home (A4) with bottom tabs visible |
 
 **Pia rule (founder approved):** Pia appears **only** as the static “Coming Soon” card inside Profile. Do **not** add Pia content, chat preview, modal, or navigation to this flow.
@@ -411,7 +411,7 @@ Abstract **static gradient only**. The background supports the approved copy and
 3. **Value props (3 columns):** icon in rose circle + raspberry title + muted description  
 4. **Here's how it works (3 steps):** numbered badges · step icons · chevrons between steps  
 5. **Built for you card** — line-art illustration + checkmark list on rose wash  
-6. **Primary CTA (pinned):** **Add funds and start earning** → shared Add funds screen  
+6. **Primary CTA (pinned):** **Add Funds** → shared Add funds screen
 7. **Secondary CTA:** **Explore the app** → Empty Home with tabs  
 8. **Footer disclaimer** — third-party services · yield variable · not guaranteed  
 
@@ -422,14 +422,14 @@ Abstract **static gradient only**. The background supports the approved copy and
 | **Headline** | You're in! |
 | **Subhead (line 1)** | Simple access to decentralized finance |
 | **Subhead (line 2)** | so you can save, grow, and reach your goals. |
-| **Value prop 1** | **Earn yield** — Your money can grow over time. |
+| **Value prop 1** | **Choose Growth** — Eligible funds can be moved to Growth when you're ready. |
 | **Value prop 2** | **Set goals** — Create savings goals for what matters most. |
 | **Value prop 3** | **You're in control** — Move your money anytime, always your choice. |
 | **How it works — Step 1** | **Add USD** — Add funds from your bank. |
-| **How it works — Step 2** | **Convert to USDC** — Convert to USDC, earn yield. |
-| **How it works — Step 3** | **Earn and access** — USDC earns the yield. Cash out to your bank any time. |
+| **How it works — Step 2** | **Funds settle** — Funding completes after provider and compliance checks. |
+| **How it works — Step 3** | **Choose Growth later** — Eligible funds can move to Growth with user authorization. |
 | **Built for you** | No lock ups · Withdraw anytime · Full transparency |
-| **Primary CTA** | Add funds and start earning |
+| **Primary CTA** | Add Funds |
 | **Secondary CTA** | Explore the app |
 | **Footer** | Olimpia provides access to third party financial services. Yield is variable and not guaranteed. |
 
@@ -437,7 +437,7 @@ Abstract **static gradient only**. The background supports the approved copy and
 
 **Status:** **Founder approved** — preview at `/app-preview/add-funds` · component `add-funds-screen.tsx`
 
-**One screen, two entry points:** onboarding confirmation **Add funds and start earning** and Empty Home **Add money** CTA open the **same** shared Add funds screen — identical copy and layout.
+**One screen, two entry points:** onboarding confirmation **Add Funds** and Empty Home **Add Funds** CTA open the same shared Add funds screen.
 
 | Element | User-facing copy |
 |---------|------------------|
@@ -445,11 +445,11 @@ Abstract **static gradient only**. The background supports the approved copy and
 | **Body** | Choose how you'd like to add funds to your Olimpia balance. |
 | **Primary action** | Continue |
 
-**Add funds stub — Phase 2 UI — do not mention:** bank account · debit card · Bridge · USDC · Base · wallet  
+**Add funds stub — Phase 2 UI — do not list live funding methods or providers.** This restriction applies to the approved stub, not the later V1 method-selection flow.
 
 *(Jargon restrictions above apply to the Add funds stub only — not to this confirmation screen.)*
 
-Available funding methods will be determined by the live Bridge flow at launch — not shown or named in Phase 2 stub UI.
+V1 funding methods are defined in PRD §§3–10 and V1Scope: Bank Transfer, Apple Pay or Card, and Transfer USDC. They remain absent from the Phase 2 stub UI.
 
 **Copy constraints — do not use:**
 
@@ -466,7 +466,7 @@ Available funding methods will be determined by the live Bridge flow at launch �
 - Stack **Back** → previous screen (Home or onboarding confirmation)  
 - **No** amount input, funding-method selector, or processing states in Phase 2 stub UI  
 
-**Implementation note (internal — not user-facing):** Before launch, **Continue** opens the Bridge-hosted funding flow. Funding method options (e.g. bank vs card) come from the live Bridge integration at launch — USD converts to USDC and settles to the user’s embedded wallet on Base. None of this appears in Phase 2 user-facing copy.
+**Implementation note (internal — not user-facing):** Before launch, replace the stub with the provider-neutral V1 Add Funds chooser. Dakota, the configured Privy fiat-onramp provider, and Base monitoring stay behind backend interfaces.
 
 **Phase 2 stub behavior:** Continue may remain unwired until Phase 4 — user-facing copy stays as approved above regardless.
 
@@ -481,7 +481,7 @@ Available funding methods will be determined by the live Bridge flow at launch �
 **Reference:** UserFlows §4 empty state; ScreenInventory State 1; marketing goal card for future slots  
 **Status:** **Founder approved** — preview at `/app-preview/home` · component `empty-home-screen.tsx`
 
-**Visual hierarchy (founder approved):** The **encouraging headline** and **Add money CTA card** are the main focus. Balance is present but quiet — never the hero.
+**Visual hierarchy:** **Your account is ready** and the **Add Funds CTA card** are the main focus. Balance is present but quiet—never the hero.
 
 **Approved balance treatment (Phase 2 empty state):**
 
@@ -489,7 +489,7 @@ Available funding methods will be determined by the live Bridge flow at launch �
 |------|--------|
 | **Copy** | *Money available · $0.00* |
 | **Typography** | Inter **body-sm** or **caption**, **ink-muted** — same weight as helper text, not semibold |
-| **Placement** | Single inline text row **below the Add money CTA card**, above quick actions — not inside a card |
+| **Placement** | Single inline text row **below the Add Funds CTA card**, above quick actions — not inside a card |
 | **Do not use** | Large balance hero card · dark `#111` balance panel · oversized `$0.00` display type · display/h1/h2 sizing for the amount |
 
 **Layout (top → bottom):**
@@ -502,7 +502,7 @@ Available funding methods will be determined by the live Bridge flow at launch �
    - Subline (body, ink-muted): *Add funds to begin building toward the life you choose.*  
 3. **Primary CTA card (co-primary visual focus)** — white card, soft shadow, full width:  
    - Icon: Plus in rose circle  
-   - **Add money** — routes to shared **Add funds screen** (same screen as onboarding path — §3.3)  
+   - **Add Funds** — routes to shared **Add Funds screen** (same screen as onboarding path — §3.3)
    - Chevron or button treatment  
 4. **Balance line (quiet secondary only):** *Money available · $0.00* — see approved balance treatment above  
 5. **Quick actions row** (tertiary — visually de-emphasized): Send · Receive  
@@ -692,10 +692,10 @@ Available funding methods will be determined by the live Bridge flow at launch �
 |---------|------|
 | Headline | You're in! |
 | Subhead | Simple access to decentralized finance / so you can save, grow, and reach your goals. |
-| Value props | Earn yield · Set goals · You're in control (see §3.3) |
-| How it works | Add USD · Convert to USDC · Earn and access (see §3.3) |
+| Value props | Choose Growth · Set goals · You're in control (see §3.3) |
+| How it works | Add Funds · Funds settle · Choose Growth later (see §3.3) |
 | Built for you | No lock ups · Withdraw anytime · Full transparency |
-| Primary CTA | Add funds and start earning |
+| Primary CTA | Add Funds |
 | Secondary CTA | Explore the app |
 | Footer | Olimpia provides access to third party financial services. Yield is variable and not guaranteed. |
 
@@ -707,13 +707,13 @@ Available funding methods will be determined by the live Bridge flow at launch �
 | Body | Choose how you'd like to add funds to your Olimpia balance. |
 | Primary action | Continue |
 
-**Entry points:** Onboarding confirmation **Add money** · Empty Home **Add money** CTA — **same screen**
+**Entry points:** Onboarding confirmation **Add Funds** · Empty Home **Add Funds** CTA — same flow
 
-**Phase 2 UI — do not mention:** bank account · debit card · Bridge · USDC · Base · wallet
+**Phase 2 UI — do not list live funding methods or providers.** Transfer USDC safety details are added only in the later V1 flow.
 
 **Do not use:** “Add money to Olimpia” · “Connect your bank account or card to add money to Olimpia” · “Coming soon” · copy implying funds belong to Olimpia rather than the user
 
-*Implementation note (internal — not user-facing):* Before launch, **Continue** opens the Bridge-hosted funding flow; available methods come from live Bridge at launch (USD → USDC → user wallet on Base). Never surface those terms in Phase 2 user-facing copy.
+*Implementation note (internal — not user-facing):* Before launch, **Continue** routes to the provider-neutral V1 Add Funds chooser; provider logic remains backend-only.
 
 ### Empty Home (State 1 — approved)
 
@@ -722,7 +722,7 @@ Available funding methods will be determined by the live Bridge flow at launch �
 | Greeting | Hi {firstName} ✨ | body-sm muted + h3 name |
 | Headline | Let's get started. | h2 — **primary focus** |
 | Subhead | Add funds to begin building toward the life you choose. | body · ink-muted |
-| Primary CTA | Add money | CTA card — **co-primary focus** |
+| Primary CTA | Add Funds | CTA card — **co-primary focus** |
 | Balance | Money available · $0.00 | body-sm/caption · ink-muted · **quiet secondary only** — below CTA card, no hero panel |
 | Quick actions | Send · Receive | de-emphasized row |
 | Goal placeholder | Your first savings goal will appear here | muted ghost card |
@@ -861,12 +861,12 @@ Available funding methods will be determined by the live Bridge flow at launch �
 |---|----------|------------|
 | 1 | **Raspberry / berry palette** | **Primary raspberry:** `#E54B7A` (matches marketing site). **Supporting berry dark:** `#C73E72` (Brand.md accent — pressed states, depth, secondary emphasis). |
 | 2 | **Pia scope (Phase 2)** | **No Pia in onboarding.** Pia appears **only** as the static “Coming Soon” card inside Profile. No Pia greeting, chat preview, modal, tab, input, “Ask Pia” entry, or navigation destination anywhere else in the app. ScreenInventory A3 / UserFlows §2 Pia introduction deferred. |
-| 3 | **Post-sign-up onboarding** | **Dedicated confirmation screen** after sign-up + account sync, before Empty Home. Pia-free **“You're in!”** layout per §3.3 (founder approved). **Primary CTA:** *Add funds and start earning* → shared **Add funds screen**. **Secondary CTA:** *Explore the app* → Empty Home. Sign-in skips confirmation screen. Onboarding-education copy tier (USDC/yield/bank) allowed on A3 only. |
+| 3 | **Post-sign-up onboarding** | Dedicated confirmation after sign-up + account sync. Lead with *Your account is ready* and **Add Funds**; do not imply automatic/immediate yield. **Secondary:** *Explore the app*. Sign-in skips confirmation. |
 | 4 | **Welcome copy** | **Headline:** *Better than a checking account, everything your bank can't do.* **Inter semibold** for *Better than a checking account,* · **Cormorant Garamond italic** on *everything your bank can't do.* **Subhead:** *Save, spend, and grow your money with confidence.* **Eyebrow:** *Financial freedom, designed for women* **Tagline:** *More choices. More freedom.* **CTAs (mobile only):** *Get started* · *Sign in* |
 | 5 | **Welcome visual (mobile only)** | **Abstract static gradient only** on `#F7F4F1` — soft rose→raspberry radial wash; light, premium, calm, airy. Optional very subtle **static** sparkle dots only if they do not compete with the headline. **No** photography, character illustration, product mockup, decorative 3D objects, WebGL, animation, or full-screen illustration. Visual supports approved copy + CTA stack. Marketing site visuals **unchanged**. |
-| 6 | **Empty Home balance (Phase 2)** | Show *Money available · $0.00* as **quiet secondary text only** (body-sm/caption, ink-muted) — below Add money CTA card. **No** large balance hero, dark balance panel, or oversized `$0.00`. Main focus: encouraging headline + Add money CTA card. |
+| 6 | **Empty Home balance (Phase 2)** | Lead with *Your account is ready* + *Add your first funds to begin using Olimpia* + **Add Funds**. Keep *Money available · $0.00* quiet and secondary. No immediate-yield claim. |
 | 7 | **Savings / Card tabs (Phase 2)** | **Simple transparent empty states** via shared EmptyState — centered, calm, rose-circle icon. **Savings:** *Your savings goals will live here.* + optional *You'll be able to create and track goals here.* **Card:** *Your virtual debit card will live here.* + optional *Your card details and spending tools will appear here.* **No** skeleton shimmer, fake data, fake balances, or “Phase 3” labels. |
-| 8 | **Add funds screen routing + copy (Phase 2)** | Empty Home **Add money** CTA opens the **same shared Add funds screen** as onboarding **Add money**. **Title:** *Add funds* · **Body:** *Choose how you'd like to add funds to your Olimpia balance.* · **Primary:** *Continue*. **Phase 2 UI must not mention:** bank account, debit card, Bridge, USDC, Base, or wallet. Funding methods from live Bridge flow at launch (internal only). |
+| 8 | **Add funds screen routing + copy (Phase 2)** | Empty Home **Add Funds** opens the same shared Phase 2 stub as onboarding. Before V1 launch, replace the stub with the provider-neutral chooser for Bank Transfer, Apple Pay or Card, and Transfer USDC per PRD/V1Scope. |
 | 9 | **Cormorant Garamond (mobile)** | Ship **actual Cormorant Garamond** for brand fidelity — **only** Olimpia wordmark (Welcome + optional Profile header) and italic *everything your bank can't do.* in Welcome headline. **Inter everywhere else.** No system serif fallback except on custom font load failure. **Implementation:** bundle/load Inter + Cormorant before rendering Welcome so there is **no visible font swap**. |
 | 10 | **Pia Coming Soon card (Profile)** | **One static Pia message bubble only** — no decorative user-question bubble. Keep: Pia avatar · name **Pia** · **Coming Soon** badge · message: *Pia will help you understand saving, growth, and financial confidence — supportive, never judgmental.* No input, send, suggested prompts, user bubble, chat interaction, or navigation. |
 | 11 | **Dark mode (MVP)** | **Light-only.** Approved warm light theme: background `#F7F4F1`, primary raspberry `#E54B7A`, supporting berry dark `#C73E72`, white cards, warm neutral surfaces. **Do not** design, build, document, or test dark mode for MVP. Future enhancement post-launch only. |
@@ -885,13 +885,13 @@ Available funding methods will be determined by the live Bridge flow at launch �
 Welcome (A1)
   ├─ Get started → Auth sign up (A2)
   │     └─ Sync success → Onboarding confirmation (“You're in!”) [Pia-free]
-  │           ├─ Add money → Add funds screen (shared) → back → prior screen
+  │           ├─ Add Funds → Add Funds screen (shared) → back → prior screen
   │           └─ Explore the app → Empty Home (A4) [tabs visible]
   └─ Sign in → Auth sign in (A2)
         └─ Sync success → Empty Home (A4) [skip confirmation screen]
 
 Empty Home ←→ Bottom tabs → Savings (empty state) · Card (empty state) · Profile (A16)
-Empty Home “Add money” → Add funds screen (shared — same as onboarding path)
+Empty Home “Add Funds” → Add Funds screen (shared — same as onboarding path)
 Profile → Sign out → Welcome (A1)
 
 Pia: Profile inline Coming Soon card ONLY — no navigation target

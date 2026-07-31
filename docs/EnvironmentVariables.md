@@ -47,7 +47,7 @@ These power the public site and waitlist. All `VITE_*` variables are **public** 
 
 **Not needed on marketing for MVP:**
 
-- Privy, Bridge, Gnosis, Aave, Anthropic — mobile/API only
+- Privy and all funding/card/yield providers — mobile/API only
 - `DATABASE_URL` for main app — marketing waitlist uses Supabase directly today
 
 **Where to set in production:** Vercel → Project → Settings → Environment Variables (Production + Preview).
@@ -75,14 +75,18 @@ Create `apps/api/.env.example` when the API skeleton is built. **Do not commit r
 | `PRIVY_APP_ID` | Yes | Privy application ID |
 | `PRIVY_APP_SECRET` | Yes | Server-side verification — **secret** |
 
-### Fiat on-ramp / off-ramp (BridgeXYZ)
+### Funding providers (names require implementation validation)
 
 | Variable | Required? | What it does |
 |----------|-----------|--------------|
-| `BRIDGE_API_KEY` | Yes (Phase 4+) | Bridge API access — **secret** |
-| `BRIDGE_WEBHOOK_SECRET` | Yes (Phase 4+) | Verify Bridge webhooks — **secret** |
+| `BANK_TRANSFER_PROVIDER` | Yes (Phase 4C+) | Current value intended: `dakota`; keeps selection replaceable |
+| Dakota API key / webhook secret | Yes (Phase 4C+) | Exact server-only names **TBD from Dakota sandbox** |
+| `FIAT_ONRAMP_PROVIDER` | Yes (Phase 4D+) | Provider configured through Privy; value **TBD after selection** |
+| Fiat-onramp server key / webhook secret | Provider-dependent | Exact names and need **TBD** |
+| Base monitor credentials | Yes (Phase 4B+) | RPC/indexer/webhook credentials; exact provider and names **TBD** |
+| Off-ramp provider credentials | Yes (Phase 9) | Replacement provider not selected |
 
-Exact Bridge env names may differ in their docs — confirm in sandbox (**TBD**).
+Do not add or rename environment values in this documentation task. Dormant configuration cleanup requires a separate approved implementation task.
 
 ### Virtual card (Gnosis Pay)
 
@@ -129,7 +133,8 @@ Relayer vendor and key format are **TBD** at implementation.
 
 Store one secret per provider for signature verification:
 
-- Bridge webhook secret (above)
+- Dakota and selected fiat-onramp webhook secrets where those providers support webhooks
+- Base monitor webhook secret where an indexed event provider is used
 - Gnosis Pay webhook secret (above)
 - Yield provider webhook secret — **TBD** if applicable
 
@@ -144,7 +149,7 @@ Exact naming depends on React Native setup (Expo public env vs native config). *
 | `PRIVY_APP_ID` | Yes | Client-side Privy SDK (public) |
 | `API_BASE_URL` | Yes | Olimpia API base URL — **TBD** staging/production |
 
-**Never in mobile bundle:** Bridge keys, Gnosis keys, Resend, database URL, relayer keys, Anthropic.
+**Never in mobile bundle:** Dakota/onramp/off-ramp/monitor provider keys, Gnosis keys, Resend, database URL, relayer keys, Anthropic.
 
 ---
 
@@ -189,7 +194,7 @@ Optional tuning vars (rate limits, model name) — **TBD**.
 |-------|-------|
 | API hosting provider | Drives how secrets are stored |
 | PostgreSQL provider | Supabase Postgres vs dedicated — **TBD** |
-| Exact Bridge / Gnosis env var names | Confirm from provider dashboards |
+| Exact Dakota / fiat-onramp / off-ramp / Gnosis env var names | Confirm from selected provider dashboards |
 | Relayer / EIP-7702 vendor | **TBD** |
 | Mobile env naming convention | Expo `EXPO_PUBLIC_*` vs other — **TBD** |
 | Production domain and email | **TBD** |

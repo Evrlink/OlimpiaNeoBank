@@ -31,8 +31,8 @@ From approved MVP scope (Pia excluded):
 
 - Onboarding and invisible wallet
 - Dashboard, balance, activity
-- Add money (Bridge)
-- Withdraw to bank (Bridge)
+- Add Funds (Dakota bank transfer, Privy fiat onramp, external USDC on Base)
+- Withdraw to bank (replacement provider TBD)
 - Send and receive (Olimpia users only)
 - Savings goals
 - Growth account (Aave first)
@@ -101,6 +101,7 @@ From approved MVP scope (Pia excluded):
 | 3 | Land on Home or onboarding completion | No wallet address shown |
 | 4 | Open Profile tab | Name/email or placeholder profile fields |
 | 5 | Sign out | Returns to Welcome; session cleared |
+| 6 | View zero-balance Home | “Your account is ready” + Add Funds lead; `$0.00` is secondary; no immediate-yield claim |
 
 **Platforms:** Repeat on **iOS simulator/device** and **Android emulator/device** — **TBD** minimum OS versions.
 
@@ -117,18 +118,22 @@ From approved MVP scope (Pia excluded):
 
 ---
 
-## 5. Add money (Phase 4)
+## 5. Add Funds (Phases 4A–4E)
 
-**Requires:** Bridge sandbox + staging API
+**Requires:** Staging API plus the relevant Dakota, Privy/onramp, and Base-monitor sandbox/test configuration
 
 | Step | Action | Expected result |
 |------|--------|-----------------|
-| 1 | Tap Add Money | Amount entry |
-| 2 | Enter amount and continue | Review screen in dollars |
-| 3 | Confirm | “Processing” or similar — not crypto terms |
-| 4 | Complete Bridge sandbox flow | Status moves to completed |
-| 5 | Return to Home | Balance increased |
-| 6 | Check email | Confirmation email **TBD** if Resend wired |
+| 1 | Tap Add Funds | Bank Transfer, Apple Pay or Card, and Transfer USDC appear in that order; no provider-name method labels |
+| 2 | Bank Transfer | Provider-confirmed arrival, $1 fee after approval, total bank withdrawal, and exact account credit shown before Review Transfer |
+| 3 | Complete Dakota sandbox flow | Normalized status completes; ledger credited once |
+| 4 | Apple Pay or Card | Supported provider experience opens with final quote/fee and any KYC; no hidden background WebView |
+| 5 | Complete/cancel/fail provider flow | App returns to the correct normalized state |
+| 6 | Transfer USDC | Address, QR, Copy Address, Coinbase/other-wallet guidance, and prominent Base/USDC warning shown |
+| 7 | Send supported USDC on Base | Backend confirms, creates inbound activity, credits once |
+| 8 | Send unsupported token / duplicate event | No credit; no duplicate transaction |
+| 9 | Return to Home | Balance and activity refreshed |
+| 10 | Cancel/close each method | Clear return path; normal navigation retained unless approved focus mode is under test |
 
 ---
 
@@ -180,7 +185,7 @@ From approved MVP scope (Pia excluded):
 |------|--------|-----------------|
 | 1 | Start withdraw from Home or Profile | Amount + bank destination |
 | 2 | Confirm | Processing states in plain English |
-| 3 | Complete Bridge sandbox off-ramp | Withdrawal completed; balance down |
+| 3 | Complete selected off-ramp sandbox flow | Withdrawal completed; balance down |
 
 ### Virtual debit card
 
@@ -201,8 +206,10 @@ Run on **staging** before production.
 ### Integrations
 
 - [ ] Privy login works on iOS and Android
-- [ ] Bridge deposit webhook updates deposit status **TBD staging URL**
-- [ ] Bridge withdrawal webhook updates withdrawal status **TBD**
+- [ ] Dakota webhook signature and normalized deposit status handling pass
+- [ ] Configured fiat-onramp completion/cancellation/failure handling passes
+- [ ] Base monitor rejects wrong token/network/recipient and duplicate events
+- [ ] Selected off-ramp webhook updates withdrawal status **TBD provider**
 - [ ] Gnosis card webhook creates card transaction **TBD**
 - [ ] Resend sends at least one test email **TBD**
 
@@ -210,8 +217,11 @@ Run on **staging** before production.
 
 - [ ] No provider secret keys in marketing page source
 - [ ] No provider secret keys in mobile app bundle (only public Privy app id + API URL)
-- [ ] User never sees wallet address, chain name, or gas fees
+- [ ] Wallet address and Base/USDC appear only in Transfer USDC safety UI; gas and provider secrets never appear
 - [ ] Webhook endpoint rejects request with wrong/missing signature **TBD**
+- [ ] Replayed webhooks and blockchain events do not duplicate ledger credits
+- [ ] Card/bank details are not stored by Olimpia unless explicitly required and approved
+- [ ] Fee disclosures, limits/velocity controls, audit logs, reconciliation, returned ACH, and chargeback paths are tested as applicable
 
 ---
 
@@ -251,7 +261,7 @@ Do **not** block MVP release on these items.
 |-------|-------|
 | Staging URLs | API and marketing preview |
 | Test user accounts | Pre-seeded users for P2P tests |
-| Bridge / Gnosis sandbox test data | Provider-specific |
+| Dakota / fiat-onramp / off-ramp / Gnosis sandbox test data | Provider-specific |
 | Automated tests | Future — MVP uses this manual checklist |
 | Min iOS / Android versions | Device matrix **TBD** |
 | Biometric gate for CVV reveal | **TBD** |

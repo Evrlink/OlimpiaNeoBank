@@ -1,585 +1,437 @@
-# Olimpia — Build Plan
+# Olimpia — V1 Build Plan
 
-**Version:** 1.1  
-**Status:** Draft for review  
-**Purpose:** Implementation phases for MVP — optimized for the **fastest path to a working prototype**  
-**Source of truth:** [PRD.md](../product/PRD.md) (v1.10) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v1.5) · [UserFlows.md](../product/UserFlows.md) (v1.3) · [NavigationMap.md](../product/NavigationMap.md) (v1.1) · [ScreenInventory.md](../product/ScreenInventory.md) (v1.1)
+**Version:** 2.0
+**Status:** Draft for founder review
+**PRD:** [PRD.md](../product/PRD.md)
+**Architecture:** [Architecture.md](../architecture/Architecture.md)
+**Scope:** [V1Scope.md](../product/V1Scope.md)
 
----
-
-## MVP scope
-
-| Surface | Technology | MVP |
-|---------|------------|-----|
-| **Marketing website** | Static site (e.g. Astro / Next static export) | `/`, `/learn/usdc`, `/llms.txt`, waitlist |
-| **Mobile app** | React Native monorepo | **iOS + Android simultaneous** — same codebase |
-| **Backend** | Node.js orchestrator | REST API, webhooks, provider integrations |
-| **Pia preview** | Static UI (mobile + marketing) | Coming Soon card — no live chat in MVP |
-
-**Wrapper model unchanged:** Integrate Privy, Base, **Bridge.xyz (V1 bank funding — USD → USDC on Base)**, Gnosis Pay, LI.FI, yield layer (single provider), Resend. Do not build custom rails.
-
-> **V1 launch requires the full money product:** auth, wallet, sync, session restore, **Add money**, **Withdraw**, **Send**, **Receive**, Home balance, activity, **savings goals**, and **USDC yield**. See [V1Scope.md](../product/V1Scope.md). Build Phases **3, 4, 5, 6, 8**, and **9 (withdraw)** are required before public launch. **Card** and **functional Pia** are **post-V1**.
-
-**Explicitly out of MVP:** Base App · **functional Pia AI coach (live chat)** · Anthropic API · AI Financial Advisor · request money · multi-provider yield · physical card · push notifications · full transaction history screen · Your Growth progression system · trading / investment advice.
+This plan documents implementation work only. It does not authorize application changes, APIs, migrations, provider credentials, or production deployment.
 
 ---
 
 ## Build principles
 
-1. **One vertical slice at a time** — each phase produces a demoable increment on **both iOS and Android**.
-2. **Backend before provider complexity** — ledger and auth first; external integrations in dependency order.
-3. **Parallel marketing** — static site does not block mobile; start early for waitlist and SEO.
-4. **Ledger-first features before chain-heavy features** — goals before P2P; P2P before card.
-5. **Single yield provider** — Architecture §11A Option A (e.g. Aave on Base).
-6. **UserFlows is acceptance** — each phase maps to flows in [UserFlows.md](../product/UserFlows.md); copy and outcomes from Brand.md.
+1. Backend ledger and authentication before real-money integrations.
+2. Provider-neutral mobile screens.
+3. Provider-specific behavior behind backend interfaces.
+4. One normalized funding state model.
+5. Idempotent crediting and reconciliation before production.
+6. iOS and Android tested in every mobile phase.
+7. No automatic movement into Growth.
+8. Conceptual PRD wireframes require design/content review before final implementation.
 
 ---
 
 ## Phase overview
 
-| Phase | Name | Primary outcome |
-|-------|------|-----------------|
-| **0** | [Foundation](#phase-0-foundation) | Runnable repo, API skeleton, RN on iOS + Android |
-| **1** | [Marketing website](#phase-1-marketing-website) | Public landing, education, waitlist live |
-| **2** | [Auth, shell & onboarding](#phase-2-auth-shell--onboarding) | Sign up, tab navigation, empty Home |
-| **3** | [Dashboard & activity](#phase-3-dashboard--activity) | **V1 launch requirement** — Home balance, activity feed, transaction detail |
-| **4** | [Add money](#phase-4-add-money) | **V1 launch requirement** — Bridge.xyz on-ramp (USD → USDC on Base) |
-| **5** | [Savings goals](#phase-5-savings-goals) | **V1 launch requirement** — create goals, allocate, progress UI |
-| **6** | [Send & receive](#phase-6-send--receive) | **V1 launch requirement** — Olimpia-to-Olimpia P2P |
-| **8** | [Growth account](#phase-8-growth-account) | **V1 launch requirement** — USDC yield deposit/withdraw |
-| **9** | [Withdraw to bank (V1)](#phase-9-withdraw-to-bank-v1) | **V1 launch requirement** — Bridge.xyz off-ramp |
-| **9B** | [Virtual debit card (post-V1)](#phase-9b-virtual-debit-card-post-v1) | Gnosis Pay — **not V1** |
-| **10** | [MVP hardening & release](#phase-10-mvp-hardening--release) | Polish, parity, store submission |
-
-> **Phase 7 (Pia AI chat) is Future — not MVP.** MVP includes static Pia preview only (Phase 2 Profile card + Phase 1 marketing section). See [Future — Pia AI chat agent](#future--pia-ai-chat-agent).
-
-**Parallel track:** Phase **1** can start as soon as Phase **0** repo exists — it does not wait for mobile money flows.
+| Phase | Outcome |
+|-------|---------|
+| 0 | Foundation and provider validation |
+| 1 | Marketing and legal/support readiness |
+| 2 | Privy authentication, shell, and empty-account onboarding |
+| 3 | Authoritative dashboard and activity |
+| 4A | Funding architecture cleanup |
+| 4B | Receive USDC on Base |
+| 4C | Dakota ACH |
+| 4D | Privy Fiat Onramp |
+| 4E | Funding reconciliation and release readiness |
+| 5 | Savings goals |
+| 6 | Olimpia-user send and receive |
+| 7 | Growth Account / intended Aave strategy |
+| 8 | Withdrawal provider integration |
+| 9 | V1 hardening and release |
 
 ---
 
-## Phase 0: Foundation
-
-### Goal
-
-Establish a single monorepo, deployable backend skeleton, and React Native app running on **iOS and Android** simulators/devices — no product flows yet.
+## Phase 0 — Foundation and validation
 
 ### Deliverables
 
-- Monorepo layout: `apps/mobile` (React Native), `apps/api` (Node.js), `apps/marketing` (static site), root `llms.txt`
-- PostgreSQL schema migration v0: `users`, `wallets`, `transactions` (stub)
-- API: `GET /health`, `/api/v1` router, Privy auth middleware stub, env/secrets pattern
-- Privy dashboard: app created for mobile (iOS + Android bundle IDs)
-- React Native: bottom tab scaffold (Home · Savings · Card · Profile), stack navigator, Brand.md theme tokens (colors, Cormorant Garamond + Inter)
-- CI: lint + typecheck on PR; optional API smoke test
-- Staging deploy: API host + DB; marketing deploy target (Vercel/Netlify)
-- **Launch geography assessment** — review Privy, BridgeXYZ, Gnosis Pay, LI.FI, and yield provider sandbox/docs; produce provider restriction matrix (on-ramp, off-ramp, card, KYC); recommend initial supported countries (TBD until founder confirms); document in [launch-geography.md](../architecture/launch-geography.md)
+- Runnable mobile, API, and marketing workspaces.
+- Privy mobile/server project configuration.
+- PostgreSQL and ledger development environment.
+- Server-side secrets pattern.
+- Define provider-neutral interfaces:
+  - `BankTransferProvider`
+  - `FiatOnrampProvider`
+  - `BlockchainDepositMonitor`
+  - `FundingService`
+  - `LedgerService`
+- Validate launch geography and provider restrictions.
+- Start Dakota and fiat-onramp capability checklists.
+- Define Base USDC contract and monitoring options.
 
-### Dependencies
+### Acceptance
 
-- Approved PRD, Architecture, Brand
-- Provider sandbox accounts: Privy (minimum for Phase 2); Bridge, Gnosis Pay, yield provider access for geography assessment
-- Apple Developer + Google Play Console access (for later phases)
-
-### Acceptance criteria
-
-- [ ] `apps/mobile` builds and runs on **iOS simulator and Android emulator**
-- [ ] `apps/api` responds `200` on `/health` in staging
-- [ ] Database migrations apply cleanly
-- [ ] No secrets in git; `.env.example` documents required keys
-- [ ] README with local dev setup for all three apps
-- [ ] **Launch geography assessment complete** — provider restriction matrix documented in [launch-geography.md](../architecture/launch-geography.md); initial supported countries marked **TBD** pending founder launch strategy
+- Mobile runs on iOS and Android.
+- API health check succeeds.
+- No secrets in mobile or git.
+- Provider decisions are clearly marked confirmed or pending.
 
 ---
 
-## Phase 1: Marketing website
-
-### Goal
-
-Ship a conversion-ready public site — acquisition, trust, education, and waitlist — **independent of mobile app completion**.
+## Phase 1 — Marketing and release information
 
 ### Deliverables
 
-- Landing page: all sections per Brand.md / Architecture §3A (Hero through Footer)
-- `/learn/usdc` education page (five H2 topics, beginner copy)
-- `/llms.txt` at site root (from repo `llms.txt`)
-- SEO: semantic HTML, metadata, Open Graph, Twitter card, canonical URLs, JSON-LD (Organization, WebSite, SoftwareApplication, FAQPage)
-- FAQ: 6–8 questions as real HTML; accordion accessible
-- Waitlist modal on all Download CTAs → `POST /api/v1/waitlist`
-- Responsive layout; WCAG AA contrast; alt text on images
-- Pia marketing section: static preview (no live chat)
+- Public marketing site, legal/support pages, and waitlist/download paths.
+- Product copy aligned with canonical V1 features.
+- Trusted-provider branding only where relationships and logo usage are confirmed.
+- No claims of guaranteed yield, bank status, or unsupported security.
 
-### Dependencies
+### Acceptance
 
-- Phase 0 repo and API deploy (for waitlist endpoint) **or** third-party form fallback documented in Architecture
-- Brand.md copy and palette approved for implementation
-- Support email and legal URLs (Privacy, Terms) — placeholders acceptable for prototype
-
-### Acceptance criteria
-
-- [ ] UserFlows §1 (marketing visitor) completable on staging URL
-- [ ] Waitlist submit succeeds and stores email; error + retry on failure
-- [ ] `/learn/usdc` linked from Hero USDC text
-- [ ] Rich Results Test passes for FAQPage JSON-LD
-- [ ] Mobile-responsive; one H1 per page
-- [ ] Lighthouse/accessibility spot-check — no critical failures
+- Public content does not describe a superseded funding implementation.
+- Add Funds messaging matches PRD.
+- Accessibility and SEO checks pass.
 
 ---
 
-## Phase 2: Auth, shell & onboarding
+## Phase 2 — Authentication, shell, and empty account
 
-### Goal
+### Backend
 
-A new user can sign up on **iOS and Android** and land on an empty Home with working navigation.
+- Privy token verification.
+- Auth sync creates/links user and embedded wallet.
+- Ledger initialization without resetting existing balances.
+- Profile/session endpoints and sign-out behavior.
 
-### Deliverables
+### Mobile
 
-**Backend**
+- Welcome and Privy authentication.
+- Home, Savings, Card, Profile tabs.
+- Empty-account state:
 
-- `POST /auth/sync` — Privy token verify, user + wallet create, ledger init
-- Privy server SDK integration
-- `GET /me` (read profile)
-
-**Mobile (11-screen scaffold)**
-
-- Welcome, Auth (Privy RN SDK: email/phone + OTP/passkey)
-- Pia **Coming Soon** preview card inline on Profile screen (static — no API, no input; not a separate screen or stack flow)
-- Bottom tabs + stack flows wired (empty content OK)
-- Profile tab (read-only `GET /me`)
-
-### Dependencies
-
-- Phase 0
-- Privy mobile + server credentials configured
-
-### Acceptance criteria
-
-- [ ] UserFlows §2 and §3: register and login on **both iOS and Android**
-- [ ] Pia Coming Soon preview visible inline on Profile; no separate Pia screen; no chat input or AI responses
-- [ ] User reaches Home in &lt; 3 minutes; **zero crypto vocabulary** on onboarding screens
-- [ ] `POST /auth/sync` creates user + wallet records; wallet address not shown in UI
-- [ ] Sign out returns to Welcome
-
----
-
-## Phase 3: Dashboard & activity
-
-### Goal
-
-**V1 launch requirement** — Home answers *"How am I doing?"* with balance and **activity history**; transaction detail on tap.
-
-### Deliverables
-
-**Backend**
-
-- Ledger module: `available`, `goalsAllocated`, `growthAllocated`, `totalDisplay`
-- `GET /balance`, `GET /activity`, `GET /activity/:id`
-- Normalized transaction model + status field (Architecture §21)
-
-**Mobile**
-
-- Home dashboard per UserFlows §4 example (greeting, progress headline, featured goal slot, growth earnings slot, money available)
-- Quick actions: Add · Send · Receive
-- Transaction Detail screen
-- Empty states for new users (friendly, not transactional)
-- Inline `pending` / `processing` / `completed` / `failed` components
-
-### Dependencies
-
-- Phase 2
-
-### Acceptance criteria
-
-- [ ] UserFlows §4: Home feels encouraging; directional copy matches example where data exists
-- [ ] Activity feed renders transaction types with plain-language labels
-- [ ] Transaction Detail shows amount, type, status, date
-- [ ] Balance displays in USD only (two decimals)
-- [ ] **iOS and Android** visual parity on Home and Transaction Detail
-
----
-
-## Phase 4: Add money
-
-### Goal
-
-**V1 launch requirement** — first real money moment. User adds USD from their bank via **Bridge.xyz** on-ramp; Bridge settles **USDC on Base** to the user’s embedded wallet; Olimpia ledger and Home balance update. See [V1Scope.md](../product/V1Scope.md).
-
-### Deliverables
-
-**Backend**
-
-- BridgeXYZ client: `POST /funding/deposits`, `GET /funding/deposits/:id`
-- `deposits` table + webhook `POST /webhooks/bridge` (idempotent)
-- Ledger credit on deposit `completed`
-- Resend email on deposit complete
-
-**Mobile**
-
-- Add Money screen: amount, method, review, inline async states (UserFlows §5)
-- Poll deposit status while `processing`
-
-### Dependencies
-
-- Phase 3 (ledger + activity)
-- Bridge sandbox / staging credentials
-- Resend API key
-
-### Acceptance criteria
-
-- [ ] UserFlows §5 completable end-to-end in Bridge test mode on **iOS and Android**
-- [ ] States: *Preparing deposit* → *Adding money* → *Money added* / failure + retry
-- [ ] Home balance and activity update on success
-- [ ] Confirmation email sent
-- [ ] No crypto/network language in UI
-
----
-
-## Phase 5: Savings goals
-
-### Goal
-
-**V1 launch requirement** — user creates named goals and moves money into progress envelopes — intentions become visible progress.
-
-### Deliverables
-
-**Backend**
-
-- `GET/POST /goals`, `GET /goals/:id`, `PATCH /goals/:id`, `POST /goals/:id/allocate`
-- `goals`, `goal_movements` tables
-- Ledger: available ↔ goals_allocated moves
-
-**Mobile**
-
-- Savings tab: goals list, total saved, New Goal bottom sheet
-- Goal Detail: progress bar, add/remove funds, goal activity
-- Inline celebration on first goal (Brand.md)
-
-### Dependencies
-
-- Phase 3 (ledger)
-- Phase 4 recommended (users need funds to allocate) — or demo seed balance in staging
-
-### Acceptance criteria
-
-- [ ] UserFlows §9, §10, §11: create goal, add funds, remove funds on **iOS and Android**
-- [ ] Progress % = allocated / target
-- [ ] Insufficient available balance shows friendly error
-- [ ] Goal examples align with Brand (Girls Trip, First Home, etc.)
-- [ ] Goals do not earn yield unless user later uses Growth (Phase 8)
-
----
-
-## Phase 6: Send & receive
-
-### Goal
-
-**V1 launch requirement** — Olimpia-to-Olimpia P2P works — send by handle; receive via share link / QR / username.
-
-### Deliverables
-
-**Backend**
-
-- `POST /transfers`, `GET /users/lookup`, `GET /receive/link`
-- Base sponsored USDC transfer (EIP-7702 relayer)
-- Transfer records + ledger debit/credit
-- Resend email to recipient
-- MVP default: **registered recipients only** (Architecture §8)
-
-**Mobile**
-
-- Send Money: recipient → amount → note → review → confirm (biometric if enabled)
-- Receive Money: username, link, QR, share sheet
-
-### Dependencies
-
-- Phase 4 (funded users)
-- Base RPC + relayer funded
-- Two test users for QA
-
-### Acceptance criteria
-
-- [ ] UserFlows §7 and §8: send and receive between two accounts on **iOS and Android**
-- [ ] Recipient balance and activity update without manual refresh (poll or focus refresh)
-- [ ] Send fails gracefully: recipient not found, insufficient balance
-- [ ] No wallet addresses shown; recipient identified by handle/phone/email
-- [ ] Transfer states normalized per Architecture §21
-
----
-
-## Future — Pia AI chat agent (not MVP)
-
-> **MVP ships Pia as a static Coming Soon preview only** (Profile card + marketing `#pia` section). This phase is for the **full functional coach** after MVP.
-
-### Goal
-
-In-app Pia coach — education, product guidance, goal coaching, progress reinforcement — with hard guardrails against financial advice.
-
-### Deliverables
-
-**Backend** (Architecture §12B Future)
-
-- `pia/` module: Anthropic Messages API client
-- `GET /pia/thread`, `POST /pia/messages`
-- `pia_threads`, `pia_messages` tables
-- Context snapshot: displayName, balanceSummary, goals[], growthSummary, productFacts
-- System prompt + output guardrails + rate limits
-- `ANTHROPIC_API_KEY` server-only
-
-**Mobile**
-
-- Pia screen: thread, input, suggested prompts, disclaimer footer
-- Entry points: Profile, Savings, Goal Detail, Growth
-- Context-aware suggested prompts per UserFlows cross-flow table
-
-### Dependencies
-
-- MVP complete (auth, goals, growth recommended for coaching context)
-- Anthropic API key
-
-### Acceptance criteria
-
-- [ ] UserFlows §16: chat works on **iOS and Android**
-- [ ] Pia refuses investment advice, trading, tax/legal — friendly redirect
-- [ ] Responses use plain language; Brand voice (supportive, not advisor)
-- [ ] Conversation persists across sessions (one thread per user)
-- [ ] No Anthropic key in mobile binary
-
----
-
-## Phase 8: Growth account
-
-### Goal
-
-**V1 launch requirement** — user puts part of savings to work — plain-language Growth surface, single-provider **USDC yield**, estimated earnings visible.
-
-### Deliverables
-
-**Backend**
-
-- `growth/` module: single provider (Architecture §11A Option A)
-- `GET /growth`, `POST /growth/deposit`, `POST /growth/withdraw`
-- `growth_allocations` table + yield webhook handler
-- Earnings estimate polling or webhook update
-
-**Mobile**
-
-- Growth surface from Savings or Home
-- Directional copy (UserFlows §12):
-
-  ```
-  Put your savings to work.
-  Earn estimated yield while keeping the experience simple.
-  ```
-
-- Deposit/withdraw inline states; disclaimer below headline (not dominant)
-- Home dashboard: *Growth earnings this month* when applicable
-
-### Dependencies
-
-- Phase 4 (available balance to allocate)
-- Yield provider sandbox on Base
-
-### Acceptance criteria
-
-- [ ] UserFlows §12: deposit to growth and withdraw back on **iOS and Android**
-- [ ] User never sees Aave/Morpho/Compound, APY optimization, or wallet mechanics
-- [ ] Earnings shown as estimated; not guaranteed disclaimer present
-- [ ] Growth separate from goal envelopes
-- [ ] Celebration copy on first growth milestone (Brand.md)
-
----
-
-## Phase 9: Withdraw to bank (V1)
-
-### Goal
-
-**V1 launch requirement** — cash out to bank via Bridge off-ramp. Completes the basic money loop with Phase 4 on-ramp and Phase 6 P2P. See [V1Scope.md](../product/V1Scope.md).
-
-### Deliverables
-
-**Backend**
-
-- `POST /funding/withdrawals`, `GET /funding/withdrawals/:id`, `GET /funding/destinations`
-- Bridge off-ramp webhooks; ledger debit
-- Withdraw from **available balance only**
-
-**Mobile**
-
-- Withdraw stack from Home / Profile (UserFlows §6)
-- Inline async states while off-ramp is processing
-
-### Dependencies
-
-- Phase 4 (Bridge relationship)
-- Phase 6 (funded available balance for withdraw QA)
-- Phase 0 launch geography assessment complete; off-ramp-eligible regions documented
-
-### Acceptance criteria
-
-- [ ] UserFlows §6: withdraw to linked bank in test mode on **iOS and Android**
-- [ ] Insufficient available balance shows friendly error
-- [ ] Withdraw debits ledger only from available — not goal or growth allocations
-- [ ] **iOS and Android** parity on Withdraw flow
-
----
-
-## Phase 9B: Virtual debit card (post-V1)
-
-### Goal
-
-Virtual debit card via Gnosis Pay — **not required for V1 launch**. Card tab may show a placeholder until this phase ships.
-
-### Deliverables
-
-**Backend — card**
-
-- Gnosis Pay: `GET /card`, `POST /card/issue`, `POST /card/freeze`, `GET /card/transactions`
-- Card spend webhooks → `card_transactions`, ledger debit
-- Resend email on card spend
-
-**Mobile**
-
-- Card tab: virtual card, masked PAN, CVV reveal (biometric), freeze toggle, recent spends
-- Card spend → Transaction Detail
-
-### Dependencies
-
-- Phase 4 (Bridge relationship)
-- Phase 6 (funded available balance for spend QA)
-- Gnosis Pay staging access
-- Phase 0 launch geography assessment complete; card-eligible regions documented (founder confirmation of launch countries before card release)
-- KYC path via Bridge/Gnosis for test users
-
-### Acceptance criteria
-
-- [ ] UserFlows §13: virtual card issued; freeze/unfreeze works
-- [ ] Test purchase or simulated spend updates activity on Home and Card
-- [ ] Insufficient available balance declines spend with clear copy
-- [ ] Card draws from available only — not goal or growth allocations
-- [ ] **iOS and Android** parity on Card flows
-
----
-
-## Phase 10: MVP hardening & release
-
-### Goal
-
-Production-quality prototype ready for TestFlight, Google Play internal testing, and public marketing site — **simultaneous iOS + Android release**.
-
-### Deliverables
-
-- End-to-end QA script covering all 16 UserFlows
-- Webhook retry + stuck-`processing` polling job
-- Error copy audit (Brand.md voice; no raw provider errors)
-- Security pass: auth on all routes, rate limits, webhook signatures
-- Privacy Policy + Terms linked from app and site
-- App Store + Google Play metadata, screenshots (both platforms)
-- TestFlight + Play internal track builds
-- Analytics logging stub (optional Architecture Future)
-- Support email live in footer and Profile
-
-### Dependencies
-
-- Phases 0–6, 8–9 complete for **V1 launch** (Phase 9B card and Phase 7 Pia chat are post-V1 / Future)
-- Apple + Google developer accounts in good standing
-- Phase 0 launch geography assessment complete; founder has confirmed initial supported countries (or explicitly deferred TBD for prototype demo geography)
-
-### Acceptance criteria
-
-- [ ] All **16 UserFlows** pass on physical **iOS and Android** devices (excluding UserFlows §16 Pia live chat — Future)
-- [ ] Marketing site live with waitlist or store links
-- [ ] No P0 bugs in core loop: onboard → fund → dashboard → goal → send → receive → growth → card → withdraw → profile
-- [ ] Pia Coming Soon preview visible; no live chat in MVP
-- [ ] Async flows use four canonical states everywhere
-- [ ] Store submission packages uploaded (or ready for founder review)
-- [ ] MVP exclusions verified: no request money, no AI advisor, no Base App, no confidence score
-
----
-
-## Global MVP release criteria
-
-Before calling MVP **done**:
-
-| Area | Criterion |
-|------|-----------|
-| **Platforms** | React Native app shipped to App Store + Google Play (or approved beta) |
-| **Marketing** | Website live with SEO, FAQ, `/learn/usdc`, waitlist or download links |
-| **Screens** | All **11 PRD screens** implemented (Pia preview inline on Profile — not a separate screen) |
-| **Flows** | All **16 UserFlows** demonstrable |
-| **Pia** | Static Coming Soon preview visible (Profile + marketing); no live chat |
-| **Stack** | Wrapper model only — provider integrations per Architecture §15 |
-| **Voice** | Brand.md + UserFlows outcome copy; dollars not crypto in app |
-| **Mission** | Experience reinforces *More choices. More freedom.* |
-
----
-
-## Dependency graph (simplified)
-
-```
-Phase 0 (Foundation)
-    ├── Phase 1 (Marketing) ──────────────────────────────┐
-    └── Phase 2 (Auth & shell)                            │
-            └── Phase 3 (Dashboard)                       │
-                    ├── Phase 4 (Add money)               │
-                    │       ├── Phase 5 (Goals)           │
-                    │       ├── Phase 6 (Send/Receive)    │
-                    │       ├── Phase 8 (Growth)          │
-                    │       ├── Phase 9 (Withdraw — V1)   │
-                    │       └── Phase 9B (Card — post-V1) │
-                    └──────────────────────────────────────┴── Phase 10 (Release)
-
-Future (post-MVP): Pia AI chat agent — see Future section above.
+```text
+Your account is ready
+Add your first funds to begin using Olimpia.
+[Add Funds]
 ```
 
----
+- `$0.00` secondary, not the dominant message.
+- Add Funds routes to the canonical method chooser.
+- No copy implying immediate or automatic yield.
 
-## Risk mitigations (build-time)
+### Acceptance
 
-| Risk | Mitigation |
-|------|------------|
-| Bridge/Gnosis sandbox delays | Staging ledger + manual credit for UI phases; parallel API integration |
-| Gnosis geo limits | Phase 0 geography assessment (Architecture §4A); gate Card tab with provider-driven plain copy |
-| Yield provider complexity | Option A single provider only; defer multi-provider |
-| iOS/Android drift | Single RN codebase; test both platforms every phase |
-| Scope creep | Phase acceptance gates; PRD P1/P2 stays out |
+- New and returning users authenticate on iOS and Android.
+- Wallet association remains invisible outside Receive USDC.
+- Empty-account onboarding has one clear next action.
 
 ---
 
-## Document flow
+## Phase 3 — Dashboard, ledger, and activity
 
-```
-PRD.md (approved)
-    ↓
-Brand.md (approved)
-    ↓
-Architecture.md
-    ↓
-UserFlows.md
-    ↓
-BuildPlan.md (this document)
-    ↓
-ScreenInventory.md (screen-level spec)
-    ↓
-NavigationMap.md (navigation validation)
-    ↓
-Implementation
-```
+### Backend
 
----
+- Authoritative balance buckets: Available, Savings, Growth.
+- Normalized transaction/activity records.
+- Balance, activity, and transaction-detail reads.
+- Canonical statuses: pending, processing, completed, failed, cancelled, reversed.
 
-## Approval checklist
+### Mobile
 
-Before implementation begins:
+- Home balance and state-aware next action.
+- Add Funds, Send, Receive.
+- Recent activity and transaction detail.
+- Shared async and error states.
 
-- [ ] Phase order and parallel marketing track accepted
-- [ ] Phase 0 monorepo structure accepted
-- [ ] Pia preview only in MVP; functional coach deferred to Future section
-- [ ] Single yield provider (Phase 8) accepted
-- [x] Growth account in MVP (founder confirmed — PRD v1.10 P0)
-- [x] Bank withdraw in MVP (founder confirmed — PRD v1.10 P0)
-- [x] Withdraw (Phase 9) and Card (Phase 9B) documented separately — withdraw **V1**, card **post-V1**
-- [ ] Phase 0 launch geography assessment complete (Architecture §4A; [launch-geography.md](../architecture/launch-geography.md)); real vs simulated money resolved (PRD §18)
-- [ ] Store release owner identified
+### Acceptance
+
+- Displayed balances come from the backend ledger.
+- Reversals are explicit.
+- Activity labels remain plain and provider-neutral.
 
 ---
 
-*End of BuildPlan.md v1.1*
+## Phase 4A — Funding architecture cleanup
+
+### Deliverables
+
+- Keep existing mocks only where useful for UI development.
+- Establish provider interfaces and normalized funding model.
+- Review deposit/ledger schema requirements; migration is a separate approved task.
+- Define idempotency keys, event records, status mapping, and reconciliation references.
+- Define eligible-method/config response without exposing provider business logic.
+- Retire dormant legacy-provider code/configuration only in a later approved implementation task.
+
+### Mobile requirements
+
+- Method order:
+  1. Bank Transfer
+  2. Apple Pay or Card
+  3. Transfer USDC
+- Provider names are not method labels.
+- Keep Transfer USDC visible.
+- Keep normal navigation unless validated testing supports focus mode.
+- Every checkout/confirmation provides cancel, close, or return.
+
+### Acceptance
+
+- One provider-neutral Add Funds model is documented and ready for implementation.
+- No mobile dependency on provider payloads or raw statuses.
+
+---
+
+## Phase 4B — Receive existing USDC
+
+### Backend
+
+- Implement secure Base monitoring through approved webhook/indexer/RPC approach.
+- Validate chain, recipient, supported USDC token, amount, and transaction hash.
+- Apply confirmation threshold.
+- Prevent duplicate credits.
+- Create inbound activity and ledger credit after validation.
+- Handle delayed events and reorg/reversal policy.
+
+### Mobile
+
+- **Receive USDC** screen.
+- Authenticated Privy address.
+- QR code and Copy Address.
+- Prominent **Base network** label.
+- Beginner Coinbase instructions plus support for other compatible wallets.
+- Required unsupported asset/network warning.
+- Pending until backend confirmation.
+
+### Acceptance
+
+- Supported USDC on Base credits exactly once.
+- Unsupported token/network does not credit.
+- Replayed events do not duplicate activity or balance.
+- No three-to-five-second guarantee.
+
+---
+
+## Phase 4C — Dakota ACH
+
+### Validation before implementation
+
+- Customer creation and KYC ownership
+- Bank linking
+- Deposit creation
+- USD-to-USDC conversion responsibility
+- Direct-to-Privy-wallet support
+- Intermediate custody/settlement
+- Webhooks and status states
+- Failed ACH, cancellation, returns, refunds, reversals
+- $0.25 cost and markup permission
+- Sandbox and production access
+
+### Backend
+
+- Dakota adapter behind `BankTransferProvider`.
+- Signature validation and idempotent webhook processing.
+- Normalized status mapping.
+- Ledger credit only after validated completion.
+- Reversal handling and reconciliation.
+
+### Mobile
+
+Conceptual review hierarchy:
+
+- Amount
+- Connected bank
+- Your Olimpia account
+- Deposit amount
+- Olimpia transfer fee
+- Total bank withdrawal
+- Exact account credit
+- Provider-confirmed expected arrival
+- **Review Transfer** / **Review & Continue**
+
+### Acceptance
+
+- $1 total fee appears only after commercial/compliance approval.
+- Conceptual 1–2 business-day timing is not hardcoded.
+- Completed, failed, cancelled, returned, and reversed cases pass.
+- Funding does not start Growth automatically.
+
+---
+
+## Phase 4D — Privy Fiat Onramp
+
+### Validation before implementation
+
+- Supported underlying providers
+- React Native, iOS, and Android support
+- Apple Pay and debit-card availability
+- Optional credit-card approval
+- Base, USDC, wallet destination, and amount configuration
+- Final quote/fee presentation
+- KYC and first-transaction behavior
+- Completion, cancellation, failure, and reversal callbacks
+- Geography and transaction limits
+- Convenience-fee restrictions
+
+### Backend
+
+- Configurable `FiatOnrampProvider`.
+- Launch/session configuration where required.
+- Completion verification and normalized statuses.
+- Reconciliation against wallet receipt and provider records.
+
+### Mobile
+
+- Amount and Apple Pay/card selection.
+- Launch Privy's supported onramp experience.
+- No hidden background WebView.
+- No exact USDC amount before provider quote.
+- Provider final fee before confirmation.
+- Identity-verification disclosure.
+
+### Acceptance
+
+- Checkout works on iOS and Android.
+- Cancel/failure returns safely to Add Funds.
+- Final receipt, ledger, balance, and activity reconcile.
+- No assumption that this method costs $1.
+
+---
+
+## Phase 4E — Funding reconciliation and release readiness
+
+### Deliverables
+
+- Reconcile Dakota deposits.
+- Reconcile fiat-onramp provider records.
+- Reconcile Base transfers.
+- Reconcile all records against ledger entries.
+- Scheduled monitoring for stuck processing records.
+- Audit logs and operational alerts.
+- Support playbooks for failures, returns, chargebacks, and unsupported transfers.
+- Limits, velocity controls, sanctions/fraud ownership.
+- Production credential and compliance approval checklist.
+
+### Acceptance
+
+- Duplicate webhooks/events are harmless.
+- Delayed confirmation and provider outage tests pass.
+- Reversed funding corrects balance/activity exactly once.
+- Fee, timing, KYC, network, and asset disclosures are approved.
+
+---
+
+## Phase 5 — Savings goals
+
+### Backend
+
+- Goal CRUD and allocation movements.
+- Available ↔ Savings ledger entries.
+- Goal activity.
+
+### Mobile
+
+- Goals list, create-goal sheet, detail, progress, add/remove funds.
+- No automatic yield or fake APY.
+
+### Acceptance
+
+- Goal movements preserve total balance.
+- Insufficient Available balance returns a clear error.
+
+---
+
+## Phase 6 — Send and receive
+
+### Backend
+
+- Registered-user lookup and transfer.
+- Sponsored Base transaction where required.
+- Idempotent sender/recipient ledger entries.
+- Receive handle/link support.
+
+### Mobile
+
+- Recipient, amount, note, review, authorization, status.
+- P2P Receive remains distinct from Receive USDC funding.
+
+### Acceptance
+
+- Two test users send/receive on iOS and Android.
+- Insufficient balance and unknown-recipient paths pass.
+
+---
+
+## Phase 7 — Growth Account
+
+### Backend
+
+- Intended Aave-on-Base adapter.
+- Growth deposit, withdrawal, position, and estimated earnings.
+- Reconciliation against ledger and protocol position.
+
+### Mobile
+
+- Provider-neutral Growth Account.
+- Explicit user authorization to move eligible Available funds.
+- Estimated variable earnings; no guarantees.
+
+### Acceptance
+
+- No automatic funding-to-Growth movement.
+- Funds return to Available on successful Growth withdrawal.
+- Provider names stay out of mobile.
+
+---
+
+## Phase 8 — Withdrawal
+
+### Required first
+
+- Select and validate a replaceable off-ramp provider.
+- Confirm KYC, destinations, geography, fees, timing, webhooks, returns, and reconciliation.
+
+### Deliverables
+
+- Provider adapter and normalized withdrawal statuses.
+- Available-only withdrawal policy.
+- Linked destination flow.
+- Ledger debit/reversal and activity.
+
+### Acceptance
+
+- Withdrawal works in provider sandbox on iOS and Android.
+- Savings/ Growth funds cannot be withdrawn until returned to Available.
+
+---
+
+## Phase 9 — V1 hardening and release
+
+- End-to-end iOS and Android testing.
+- Authentication/session recovery.
+- All three Add Funds methods.
+- Balance/activity reconciliation.
+- Savings, send/receive, Growth, withdrawal.
+- Security review: auth, authorization, secrets, signatures, idempotency, limits.
+- Legal, privacy, fee, KYC, network, asset, and yield disclosures.
+- Provider outage and delayed-event tests.
+- App Store and Google Play readiness.
+- Support and operational ownership.
+
+### Release gate
+
+- No unresolved duplicate-credit risk.
+- No provider-specific funding labels in mobile.
+- No hardcoded unconfirmed fee/arrival claim.
+- No automatic yield enrollment.
+- No raw provider errors.
+- All V1 launch blockers in V1Scope resolved or explicitly accepted.
+
+---
+
+## Deferred
+
+- Functional Pia chat
+- Functional card spending
+- Physical card
+- Additional assets or networks
+- Multi-provider yield routing
+- Automatic yield
+- Request money
+- Admin dashboard beyond release-essential operations
+
+---
+
+*End of Build Plan v2.0*

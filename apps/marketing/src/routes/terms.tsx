@@ -62,7 +62,7 @@ function TermsPage() {
         <h2 className="text-h3 font-semibold text-foreground">Risks</h2>
         <p>
           Financial products involve risk. Optional yield on savings is variable and not guaranteed.
-          Digital dollar products may be subject to partner, market, regulatory, or operational risks.
+          Digital currency products may be subject to partner, market, regulatory, or operational risks.
           We explain how features work, but we cannot eliminate risk.
         </p>
       </section>

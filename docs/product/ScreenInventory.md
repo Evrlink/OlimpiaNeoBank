@@ -3,7 +3,7 @@
 **Version:** 1.1  
 **Status:** Draft for review  
 **Purpose:** Complete MVP screen and surface inventory for developers — no UI designs, no code  
-**Source of truth:** [PRD.md](./PRD.md) (v1.10) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v1.5) · [UserFlows.md](./UserFlows.md) (v1.3) · [NavigationMap.md](./NavigationMap.md) (v1.1) · [BuildPlan.md](../build/BuildPlan.md) (v1.1)
+**Source of truth:** [PRD.md](./PRD.md) (v2.0) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v2.0) · [UserFlows.md](./UserFlows.md) · [NavigationMap.md](./NavigationMap.md) · [BuildPlan.md](../build/BuildPlan.md) (v2.0)
 
 ---
 
@@ -47,7 +47,7 @@
 | A2 | [Authentication (Privy)](#a2-authentication-privy) | 2 | Yes | Yes |
 | A3 | [Pia Introduction (onboarding moment)](#a3-pia-introduction-onboarding-moment) | — | Yes | No — Pia-free onboarding; preview on Profile only |
 | A4 | [Home Dashboard](#a4-home-dashboard) | 3 | Yes | Yes |
-| A5 | [Add Money](#a5-add-money) | 4 | Yes | Yes |
+| A5 | [Add Funds](#a5-add-funds) | 4 | Yes | Yes |
 | A6 | [Withdraw Money](#a6-withdraw-money) | — | Yes | Yes |
 | A7 | [Send Money](#a7-send-money) | 5 | Yes | Yes |
 | A8 | [Receive Money](#a8-receive-money) | 6 | Yes | Yes |
@@ -118,7 +118,7 @@
 |--------|-------|---------|
 | POST | `/api/v1/waitlist` | Email capture (optional if third-party form) |
 
-**SEO (Architecture §3A):** Title, meta, Open Graph, JSON-LD, semantic HTML, one H1.
+**SEO:** Title, meta, Open Graph, JSON-LD, semantic HTML, one H1; marketing details remain in Brand/DesignReferences.
 
 ---
 
@@ -326,14 +326,14 @@
 **Exit point(s):**
 
 - **Continue** → fund-now prompt or A4 Home
-- **Add money now** → A5 Add Money
+- **Add Funds** → A5 Add Funds
 - **Explore app** → A4 Home
 
 **Components on screen:**
 
 - Pia greeting card, e.g. *Hi, I'm Pia. I'll help you understand your money, answer questions, and support your goals along the way.*
 - Continue button
-- Optional: Add money now / Explore app choice
+- Optional: Add Funds / Explore app choice
 
 **Primary user goal:** Feel welcomed; know Pia exists as a coach.
 
@@ -370,7 +370,7 @@
 **Exit point(s):**
 
 - **State-emphasized actions** (see [Dynamic Home Dashboard States](#dynamic-home-dashboard-states)) — primary CTAs vary by lifecycle state
-- Quick actions → A5 Add Money · A7 Send · A8 Receive · A15 Pia (Send/Receive always reachable; emphasis shifts by state)
+- Quick actions → A5 Add Funds · A7 Send · A8 Receive · A15 Pia (Send/Receive always reachable; emphasis shifts by state)
 - State-specific → A10 Savings · A11 Create Goal · A12 Goal Detail · A13 Growth Account
 - Activity row → A9 Transaction Detail
 - Bottom tabs → A10 Savings · A14 Card · A16 Profile
@@ -383,7 +383,7 @@
 - Featured goal + progress % (State 3 Goal Builder; State 5 Mature User)
 - Growth earnings summary (State 4 Growth User; State 5 Mature User)
 - Money available (secondary — not hero in States 1, 3, 4)
-- **Primary actions** — state-dependent: Add Money · Send · Receive · Create Goal · Growth Account · Add to goal · View goal · Review progress · *(Pia: Coming soon card on Profile at V1 — no Ask Pia)*
+- **Primary actions** — state-dependent: Add Funds · Send · Receive · Create Goal · Growth Account · Add to goal · View goal · Review progress · *(Pia: Coming soon card on Profile at V1 — no Ask Pia)*
 - Secondary quick actions: Send · Receive (de-emphasized when not the next best step)
 - Recent activity list (preview)
 - Processing / inline state components
@@ -392,7 +392,7 @@
 
 **Success state:** Correct dashboard state resolved; data loaded; user feels guided — not lectured by balances.
 
-**Empty state:** Maps to **State 1 — New User** — friendly prompt to add funds; $0 balance OK; no blank ledger wall. Other states replace this pattern when funded, goals, or growth exist (see dedicated section below).
+**Empty state:** Maps to **State 1 — New User**. Lead with **Your account is ready**, **Add your first funds to begin using Olimpia**, and **Add Funds**. `$0.00` may remain visible only as secondary information. Do not promise immediate earning or automatic Growth enrollment.
 
 **Error state:** Balance/activity load fail — retry / pull-to-refresh.
 
@@ -407,21 +407,21 @@
 
 ---
 
-### A5: Add Money
+### A5: Add Funds
 
 | Field | Detail |
 |-------|--------|
-| **Screen name** | Add Money |
+| **Screen name** | Add Funds |
 | **PRD #** | 4 |
 | **Type** | Stack / modal |
 | **MVP / Future** | **MVP** |
-| **Purpose** | Fund account via bank/card (Bridge on-ramp) |
+| **Purpose** | Choose Bank Transfer, Apple Pay or Card, or Transfer USDC without coupling the screen to a provider |
 | **User flow** | UserFlows §5 |
 
 **Entry point(s):**
 
-- A4 Home — Add Money
-- A3 onboarding — Add money now
+- A4 Home — Add Funds
+- A3 onboarding — Add Funds
 - A16 Profile (optional)
 
 **Exit point(s):**
@@ -431,14 +431,24 @@
 
 **Components on screen:**
 
-- Amount input (USD)
-- Funding method selector
-- Review summary
-- Confirm button
-- **Inline states:** pending · processing · completed · failed
-- Bridge-hosted payment step (WebView / redirect)
+- Funding method selector with:
+  - **Bank Transfer** — first; recommended only when confirmed as lower-cost/suitable; provider-confirmed arrival + approved $1 fee
+  - **Apple Pay or Card** — fastest positioning; provider quote/fee and possible identity verification disclosed
+  - **Transfer USDC** — readily visible; send from Coinbase or another compatible wallet using Base
+- Amount/review/confirm where the selected method requires it
+- Provider-controlled Privy fiat-onramp experience for Apple Pay/card; never a hidden background WebView
+- Bank review: connected bank, Your Olimpia account, deposit amount, fee, total bank withdrawal, exact account credit, expected arrival, **Review Transfer**
+- Apple Pay/card: estimated receipt only after quote; final provider fee before confirmation; no repeat one-click promise
+- Receive USDC: authenticated Privy address, QR code, Copy Address, Coinbase guidance, prominent Base network/USDC warning
+- **Inline states:** pending · processing · completed · failed · cancelled · reversed
 
-**Primary user goal:** Add funds and start growing toward goals and flexibility.
+**Navigation:** Keep normal tabs/navigation unless user testing validates a focused presentation. Any provider checkout or confirmation must expose cancel, close, or return.
+
+**Yield rule:** Funding does not automatically start Growth. Funds become eligible only after settlement, compliance checks, and required user authorization.
+
+> Conceptual information hierarchy only. Exact copy, spacing, icons, borders, and component styling require later design review.
+
+**Primary user goal:** Choose the right way to add funds based on what the user already has, expected cost, and timing.
 
 **Success state:** `completed` — *Money added*; balance updated.
 
@@ -455,7 +465,7 @@
 | POST | `/api/v1/funding/deposits` | Start deposit |
 | GET | `/api/v1/funding/deposits/:id` | Poll status |
 
-**Providers:** BridgeXYZ · Resend (email on complete).
+**Providers:** Dakota (replaceable bank adapter) · Privy-configured fiat onramp · Base deposit monitor · Resend.
 
 ---
 
@@ -491,7 +501,7 @@
 
 **Success state:** `completed` — *Withdrawal complete*.
 
-**Empty state:** No linked bank — prompt to link (Profile / Bridge flow).
+**Empty state:** No linked bank — prompt to link through the selected off-ramp provider flow.
 
 **Error state:** Insufficient **available** balance; `failed` — retry + support.
 
@@ -505,7 +515,7 @@
 | GET | `/api/v1/funding/withdrawals/:id` | Poll status |
 | GET | `/api/v1/funding/destinations` | Linked banks |
 
-**Providers:** BridgeXYZ · Resend.
+**Providers:** Off-ramp provider **TBD** · Resend.
 
 ---
 
@@ -855,7 +865,7 @@
 | POST | `/api/v1/growth/deposit` | Allocate to growth |
 | POST | `/api/v1/growth/withdraw` | Withdraw from growth |
 
-**Providers:** Yield layer (single provider — Architecture §11A) · Base · LI.FI (if needed, server-only).
+**Providers:** Aave intended behind the provider-neutral Growth Account (Architecture §13) · Base · LI.FI only if needed server-side.
 
 ---
 
@@ -867,7 +877,7 @@
 | **PRD #** | 10 |
 | **Tab** | Card |
 | **MVP / Future** | **MVP** (broader prototype) |
-| **V1 launch** | **No — post-V1** (Gnosis Pay; Build Phase 9 card) |
+| **V1 launch** | **No — post-V1** (Gnosis Pay; deferred from BuildPlan v2.0) |
 | **Purpose** | View virtual card, manage controls, see recent spends |
 | **User flow** | UserFlows §13 |
 
@@ -975,7 +985,7 @@
 | **Purpose** | Account info, preferences, security, help, sign out — **settings merged here** |
 | **User flow** | UserFlows §15 |
 
-*There is no separate **Settings** screen in MVP (PRD §11). Notification, security, and linked bank preferences live on this screen.*
+*There is no separate **Settings** screen in V1 (PRD §12). Notification, security, and linked bank preferences live on this screen.*
 
 **Entry point(s):**
 
@@ -995,7 +1005,7 @@
 | Account info | Name, email, username (receive handle) |
 | **Settings: Notifications** | Preferences — `PATCH /me` |
 | **Settings: Security** | Biometric toggle, etc. |
-| Linked funding destination | Bank via Bridge |
+| Linked withdrawal destination | Bank via replacement off-ramp provider (TBD) |
 | Help / Support | Email or link |
 | **Pia Coming soon** | Static card on Profile — visible at V1; no chat, input, or navigation (**post-V1:** Ask Pia → A15) |
 | Sign out | Privy logout |
@@ -1017,7 +1027,7 @@
 | GET | `/api/v1/me` | Profile |
 | PATCH | `/api/v1/me` | Update prefs / display name |
 
-**Providers:** Privy · BridgeXYZ (linked bank display).
+**Providers:** Privy · replacement off-ramp provider TBD (linked bank display).
 
 ---
 
@@ -1041,7 +1051,7 @@ This document (ScreenInventory) defines **what each screen contains**; Navigatio
 |----------|-------|-------|
 | **Marketing routes** | 2 | M1 Landing · M2 `/learn/usdc` |
 | **Marketing overlays** | 1 | M3 Waitlist modal |
-| **PRD mobile screens** | **12** | Welcome through Profile per PRD §11 |
+| **PRD mobile screens** | **12** | Existing inventory retained; canonical requirements are PRD §§12–18 |
 | **Additional MVP mobile surfaces** | 4 | A3 Pia intro · A6 Withdraw · A11 Create Goal sheet · A13 Growth Account |
 | **Total MVP surfaces** | **19** | 3 marketing + 16 mobile (A1–A16; A3/A6/A11/A13 beyond PRD # but required for MVP) |
 
@@ -1053,22 +1063,22 @@ This document (ScreenInventory) defines **what each screen contains**; Navigatio
 
 ## 4. Screens deferred to Future scope
 
-Documented in PRD §11, Architecture §20, UserFlows — **not in MVP build**:
+Documented in PRD §21, Architecture §18, UserFlows — **not in V1 build**:
 
 | Surface | Source | Reason |
 |---------|--------|--------|
-| **Full transaction history** | PRD P1 | Home preview + A9 Transaction Detail suffice |
-| **Request money** | PRD P1 | Extend Receive later |
-| **Separate Settings screen** | PRD §11 | Merged into A16 Profile |
+| **Full transaction history** | PRD §21 | Home preview + A9 Transaction Detail suffice |
+| **Request money** | PRD §21 | Extend Receive later |
+| **Separate Settings screen** | PRD §12 | Merged into A16 Profile |
 | **Notifications center** | PRD deferred | Email + Profile prefs sufficient |
-| **Physical card order** | Architecture §20 | Virtual card only |
-| **Pia thread delete** | Architecture §12B | `DELETE /pia/thread` Future |
-| **Push notification UI** | Architecture §19 | Email MVP |
+| **Physical card order** | Architecture §18 | Card deferred |
+| **Pia thread delete** | PRD §21 | Functional Pia deferred |
+| **Push notification UI** | Architecture §18 | Deferred |
 | **Your Growth** progression view | UserFlows Future | Milestone system — not a screen in MVP |
-| **AI Financial Advisor** | PRD §17 | Distinct from Pia coach |
+| **AI Financial Advisor** | PRD §21 | Deferred |
 | **Base App** | PRD / UserFlows | Later platform |
-| **Claim-link receive** (unregistered payer) | Architecture §8 | Olimpia-to-Olimpia only for MVP |
-| **Multi-provider yield picker** | Architecture §11A | Single provider MVP |
+| **Claim-link receive** (unregistered payer) | Architecture §13 | Olimpia-to-Olimpia only for V1 |
+| **Multi-provider yield picker** | Architecture §18 | Aave intended for V1 |
 
 ---
 
@@ -1102,7 +1112,7 @@ Let's get started.
 Add funds to begin...
 ```
 
-**Primary actions:** Add Money, Send, Receive *(Pia: static Coming soon card on Profile — no Ask Pia at V1)*
+**Primary actions:** Add Funds, Send, Receive *(Pia: static Coming soon card on Profile — no Ask Pia at V1)*
 
 **Goal:** first deposit
 
@@ -1237,7 +1247,7 @@ Navigation structure and journey maps: [NavigationMap.md](./NavigationMap.md). P
 - [x] Growth, savings goals, and Withdraw included as V1 launch requirements — see [V1Scope.md](./V1Scope.md)
 - [x] Virtual card (A14) documented as **post-V1**
 - [x] Pia AI chat (A15) documented as **post-V1**; V1 uses static preview on Profile only
-- [ ] API mapping matches Architecture §14
+- [ ] API mapping respects the mobile/backend boundary in Architecture §16
 - [ ] Future deferrals aligned with PRD and Architecture
 - [ ] Navigation map matches UserFlows entry/exit points — see [NavigationMap.md](./NavigationMap.md)
 - [ ] Dynamic Home Dashboard States reviewed — five lifecycle states, no new screens

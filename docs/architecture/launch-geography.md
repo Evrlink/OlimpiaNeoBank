@@ -20,12 +20,14 @@ Complete during Phase 0 by reviewing each provider's sandbox, API docs, and comp
 
 | Provider | Capability | Supported geographies (document findings) | KYC / compliance notes | Blocks feature when unavailable |
 |----------|------------|-------------------------------------------|------------------------|----------------------------------|
-| **BridgeXYZ** | On-ramp | _TBD_ | _TBD_ | Add money |
-| **BridgeXYZ** | Off-ramp | _TBD_ | _TBD_ | Withdraw |
+| **Dakota** | Bank transfer | _TBD_ | Confirm customer/KYC, bank linking, fees, returns | Bank Transfer |
+| **Privy + configured provider** | Apple Pay / card onramp | _TBD_ | Confirm payment methods, KYC, fees, limits | Apple Pay or Card |
+| **Base monitoring provider/RPC** | External USDC receipt | Base access; provider availability _TBD_ | Confirm monitoring and sanctions responsibilities | Transfer USDC |
+| **Off-ramp provider (TBD)** | Withdraw | _TBD_ | Select provider; confirm payout rails and KYC | Withdraw |
 | **Gnosis Pay** | Virtual card | _TBD_ | _TBD_ | Card tab (gate with plain copy) |
 | **Privy** | Auth | _TBD_ | _TBD_ | Onboarding |
 | **LI.FI** | Routing | Generally global — confirm | _TBD_ | Internal only |
-| **Yield (Aave/Morpho/Compound)** | Growth deposits | On-chain — confirm sanctions | _TBD_ | Growth (if blocked) |
+| **Aave** | Growth deposits | On-chain — confirm sanctions | _TBD_ | Growth (if blocked) |
 
 ---
 
@@ -40,9 +42,9 @@ Complete during Phase 0 by reviewing each provider's sandbox, API docs, and comp
 
 ## Recommended initial launch countries
 
-| Country / region | On-ramp | Off-ramp | Card | Auth | Notes |
-|------------------|---------|----------|------|------|-------|
-| _TBD_ | | | | | |
+| Country / region | Bank transfer | Apple Pay/card | Transfer USDC | Off-ramp | Card | Auth | Notes |
+|------------------|---------------|----------------|---------------|----------|------|------|-------|
+| _TBD_ | | | | | | | |
 
 **Founder decision:** _Pending — confirm before Phase 9/10._
 
@@ -53,11 +55,13 @@ Complete during Phase 0 by reviewing each provider's sandbox, API docs, and comp
 | Feature | Eligibility flag (proposed) | UX when blocked |
 |---------|----------------------------|-----------------|
 | Card | `eligibility.card.available` | Gated Card tab — plain-language copy (UserFlows §13; ScreenInventory A14) |
-| Add money | `eligibility.onRamp.available` | Fund action disabled with explanation |
+| Bank Transfer | `eligibility.bankTransfer.available` | Keep other eligible funding methods available |
+| Apple Pay or Card | `eligibility.fiatOnramp.available` | Keep other eligible funding methods available |
+| Transfer USDC | `eligibility.externalUsdc.available` | Disable only this method with a plain explanation |
 | Withdraw | `eligibility.offRamp.available` | Withdraw disabled with explanation |
 | Growth | `eligibility.growth.available` | Growth entry disabled if provider blocks jurisdiction |
 
-Backend: extend `GET /me` or add `GET /config/eligibility` per Architecture §4A.
+Eligibility delivery requires a separate API implementation review; Architecture §16 defines the mobile/backend boundary.
 
 ---
 
