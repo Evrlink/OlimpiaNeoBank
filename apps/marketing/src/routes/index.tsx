@@ -1,15 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  CreditCard,
   TrendingUp,
   GraduationCap,
   Heart,
   Plus,
   Send,
-  Wallet,
-  Layers,
-  LayoutGrid,
-  Fuel,
 } from "lucide-react";
 import { useEffect, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
@@ -53,9 +48,9 @@ function Home() {
       <main>
         <Hero />
         <GoalsSection />
-        <EmpoweringCards />
-        <PiaSection />
+        <UsdcVsUsdSection />
         <WhyUsdcSection />
+        <PiaSection />
         <Faq />
         <TrustStrip />
         <StayTunedSection />
@@ -233,118 +228,105 @@ function TrustStrip() {
   );
 }
 
-/* ---------- SECTION 2: GOALS CARDS ---------- */
+/* ---------- SECTION 2: FEATURES CARDS ---------- */
 function GoalsSection() {
   const items = [
     {
-      icon: Send,
-      title: "Send USDC",
-      body: "Send USDC in seconds to anyone anywhere in the world.",
-      details:
-        "Move money globally without bank hours or high fees. Enter an address or username, confirm, and it's on the way — usually in seconds.",
-    },
-    {
-      icon: CreditCard,
-      title: "Virtual Debit Card",
-      body: "Spend anywhere Visa is accepted, earn cash back rewards.",
-      details:
-        "Spend your stablecoin balance anywhere Visa is accepted. Top up your card from your wallet with a single tap. Use your card for everyday purchases online and in stores.",
-    },
-    {
       icon: TrendingUp,
-      title: "Earn Yield",
-      body: "Hold USDC and earn yield. Swap between USDC and USD easily.",
+      title: "Grow Your Savings",
+      body: "Earn yield on your USDC instead of letting it sit idle in your bank",
       details:
-        "Your balance earns USDC yield while it sits. Olimpia connects you to the same lending markets used by professional investors. No lockups. Withdraw anytime.",
+        "Earn yield on your USDC, then convert it back to USD and send it back to your bank anytime",
+    },
+    {
+      icon: Send,
+      title: "Send Money in Seconds",
+      body: "Move money worldwide in seconds, for pennies",
+      details:
+        "Spend and send money globally, 24/7, for pennies",
     },
     {
       icon: GraduationCap,
-      title: "Learn & Grow",
-      body: "Learn with Pia, your AI money bestie.",
+      title: "Learn With Pia",
+      body: "Get simple, judgment-free guidance on modern money",
       details:
-        "You're not on your own. Pia explains saving, USDC, yield, and modern money tools in plain language. Pia offers education to help you decide with confidence, not financial advice.",
+        "Pia helps you navigate decentralized finance with confidence",
     },
   ];
   const [flipped, setFlipped] = useState<Record<string, boolean>>({});
   const toggle = (title: string) =>
     setFlipped((p) => ({ ...p, [title]: !p[title] }));
   return (
-    <section
-      id="features"
-      className="section-pad section-bridge-out relative overflow-hidden bg-gradient-to-b from-background via-rose-soft/18 to-background"
-    >
-      <div className="relative mx-auto max-w-7xl px-6 md:px-12">
-        <SectionScrollReveal className="mx-auto max-w-3xl text-center">
+    <section id="features" className="features-section">
+      <div className="features-inner">
+        <SectionScrollReveal className="features-header">
+          <p className="features-eyebrow">Features</p>
           <h2 className="text-balance text-h1 font-semibold text-foreground md:text-display-md">
             Your Bank Stores Money
             <br />
-            Olimpia helps it do more
+            Olimpia Puts It to Work
           </h2>
-          <p className="mt-6 text-body text-ink-muted">
-            Earn higher yield on your savings, send money globally in seconds, enjoy rewards, learn about new financial tools with an ai guide!
+          <p className="features-lead text-body text-ink-muted">
+            Traditional banks are designed to hold your money. Olimpia helps your money do
+            more. Earn on your savings, move globally in seconds, spend with ease, and learn modern
+            money skills along the way.
           </p>
         </SectionScrollReveal>
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:mt-16 lg:grid-cols-4 lg:gap-7">
+
+        <div className="features-grid">
           {items.map(({ icon: Icon, title, body, details }, index) => {
             const isFlipped = !!flipped[title];
             return (
-              <ScrollReveal key={title} delay={index * 40} className="h-full">
-              <div
-                className="goal-card-shell group relative h-full perspective-1000 md:transition-transform md:duration-300 md:ease-out md:hover:-translate-y-1.5"
-              >
-                <div
-                  className="pointer-events-none invisible flex flex-col items-center px-8 pt-8 pb-9"
-                  aria-hidden="true"
-                >
-                  <div className="h-16 w-16 shrink-0" />
-                  <div className="mt-6 h-16 w-full shrink-0 px-1">
-                    <h3 className="text-balance text-h3 font-semibold text-foreground line-clamp-2">
-                      {title}
-                    </h3>
+              <ScrollReveal key={title} delay={index * 120} className="h-full">
+                <div className="feature-card-shell group relative h-full perspective-1000">
+                  <div
+                    className="pointer-events-none invisible flex flex-col px-8 pb-8 pt-10 text-left"
+                    aria-hidden="true"
+                  >
+                    <div className="h-[52px] w-[52px] shrink-0" />
+                    <div className="mt-5 h-14 w-full shrink-0">
+                      <h3 className="text-h3 font-semibold text-foreground">{title}</h3>
+                    </div>
+                    <p className="mt-2.5 text-body-sm text-ink-muted">{body}</p>
+                    <span className="mt-5 inline-flex text-body-sm font-semibold">Learn more</span>
                   </div>
-                  <p className="mt-3 text-body text-ink-muted">{body}</p>
-                  <span className="mt-6 text-body-sm font-medium">Learn more</span>
-                </div>
-                <div
-                  className={`goal-card-flip absolute inset-0 h-full w-full preserve-3d transition-transform duration-[650ms] ease-[cubic-bezier(0.33,1,0.68,1)] ${isFlipped ? "rotate-y-180" : ""}`}
-                >
-                  {/* Front */}
-                  <button
-                    type="button"
-                    onClick={() => toggle(title)}
-                    aria-expanded={isFlipped}
-                    aria-label={`${title}. Learn more`}
-                    className="goal-card-face backface-hidden absolute inset-0 flex h-full w-full cursor-pointer flex-col items-center px-8 pt-8 pb-9 text-center font-inherit text-inherit rounded-[32px] border border-border/30 bg-gradient-to-br from-card via-card to-rose-soft/25 shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)] transition-shadow duration-300 ease-out md:group-hover:shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)]"
+
+                  <div
+                    className={cn(
+                      "goal-card-flip absolute inset-0 h-full w-full preserve-3d transition-transform duration-[650ms] ease-[cubic-bezier(0.33,1,0.68,1)]",
+                      isFlipped && "rotate-y-180",
+                    )}
                   >
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-card ring-2 ring-raspberry/25 shadow-soft">
-                      <Icon className="h-7 w-7 text-berry" strokeWidth={1.5} />
-                    </div>
-                    <div className="mt-6 flex h-16 w-full shrink-0 items-start justify-center px-1">
-                      <h3 className="text-balance text-h3 font-semibold text-foreground line-clamp-2">
-                        {title}
-                      </h3>
-                    </div>
-                    <p className="mt-3 text-body text-ink-muted">{body}</p>
-                    <span className="goal-card-action mt-auto inline-flex shrink-0 items-center pt-6 text-body-sm font-medium text-raspberry">
-                      Learn more
-                    </span>
-                  </button>
-                  {/* Back */}
-                  <button
-                    type="button"
-                    onClick={() => toggle(title)}
-                    aria-expanded={isFlipped}
-                    aria-label={`${title}. Back`}
-                    className="goal-card-face backface-hidden rotate-y-180 absolute inset-0 flex w-full cursor-pointer flex-col items-center justify-center rounded-[32px] border border-raspberry/20 bg-rose/30 p-8 text-center font-inherit text-inherit shadow-[0_2px_4px_rgba(47,47,47,0.03),0_28px_60px_-24px_rgba(229,75,122,0.22)] transition-shadow duration-300 ease-out md:group-hover:shadow-[0_6px_14px_rgba(47,47,47,0.06),0_32px_64px_-16px_rgba(229,75,122,0.28)]"
-                  >
-                    <h3 className="text-h3 font-semibold text-foreground">{title}</h3>
-                    <p className="mt-3 text-body-sm text-ink-muted">{details}</p>
-                    <span className="goal-card-action mt-6 inline-flex items-center text-body-sm font-medium text-raspberry">
-                      Back
-                    </span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => toggle(title)}
+                      aria-expanded={isFlipped}
+                      aria-label={`${title}. Learn more`}
+                      className="goal-card-face feature-card-face backface-hidden absolute inset-0 flex h-full w-full cursor-pointer flex-col px-8 pb-8 pt-10 text-left font-inherit text-inherit"
+                    >
+                      <div className="feature-card-icon" aria-hidden>
+                        <Icon className="h-6 w-6" strokeWidth={2} />
+                      </div>
+                      <h3 className="mt-5 text-h3 font-semibold text-foreground">{title}</h3>
+                      <p className="mt-2.5 text-body-sm text-ink-muted">{body}</p>
+                      <span className="feature-card-cta mt-auto inline-flex items-center pt-5">
+                        Learn more →
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => toggle(title)}
+                      aria-expanded={isFlipped}
+                      aria-label={`${title}. Back`}
+                      className="goal-card-face feature-card-face feature-card-face--back backface-hidden rotate-y-180 absolute inset-0 flex w-full cursor-pointer flex-col justify-center px-8 py-8 text-left font-inherit text-inherit"
+                    >
+                      <h3 className="text-h3 font-semibold text-foreground">{title}</h3>
+                      <p className="mt-3 text-body-sm text-ink-muted">{details}</p>
+                      <span className="feature-card-cta mt-6 inline-flex items-center">Back</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
               </ScrollReveal>
             );
           })}
@@ -355,55 +337,100 @@ function GoalsSection() {
 }
 
 
-/* ---------- SECTION 3: WHY USDC (Claude design handoff — local preview) ---------- */
-function WhyUsdcSection() {
-  const benefits = [
-    {
-      icon: "1:1",
-      title: "Pegged one-to-one to USD",
-      body: "One USDC is designed to equal one U.S. dollar.",
-    },
-    {
-      icon: "⏱",
-      title: "Move money 24/7",
-      body: "Send and receive globally within seconds, anytime.",
-    },
-    {
-      icon: "📈",
-      title: "Optional yield through DeFi",
-      body: "Access optional yield opportunities through DeFi.",
-    },
-    {
-      icon: "💳",
-      title: "Digital dollar you can use online",
-      body: "Save, send, and spend in the digital economy.",
-    },
+/* ---------- USDC vs USD (Claude design handoff — local preview) ---------- */
+function UsdcVsUsdSection() {
+  const compareRows = [
+    { bank: "Money sits idle", usdc: "Money earns yield" },
+    { bank: "Wait days for transfers", usdc: "Send in seconds" },
+    { bank: "Higher transfer fees", usdc: "Send for pennies" },
+    { bank: "Banking hours apply", usdc: "Available 24/7" },
+    { bank: "Built for storing", usdc: "Built for growth" },
   ];
 
+  return (
+    <section id="how" className="claude-compare-section">
+      <div className="claude-compare-wash" aria-hidden />
+      <div className="claude-compare-inner">
+        <SectionScrollReveal className="claude-compare-copy">
+          <p className="claude-compare-eyebrow">USDC vs. USD</p>
+          <h2 className="compare-section-heading text-h1 font-semibold text-foreground md:text-display-md">
+            Your money deserves to do more than sit in a bank.
+          </h2>
+          <p className="claude-compare-lead">
+            Put your money to work with digital dollars (USDC).
+          </p>
+          <p className="claude-compare-body">
+            Traditional banks store your money. USDC helps it work for you, earning yield, moving
+            in seconds, for pennies.
+          </p>
+          <p className="claude-compare-note">
+            USDC always equals one U.S. dollar. Olimpia makes it simple to use.
+          </p>
+        </SectionScrollReveal>
+
+        <SectionScrollReveal delay={120} className="claude-compare-table-wrap">
+          <div className="claude-compare-table" role="table" aria-label="USDC compared to traditional USD bank accounts">
+            <div className="claude-compare-table-head" role="row">
+              <div className="claude-compare-col-bank" role="columnheader">
+                Traditional Bank Account (USD)
+              </div>
+              <div className="claude-compare-col-usdc" role="columnheader">
+                Digital Dollars (USDC)
+              </div>
+            </div>
+            {compareRows.map(({ bank, usdc }, index) => (
+              <div
+                key={bank}
+                className="claude-compare-row"
+                role="row"
+                style={{ "--compare-row-delay": `${index * 80}ms` } as CSSProperties}
+              >
+                <div className="claude-compare-col-bank" role="cell">
+                  {bank}
+                </div>
+                <div className="claude-compare-col-usdc" role="cell">
+                  {usdc}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionScrollReveal>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- SECTION 3: WHY USDC (Claude design handoff — local preview) ---------- */
+function WhyUsdcSection() {
   return (
     <section className="claude-usdc-section">
       <div className="claude-usdc-wash" aria-hidden />
       <div className="claude-usdc-inner">
         <SectionScrollReveal className="claude-usdc-copy">
-          <p className="claude-usdc-eyebrow">Money, faster and more flexible</p>
+          <div className="claude-usdc-eyebrow-row">
+            <span className="claude-usdc-eyebrow-rule" aria-hidden />
+            <p className="claude-usdc-eyebrow">Why USDC matters</p>
+          </div>
           <h2 className="usdc-section-heading text-h1 font-semibold text-foreground md:text-display-md">
-            USDC
+            Your dollars can do more as digital dollars
           </h2>
-          <p className="claude-usdc-lead">Your dollars can do more as USDC.</p>
           <p className="claude-usdc-body">
-            USDC is a stablecoin pegged 1:1 to the US dollar. Send and receive it within
-            seconds, every day, 24/7.
+            USDC is a digital dollar always pegged one-to-one with USD. The only difference is
+            speed, flexibility, low transfer costs, and earning yield on what you hold.
           </p>
-          <div className="claude-usdc-grid">
-            {benefits.map(({ icon, title, body }) => (
-              <div key={title} className="claude-usdc-card">
-                <div className="claude-usdc-card-icon" aria-hidden>
-                  {icon}
-                </div>
-                <h3 className="claude-usdc-card-title">{title}</h3>
-                <p className="claude-usdc-card-body">{body}</p>
-              </div>
-            ))}
+          <div className="claude-usdc-callout">
+            <div className="claude-usdc-callout-mark" aria-hidden>
+              1:1
+            </div>
+            <div>
+              <h3 className="claude-usdc-callout-title">Pegged one-to-one to USD</h3>
+              <p className="claude-usdc-callout-body">
+                USDC is a digital dollar designed to always be worth one U.S. dollar. It moves
+                globally in seconds, for pennies, 24/7, while giving your balance the opportunity
+                to earn yield. Olimpia makes it simple to use, so you can enjoy the benefits
+                without needing to understand the technology behind it.
+              </p>
+            </div>
           </div>
         </SectionScrollReveal>
 
@@ -491,88 +518,6 @@ function UsdcProductPreview() {
         </div>
       </div>
     </div>
-  );
-}
-
-/* ---------- SECTION 5: BEYOND BANKING ---------- */
-function EmpoweringCards() {
-  const items = [
-    {
-      icon: Wallet,
-      t: "You stay in charge",
-      b: "Your wallet belongs to you. When you sign up, Olimpia creates a secure digital wallet only you control. Olimpia can't access, freeze, or move your funds.",
-    },
-    {
-      icon: Layers,
-      t: "Complexity Removed",
-      b: "Olimpia makes decentralized finance simple. Trusted protocols power saving, spending, and optional USDC yield. No blockchain expertise required.",
-    },
-    {
-      icon: LayoutGrid,
-      t: "Everything in one place",
-      b: "Save, spend, and explore optional yield from a single app. No juggling wallets, exchanges, or extra tools.",
-    },
-    {
-      icon: Fuel,
-      t: "We cover network fees",
-      b: "For supported transactions, Olimpia covers network fees so you don't have to. The blockchain stays in the background.",
-    },
-  ];
-
-  const sizeTemplate = items.reduce((longest, item) =>
-    item.b.length > longest.b.length ? item : longest,
-  );
-
-  return (
-    <section
-      id="how"
-      className="section-pad section-bridge-in relative overflow-hidden bg-gradient-to-b from-[#F7F4F1] via-[#F9F1F3] to-[#F7F4F1]"
-    >
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(229,75,122,0.05),transparent_62%)]"
-        aria-hidden
-      />
-      <div className="relative z-[2] mx-auto max-w-7xl px-6 md:px-12">
-        <SectionScrollReveal className="mx-auto max-w-2xl text-center">
-          <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
-            The upside is yours
-          </h2>
-          <p className="mt-6 text-body text-ink-muted">
-            More growth, less complexity, with you in charge. Simple tools that give you easy access
-            to decentralized finance (DeFi).
-          </p>
-        </SectionScrollReveal>
-        <div className="mx-auto mt-12 grid max-w-5xl auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-14 lg:gap-8">
-          {items.map(({ icon: Icon, t, b }, index) => (
-            <ScrollReveal key={t} delay={index * 40} className="h-full">
-              <div className="group relative h-full">
-                <div
-                  className="pointer-events-none invisible flex flex-col p-9 text-left lg:p-10"
-                  aria-hidden="true"
-                >
-                  <div className="h-16 w-16 shrink-0" />
-                  <div className="mt-7 h-[4.5rem] w-full shrink-0">
-                    <h3 className="text-h3 font-semibold text-foreground line-clamp-2">
-                      {sizeTemplate.t}
-                    </h3>
-                  </div>
-                  <p className="mt-3 text-body text-ink-muted">{sizeTemplate.b}</p>
-                </div>
-                <div className="absolute inset-0 flex flex-col rounded-[32px] border border-border/30 bg-gradient-to-br from-card via-card to-rose-soft/35 p-9 text-left shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)] transition-[transform,box-shadow] duration-300 ease-out motion-reduce:transition-none lg:p-10 md:group-hover:-translate-y-1.5 md:group-hover:shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)] motion-reduce:hover:transform-none">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-card ring-2 ring-raspberry/25 shadow-soft">
-                    <Icon className="h-7 w-7 text-berry" strokeWidth={1.5} />
-                  </div>
-                  <div className="mt-7 flex h-[4.5rem] w-full shrink-0 items-start">
-                    <h3 className="text-h3 font-semibold text-foreground line-clamp-2">{t}</h3>
-                  </div>
-                  <p className="mt-3 text-body text-ink-muted">{b}</p>
-                </div>
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -697,7 +642,7 @@ function StayTunedSection() {
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
           <SectionScrollReveal className="claude-section-header max-w-md shrink-0">
             <h2 className="claude-section-title">
-              Stay <span className="italic font-normal">tuned</span>
+              Stay <span className="font-display italic font-normal">tuned</span>
             </h2>
             <p className="mt-4 text-body text-ink-muted">
               Be first to know when Olimpia launches.
