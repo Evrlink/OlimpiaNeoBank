@@ -32,7 +32,7 @@ export function AddFundsScreen() {
       <div className="mt-6 flex items-start gap-3 rounded-2xl border border-border/40 bg-rose-soft/50 px-4 py-3">
         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-raspberry" aria-hidden />
         <p className="text-body-sm text-ink-muted">
-          Secure transfer. Your money stays yours — you&apos;ll see your updated balance here when
+          Secure transfer. Your money stays yours. You&apos;ll see your updated balance here when
           it&apos;s complete.
         </p>
       </div>

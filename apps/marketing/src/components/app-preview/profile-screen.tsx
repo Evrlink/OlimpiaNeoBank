@@ -31,7 +31,7 @@ export function ProfileScreen() {
         </div>
         <div className="mt-4 rounded-2xl rounded-tl-md bg-surface/60 px-4 py-3">
           <p className="text-body-sm text-ink-muted">
-            Pia will help you understand saving, growth, and financial confidence — supportive,
+            Pia will help you understand saving, growth, and financial confidence. Supportive,
             never judgmental.
           </p>
         </div>
