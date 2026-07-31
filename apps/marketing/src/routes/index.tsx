@@ -5,6 +5,10 @@ import {
   Heart,
   Plus,
   Send,
+  Wallet,
+  Layers,
+  LayoutGrid,
+  Fuel,
 } from "lucide-react";
 import { useEffect, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
@@ -48,6 +52,7 @@ function Home() {
       <main>
         <Hero />
         <GoalsSection />
+        <EmpoweringCards />
         <UsdcVsUsdSection />
         <WhyUsdcSection />
         <PiaSection />
@@ -337,6 +342,88 @@ function GoalsSection() {
 }
 
 
+/* ---------- THE UPSIDE IS YOURS ---------- */
+function EmpoweringCards() {
+  const items = [
+    {
+      icon: Wallet,
+      t: "You stay in charge",
+      b: "Your wallet belongs to you. When you sign up, Olimpia creates a secure digital wallet only you control. Olimpia can't access, freeze, or move your funds.",
+    },
+    {
+      icon: Layers,
+      t: "Complexity Removed",
+      b: "Olimpia makes decentralized finance simple. Trusted protocols power saving, spending, and optional USDC yield. No blockchain expertise required.",
+    },
+    {
+      icon: LayoutGrid,
+      t: "Everything in one place",
+      b: "Save, spend, and explore optional yield from a single app. No juggling wallets, exchanges, or extra tools.",
+    },
+    {
+      icon: Fuel,
+      t: "We cover network fees",
+      b: "For supported transactions, Olimpia covers network fees so you don't have to. The blockchain stays in the background.",
+    },
+  ];
+
+  const sizeTemplate = items.reduce((longest, item) =>
+    item.b.length > longest.b.length ? item : longest,
+  );
+
+  return (
+    <section
+      id="how"
+      className="section-pad section-bridge-in relative overflow-hidden bg-gradient-to-b from-[#F7F4F1] via-[#F9F1F3] to-[#F7F4F1]"
+    >
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(229,75,122,0.05),transparent_62%)]"
+        aria-hidden
+      />
+      <div className="relative z-[2] mx-auto max-w-7xl px-6 md:px-12">
+        <SectionScrollReveal className="mx-auto max-w-2xl text-center">
+          <h2 className="text-h1 font-semibold text-foreground md:text-display-md">
+            The upside is yours
+          </h2>
+          <p className="mt-6 text-body text-ink-muted">
+            More growth, less complexity, with you in charge. Simple tools that give you easy access
+            to decentralized finance (DeFi).
+          </p>
+        </SectionScrollReveal>
+        <div className="mx-auto mt-12 grid max-w-5xl auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-14 lg:gap-8">
+          {items.map(({ icon: Icon, t, b }, index) => (
+            <ScrollReveal key={t} delay={index * 40} className="h-full">
+              <div className="group relative h-full">
+                <div
+                  className="pointer-events-none invisible flex flex-col p-9 text-left lg:p-10"
+                  aria-hidden="true"
+                >
+                  <div className="h-16 w-16 shrink-0" />
+                  <div className="mt-7 h-[4.5rem] w-full shrink-0">
+                    <h3 className="text-h3 font-semibold text-foreground line-clamp-2">
+                      {sizeTemplate.t}
+                    </h3>
+                  </div>
+                  <p className="mt-3 text-body text-ink-muted">{sizeTemplate.b}</p>
+                </div>
+                <div className="absolute inset-0 flex flex-col rounded-[32px] border border-border/30 bg-gradient-to-br from-card via-card to-rose-soft/35 p-9 text-left shadow-[0_1px_2px_rgba(47,47,47,0.02),0_18px_40px_-24px_rgba(229,75,122,0.14)] transition-[transform,box-shadow] duration-300 ease-out motion-reduce:transition-none lg:p-10 md:group-hover:-translate-y-1.5 md:group-hover:shadow-[0_4px_10px_rgba(47,47,47,0.05),0_28px_56px_-18px_rgba(229,75,122,0.24)] motion-reduce:hover:transform-none">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-card ring-2 ring-raspberry/25 shadow-soft">
+                    <Icon className="h-7 w-7 text-berry" strokeWidth={1.5} />
+                  </div>
+                  <div className="mt-7 flex h-[4.5rem] w-full shrink-0 items-start">
+                    <h3 className="text-h3 font-semibold text-foreground line-clamp-2">{t}</h3>
+                  </div>
+                  <p className="mt-3 text-body text-ink-muted">{b}</p>
+                </div>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ---------- USDC vs USD (Claude design handoff — local preview) ---------- */
 function UsdcVsUsdSection() {
   const compareRows = [
@@ -348,7 +435,7 @@ function UsdcVsUsdSection() {
   ];
 
   return (
-    <section id="how" className="claude-compare-section">
+    <section id="compare" className="claude-compare-section">
       <div className="claude-compare-wash" aria-hidden />
       <div className="claude-compare-inner">
         <SectionScrollReveal className="claude-compare-copy">
@@ -642,7 +729,7 @@ function StayTunedSection() {
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
           <SectionScrollReveal className="claude-section-header max-w-md shrink-0">
             <h2 className="claude-section-title">
-              Stay <span className="font-display italic font-normal">tuned</span>
+              Stay <span className="italic font-normal">tuned</span>
             </h2>
             <p className="mt-4 text-body text-ink-muted">
               Be first to know when Olimpia launches.
