@@ -260,7 +260,6 @@ function GoalsSection() {
     },
   ];
   const [flipped, setFlipped] = useState<Record<string, boolean>>({});
-  const tilt = useCardPointerTilt();
   const toggle = (title: string) =>
     setFlipped((p) => ({ ...p, [title]: !p[title] }));
   return (
@@ -285,14 +284,7 @@ function GoalsSection() {
             const isFlipped = !!flipped[title];
             return (
               <ScrollReveal key={title} delay={index * 120} className="h-full">
-                <div
-                  className="feature-card-shell group relative h-full"
-                  style={isFlipped ? undefined : tilt.getTiltStyle(title)}
-                  onMouseMove={(e) => {
-                    if (!isFlipped) tilt.handleMove(title, e);
-                  }}
-                  onMouseLeave={() => tilt.handleLeave(title)}
-                >
+                <div className="feature-card-shell group relative h-full perspective-1000">
                   <div
                     className="pointer-events-none invisible flex flex-col px-8 pb-8 pt-10 text-left"
                     aria-hidden="true"
@@ -318,11 +310,6 @@ function GoalsSection() {
                       aria-label={`${title}. Learn more`}
                       className="goal-card-face feature-card-face backface-hidden absolute inset-0 flex h-full w-full cursor-pointer flex-col px-8 pb-8 pt-10 text-left font-inherit text-inherit"
                     >
-                      <div
-                        className="feature-card-spotlight"
-                        style={tilt.getSpotlightStyle(title)}
-                        aria-hidden
-                      />
                       <div className="feature-card-icon" aria-hidden>
                         <Icon className="h-6 w-6" strokeWidth={2} />
                       </div>
@@ -338,11 +325,12 @@ function GoalsSection() {
                       onClick={() => toggle(title)}
                       aria-expanded={isFlipped}
                       aria-label={`${title}. Back`}
-                      className="goal-card-face feature-card-face feature-card-face--back backface-hidden rotate-y-180 absolute inset-0 flex w-full cursor-pointer flex-col justify-center px-8 py-8 text-left font-inherit text-inherit"
+                      className="goal-card-face feature-card-face feature-card-face--back backface-hidden rotate-y-180 absolute inset-0 flex h-full w-full cursor-pointer flex-col px-8 pb-8 pt-10 text-left font-inherit text-inherit"
                     >
-                      <h3 className="text-h3 font-semibold text-foreground">{title}</h3>
-                      <p className="mt-3 text-body-sm text-ink-muted">{details}</p>
-                      <span className="feature-card-cta mt-6 inline-flex items-center">Back</span>
+                      <div className="h-[52px] w-[52px] shrink-0" aria-hidden />
+                      <h3 className="mt-5 text-h3 font-semibold text-foreground">{title}</h3>
+                      <p className="mt-2.5 text-body-sm text-ink-muted">{details}</p>
+                      <span className="feature-card-cta mt-auto inline-flex items-center pt-5">Back</span>
                     </button>
                   </div>
                 </div>

@@ -618,7 +618,7 @@
   /* Features section — zip handoff: soft linear wash only (no mesh) */
   .features-section {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     background: linear-gradient(180deg, #fdf3f6 0%, #fbdde6 100%);
     padding: 64px 24px 72px;
     text-align: center;
@@ -666,7 +666,6 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
-    perspective: 1200px;
   }
 
   @media (min-width: 768px) {
@@ -677,19 +676,16 @@
 
   .feature-card-shell {
     min-height: 100%;
-    perspective: 1000px;
-    transform-style: preserve-3d;
-    transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
   }
 
   .feature-card-face {
-    position: relative;
-    overflow: hidden;
     border-radius: 16px;
     background: #fff;
     box-shadow: 0 10px 24px -16px rgba(90, 30, 40, 0.1);
+    overflow: hidden;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .feature-card-face--back {
@@ -697,23 +693,14 @@
     border: 1px solid #f3e6ea;
   }
 
-  .feature-card-spotlight {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .feature-card-face > :not(.feature-card-spotlight) {
-    position: relative;
-    z-index: 1;
-  }
-
   @media (hover: hover) and (pointer: fine) {
+    .feature-card-shell:hover .goal-card-flip:not(.rotate-y-180) .feature-card-face:first-of-type {
+      transform: scale(1.05);
+      box-shadow: 0 24px 48px -16px rgba(90, 30, 40, 0.24);
+    }
+
     .feature-card-shell:hover .feature-card-icon {
-      transform: scale(1.12) translateY(-3px);
-      box-shadow: 0 10px 20px -6px rgba(229, 75, 122, 0.4);
+      transform: rotate(-8deg) scale(1.08);
     }
   }
 
@@ -727,19 +714,17 @@
     border-radius: 999px;
     background: #fbdde6;
     color: #e54b7a;
-    transition:
-      transform 0.25s ease,
-      box-shadow 0.25s ease;
+    transition: transform 0.3s ease;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .feature-card-shell {
-      transition: box-shadow 0.2s ease;
+    .feature-card-shell:hover .goal-card-flip:not(.rotate-y-180) .feature-card-face:first-of-type {
+      transform: none;
+      box-shadow: 0 10px 24px -16px rgba(90, 30, 40, 0.1);
     }
 
     .feature-card-shell:hover .feature-card-icon {
       transform: none;
-      box-shadow: none;
     }
   }
 
