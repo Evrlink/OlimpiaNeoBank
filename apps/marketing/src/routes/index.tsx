@@ -167,9 +167,12 @@ function Hero() {
           <p className="claude-hero-greeting">Hello ladies,</p>
           <h1 className="claude-hero-title">You belong here</h1>
           <p className="claude-hero-copy">
-            DeFi shouldn&apos;t feel confusing or out of reach. Olimpia was created
-            to help women participate in decentralized finance. Set savings goals,
-            explore optional yield on USDC, and learn with Pia, your money bestie.
+            Your money, your terms.
+            <br />
+            Olimpia is an app that enables financial autonomy and growth.
+            Eliminate gatekeepers, stay in control and grow your money with DeFi
+            tools. Set savings goals, explore optional yield on USDC, and learn
+            with Pia, your AI money bestie.
           </p>
           <div className="flex flex-wrap items-center gap-7">
             <button type="button" onClick={openWaitlist} className="claude-hero-cta cursor-pointer">
