@@ -54,6 +54,7 @@ function Home() {
         <Hero />
         <GoalsSection />
         <EmpoweringCards />
+        <DefiEquitySection />
         <UsdcVsUsdSection />
         <WhyUsdcSection />
         <PiaSection />
@@ -208,7 +209,7 @@ function TrustStrip() {
   const loop = [...partners, ...partners];
   return (
     <section
-      className="trust-strip relative overflow-hidden border-b border-border/50 bg-surface"
+      className="trust-strip relative overflow-hidden border-b border-border/30 bg-white"
     >
       <div className="mx-auto max-w-7xl px-6 text-center md:px-12">
         <SectionScrollReveal>
@@ -220,12 +221,12 @@ function TrustStrip() {
           </p>
         </SectionScrollReveal>
         <SectionScrollReveal delay={110} className="marquee mt-10">
-          <div className="marquee-track gap-x-16 md:gap-x-24 opacity-70">
+          <div className="marquee-track gap-x-16 md:gap-x-24 opacity-45">
             {loop.map((p, i) => (
               <span
                 key={`${p}-${i}`}
                 aria-hidden={i >= partners.length}
-                className="text-h3 font-semibold tracking-tight text-foreground/70 shrink-0"
+                className="text-h3 font-semibold tracking-tight text-ink-muted shrink-0"
               >
                 {p}
               </span>
@@ -353,7 +354,7 @@ function EmpoweringCards() {
     {
       icon: Wallet,
       t: "Absolute Ownership",
-      b: "You're in charge with an account that's truly yours. Olimpia can't freeze or move your money.",
+      b: "You get a dedicated wallet only you control. Olimpia can't freeze your account or move your money.",
     },
     {
       icon: Unlock,
@@ -413,6 +414,59 @@ function EmpoweringCards() {
                 <p className="claude-how-card-body">{b}</p>
               </div>
             </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- DEFI EQUITY ---------- */
+function DefiEquitySection() {
+  const points = [
+    {
+      title: "No Permission Needed",
+      body: "Control your assets from anywhere with just a smartphone.",
+    },
+    {
+      title: "Equal Access",
+      body: "Onchain means open for all, free from gatekeepers.",
+    },
+    {
+      title: "Wealth-Building Tools",
+      body: "Access compounding yields and global markets instantly.",
+    },
+  ];
+
+  return (
+    <section className="claude-defi-section" aria-labelledby="defi-equity-title">
+      <div className="claude-defi-wash" aria-hidden />
+      <div className="claude-defi-inner">
+        <SectionScrollReveal className="claude-defi-header">
+          <p className="claude-defi-eyebrow">Leveling the Playing Field</p>
+          <h2
+            id="defi-equity-title"
+            className="defi-section-heading text-h1 font-semibold md:text-display-md"
+          >
+            Why DeFi matters for women
+          </h2>
+          <p className="claude-defi-lead">
+            DeFi is your opportunity to access financial tools without gatekeepers.
+            <br />
+            Geographic, economic and societal barriers unlocked.
+          </p>
+        </SectionScrollReveal>
+
+        <div className="claude-defi-grid">
+          {points.map((point, index) => (
+            <SectionScrollReveal
+              key={point.title}
+              delay={80 + index * 60}
+              className="claude-defi-card"
+            >
+              <h3 className="claude-defi-card-title">{point.title}</h3>
+              <p className="claude-defi-card-body">{point.body}</p>
+            </SectionScrollReveal>
           ))}
         </div>
       </div>
@@ -718,7 +772,7 @@ function StayTunedSection() {
   };
 
   return (
-    <section id="download" className="section-pad border-t border-border/40 bg-background">
+    <section id="download" className="section-pad border-t border-border/30 bg-white">
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
           <SectionScrollReveal className="claude-section-header max-w-md shrink-0">
@@ -732,8 +786,8 @@ function StayTunedSection() {
 
           <SectionScrollReveal delay={120} className="flex-1 lg:max-w-2xl">
           {status === "success" ? (
-            <div className="flex items-center gap-3 rounded-[32px] border border-border/50 bg-card px-6 py-5 shadow-soft">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-soft text-raspberry">
+            <div className="flex items-center gap-3 rounded-[32px] border border-border/40 bg-background px-6 py-5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background text-ink-muted ring-1 ring-border/50">
                 <Heart className="h-5 w-5 fill-current" />
               </div>
               <div>
@@ -764,24 +818,24 @@ function StayTunedSection() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="min-w-0 flex-1 rounded-full border border-foreground/15 bg-card px-5 py-3.5 text-body text-foreground shadow-soft placeholder:text-ink-muted/70 focus:border-raspberry focus:outline-none focus:ring-2 focus:ring-raspberry/30"
+                  className="min-w-0 flex-1 rounded-full border border-border bg-background px-5 py-3.5 text-body text-foreground placeholder:text-ink-muted/70 focus:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-foreground/10"
                 />
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex h-[52px] shrink-0 items-center justify-center rounded-full bg-berry px-6 text-body-sm font-semibold text-white shadow-soft transition hover:opacity-90 disabled:pointer-events-none disabled:opacity-60 sm:px-8"
+                  className="inline-flex h-[52px] shrink-0 items-center justify-center rounded-full bg-berry px-6 text-body-sm font-semibold text-white transition hover:opacity-90 disabled:pointer-events-none disabled:opacity-60 sm:px-8"
                 >
                   {isSubmitting ? "Joining..." : "Join the waitlist"}
                 </button>
               </form>
               {error && (
-                <p className="mt-3 px-2 text-body-sm text-raspberry" role="alert">
+                <p className="mt-3 px-2 text-body-sm text-ink-muted" role="alert">
                   {error}
                 </p>
               )}
               <p className="mt-4 text-body-sm text-ink-muted">
                 We&apos;ll only email you about Olimpia.{" "}
-                <Link to="/privacy" className="text-raspberry transition hover:opacity-80">
+                <Link to="/privacy" className="text-foreground underline decoration-border underline-offset-2 transition hover:opacity-70">
                   Privacy Policy
                 </Link>
               </p>

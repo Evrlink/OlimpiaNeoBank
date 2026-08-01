@@ -4,11 +4,11 @@ import { SUPPORT_EMAIL } from "@/lib/seo";
 
 export function SiteFooter() {
   return (
-    <footer id="about" className="border-t border-border/60 bg-surface/80">
+    <footer id="about" className="border-t border-border/30 bg-white">
       <div className="mx-auto max-w-7xl px-6 py-12 md:px-12 md:py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-12">
           <SectionScrollReveal className="lg:col-span-5">
-            <Link to="/" className="font-display font-medium text-[1.58125rem] leading-[1.3] tracking-tight text-berry">
+            <Link to="/" className="font-display font-medium text-[1.58125rem] leading-[1.3] tracking-tight text-foreground">
               Olimpia
             </Link>
             <p className="mt-4 max-w-md text-body text-ink-muted">
@@ -23,7 +23,7 @@ export function SiteFooter() {
             </p>
             <a
               href={`mailto:${SUPPORT_EMAIL}`}
-              className="mt-4 inline-block text-body text-raspberry transition hover:opacity-80"
+              className="mt-4 inline-block text-body text-ink-muted transition hover:text-foreground"
             >
               {SUPPORT_EMAIL}
             </a>
