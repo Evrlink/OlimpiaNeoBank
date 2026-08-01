@@ -435,7 +435,7 @@ function UsdcVsUsdSection() {
       <div className="claude-compare-wash" aria-hidden />
       <div className="claude-compare-inner">
         <SectionScrollReveal className="claude-compare-copy">
-          <p className="claude-compare-eyebrow">USDC vs. USD</p>
+          <p className="claude-compare-eyebrow">Growth Opportunity</p>
           <h2 className="compare-section-heading text-h1 font-semibold text-foreground md:text-display-md">
             Your money deserves to do more than sit in a bank.
           </h2>
@@ -492,7 +492,7 @@ function WhyUsdcSection() {
         <SectionScrollReveal className="claude-usdc-copy">
           <div className="claude-usdc-eyebrow-row">
             <span className="claude-usdc-eyebrow-rule" aria-hidden />
-            <p className="claude-usdc-eyebrow">Why USDC matters</p>
+            <p className="claude-usdc-eyebrow">How we help you</p>
           </div>
           <h2 className="usdc-section-heading text-h1 font-semibold text-foreground md:text-display-md">
             Your dollars can do more as a stable coin
