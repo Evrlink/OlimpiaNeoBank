@@ -498,8 +498,8 @@ function WhyUsdcSection() {
             Your dollars can do more as a stable coin
           </h2>
           <p className="claude-usdc-body">
-            USDC is a stable coin always pegged one-to-one with USD. The only difference is
-            speed, flexibility, low transfer costs, and earning yield on what you hold.
+            USDC is a stablecoin always pegged one-to-one with USD. Olimpia converts your
+            dollars for you and helps you earn yield on your balance.
           </p>
           <div className="claude-usdc-callout">
             <div className="claude-usdc-callout-mark" aria-hidden>
@@ -508,10 +508,8 @@ function WhyUsdcSection() {
             <div>
               <h3 className="claude-usdc-callout-title">Pegged one-to-one to USD</h3>
               <p className="claude-usdc-callout-body">
-                USDC is a stable coin designed to always be worth one U.S. dollar. It moves
-                globally in seconds, for pennies, 24/7, while giving your balance the opportunity
-                to earn yield. Olimpia makes it simple to use, so you can enjoy the benefits
-                without needing to understand the technology behind it.
+                USDC is a stablecoin always pegged one-to-one with USD. Olimpia converts your
+                dollars for you and helps you earn yield on your balance.
               </p>
             </div>
           </div>
