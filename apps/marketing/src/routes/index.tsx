@@ -5,10 +5,10 @@ import {
   Plus,
   Send,
   Wallet,
-  Layers,
-  LayoutGrid,
   Fuel,
   CircleDollarSign,
+  Unlock,
+  Zap,
 } from "lucide-react";
 import { useEffect, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
@@ -352,23 +352,23 @@ function EmpoweringCards() {
   const items = [
     {
       icon: Wallet,
-      t: "You stay in charge",
-      b: "Your wallet belongs to you. Olimpia can never access, freeze, or move your funds.",
+      t: "Absolute Ownership",
+      b: "You're in charge with an account that's truly yours. Olimpia can't freeze or move your money.",
     },
     {
-      icon: Layers,
-      t: "Complexity removed",
-      b: "Trusted protocols power saving, spending, and optional yield, with no blockchain expertise required.",
+      icon: Unlock,
+      t: "Total Freedom",
+      b: "No lockups or waiting periods. Withdraw anytime and send funds back to your traditional bank.",
     },
     {
-      icon: LayoutGrid,
-      t: "Everything in one place",
-      b: "Save, spend, and explore optional yield, all from a single app.",
+      icon: Zap,
+      t: "Money in a Snap",
+      b: "You can send money anywhere globally in just seconds, skipping expensive bank fees.",
     },
     {
       icon: Fuel,
-      t: "We cover network fees",
-      b: "Olimpia covers network fees on supported transactions, so you don't have to.",
+      t: "Effortless Swapping",
+      b: "Easily switch between USDC and USD anytime without stress.",
     },
   ];
 

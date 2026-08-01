@@ -516,12 +516,18 @@
     grid-template-columns: 1fr;
     gap: 20px;
     perspective: 1200px;
+    align-items: stretch;
   }
 
   @media (min-width: 640px) {
     .claude-how-grid {
       grid-template-columns: repeat(2, 1fr);
     }
+  }
+
+  .claude-how-grid > * {
+    height: 100%;
+    min-height: 100%;
   }
 
   .claude-how-card-enter {
@@ -542,6 +548,8 @@
   .claude-how-card {
     position: relative;
     overflow: hidden;
+    height: 100%;
+    box-sizing: border-box;
     border-radius: 16px;
     background: #fff;
     padding: 40px 32px 32px;
