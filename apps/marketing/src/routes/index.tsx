@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   TrendingUp,
-  GraduationCap,
   Heart,
   Plus,
   Send,
@@ -9,6 +8,7 @@ import {
   Layers,
   LayoutGrid,
   Fuel,
+  CircleDollarSign,
 } from "lucide-react";
 import { useEffect, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
@@ -242,24 +242,24 @@ function GoalsSection() {
   const items = [
     {
       icon: TrendingUp,
-      title: "Grow Your Savings",
-      body: "Earn yield on your USDC instead of letting it sit idle in your bank",
+      title: "Yield Opportunity",
+      body: "Yields that exceed traditional bank offers. Earn instead of keeping your money idle in a bank.",
       details:
-        "Earn yield on your USDC, then convert it back to USD and send it back to your bank anytime",
+        "Yields that exceed traditional bank offers. Earn instead of keeping your money idle in a bank.",
     },
     {
       icon: Send,
-      title: "Send Money in Seconds",
-      body: "Move money worldwide in seconds, for pennies",
+      title: "Fast Money Movement",
+      body: "Send money globally in seconds without traditional bank wait times.",
       details:
-        "Spend and send money globally, 24/7, for pennies",
+        "Send money globally in seconds without traditional bank wait times.",
     },
     {
-      icon: GraduationCap,
-      title: "Learn With Pia",
-      body: "Get simple, judgment-free guidance on modern money",
+      icon: CircleDollarSign,
+      title: "Cost-efficient",
+      body: "Transaction fees in the pennies. Send money anywhere in the world for pennies with no holds or wait time.",
       details:
-        "Pia helps you navigate decentralized finance with confidence",
+        "Transaction fees in the pennies. Send money anywhere in the world for pennies with no holds or wait time.",
     },
   ];
   const [flipped, setFlipped] = useState<Record<string, boolean>>({});
