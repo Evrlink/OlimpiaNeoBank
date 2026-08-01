@@ -1001,6 +1001,15 @@
     margin: 0 0 20px;
   }
 
+  .claude-compare-help {
+    margin: 0;
+    max-width: 420px;
+    font-size: 14px;
+    line-height: 1.55;
+    font-weight: 600;
+    color: #3a3028;
+  }
+
   .claude-compare-note {
     margin: 0;
     font-size: 12px;

@@ -52,11 +52,10 @@ function Home() {
       <Nav />
       <main>
         <Hero />
+        <DefiEquitySection />
         <GoalsSection />
         <EmpoweringCards />
-        <DefiEquitySection />
         <UsdcVsUsdSection />
-        <WhyUsdcSection />
         <PiaSection />
         <Faq />
         <TrustStrip />
@@ -75,11 +74,12 @@ function openWaitlist() {
 }
 
 /* ---------- NAV ---------- */
-const NAV_SECTIONS = ["features", "how", "pia", "faq", "about"] as const;
+const NAV_SECTIONS = ["why", "features", "how", "pia", "faq", "about"] as const;
 
 const navLinks = [
+  { href: "#why", label: "Why DeFi", id: "why" },
   { href: "#features", label: "Features", id: "features" },
-  { href: "#how", label: "How It Works", id: "how" },
+  { href: "#how", label: "Advantages", id: "how" },
   { href: "#pia", label: "Pia", id: "pia" },
   { href: "#about", label: "About", id: "about" },
   { href: "#faq", label: "FAQ", id: "faq" },
@@ -170,17 +170,15 @@ function Hero() {
           <p className="claude-hero-copy">
             Your money, your terms.
             <br />
-            Olimpia is an app that enables financial autonomy and growth.
-            Eliminate gatekeepers, stay in control and grow your money with DeFi
-            tools. Set savings goals, explore optional yield on USDC, and learn
-            with Pia, your AI money bestie.
+            Olimpia makes decentralized finance simple for women: stay in control,
+            skip the gatekeepers, and put your dollars to work.
           </p>
           <div className="flex flex-wrap items-center gap-7">
             <button type="button" onClick={openWaitlist} className="claude-hero-cta cursor-pointer">
               Download App
             </button>
-            <a href="#features" className="claude-hero-link no-underline transition hover:opacity-80">
-              How it works
+            <a href="#why" className="claude-hero-link no-underline transition hover:opacity-80">
+              Why it matters
               <span aria-hidden> →</span>
             </a>
           </div>
@@ -347,8 +345,7 @@ function GoalsSection() {
   );
 }
 
-
-/* ---------- HOW IT WORKS (Claude design handoff) ---------- */
+/* ---------- ADVANTAGES (The upside is yours) ---------- */
 function EmpoweringCards() {
   const items = [
     {
@@ -379,7 +376,7 @@ function EmpoweringCards() {
     <section id="how" className="claude-how-section">
       <div className="claude-how-inner">
         <SectionScrollReveal className="claude-how-header">
-          <p className="claude-how-eyebrow">How It Works</p>
+          <p className="claude-how-eyebrow">The advantages</p>
           <h2 className="how-section-heading text-h1 font-semibold text-foreground md:text-display-md">
             The upside is yours
           </h2>
@@ -439,7 +436,7 @@ function DefiEquitySection() {
   ];
 
   return (
-    <section className="claude-defi-section" aria-labelledby="defi-equity-title">
+    <section id="why" className="claude-defi-section" aria-labelledby="defi-equity-title">
       <div className="claude-defi-wash" aria-hidden />
       <div className="claude-defi-inner">
         <SectionScrollReveal className="claude-defi-header">
@@ -489,7 +486,7 @@ function UsdcVsUsdSection() {
       <div className="claude-compare-wash" aria-hidden />
       <div className="claude-compare-inner">
         <SectionScrollReveal className="claude-compare-copy">
-          <p className="claude-compare-eyebrow">Growth Opportunity</p>
+          <p className="claude-compare-eyebrow">How Olimpia helps</p>
           <h2 className="compare-section-heading text-h1 font-semibold text-foreground md:text-display-md">
             Your money deserves to do more than sit in a bank.
           </h2>
@@ -498,10 +495,11 @@ function UsdcVsUsdSection() {
           </p>
           <p className="claude-compare-body">
             Traditional banks store your money. USDC helps it work for you, earning yield, moving
-            in seconds, for pennies.
+            in seconds, for pennies. USDC is always pegged one-to-one with the U.S. dollar.
           </p>
-          <p className="claude-compare-note">
-            USDC always equals one U.S. dollar. Olimpia makes it simple to use.
+          <p className="claude-compare-help">
+            Olimpia turns that into an app — a wallet only you control, convert your dollars, and
+            earn yield on your balance without the crypto complexity.
           </p>
         </SectionScrollReveal>
 
@@ -537,126 +535,8 @@ function UsdcVsUsdSection() {
   );
 }
 
-/* ---------- SECTION 3: WHY USDC (Claude design handoff — local preview) ---------- */
-function WhyUsdcSection() {
-  return (
-    <section className="claude-usdc-section">
-      <div className="claude-usdc-wash" aria-hidden />
-      <div className="claude-usdc-inner">
-        <SectionScrollReveal className="claude-usdc-copy">
-          <div className="claude-usdc-eyebrow-row">
-            <span className="claude-usdc-eyebrow-rule" aria-hidden />
-            <p className="claude-usdc-eyebrow">How we help you</p>
-          </div>
-          <h2 className="usdc-section-heading text-h1 font-semibold text-foreground md:text-display-md">
-            Your dollars can do more as a stable coin
-          </h2>
-          <p className="claude-usdc-body">
-            USDC is a stablecoin always pegged one-to-one with USD. Olimpia converts your
-            dollars for you and helps you earn yield on your balance.
-          </p>
-          <div className="claude-usdc-callout">
-            <div className="claude-usdc-callout-mark" aria-hidden>
-              1:1
-            </div>
-            <div>
-              <h3 className="claude-usdc-callout-title">Pegged one-to-one to USD</h3>
-              <p className="claude-usdc-callout-body">
-                USDC is a stablecoin always pegged one-to-one with USD. Olimpia converts your
-                dollars for you and helps you earn yield on your balance.
-              </p>
-            </div>
-          </div>
-        </SectionScrollReveal>
+/* ---------- MEET PIA ---------- */
 
-        <SectionScrollReveal delay={160} className="claude-usdc-coin-wrap">
-          <UsdcProductPreview />
-        </SectionScrollReveal>
-      </div>
-    </section>
-  );
-}
-
-/* Official USDC symbol geometry with Olimpia raspberry fill + coin spin handoff. */
-function UsdcProductPreview() {
-  const [rotX, setRotX] = useState(0);
-  const [rotY, setRotY] = useState(0);
-  const [reduceMotion, setReduceMotion] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduceMotion(mq.matches);
-    const onChange = () => setReduceMotion(mq.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-
-  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (reduceMotion) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width - 0.5;
-    const py = (e.clientY - rect.top) / rect.height - 0.5;
-    setRotY(px * 16);
-    setRotX(-py * 12);
-  };
-
-  const handleMouseLeave = () => {
-    setRotX(0);
-    setRotY(0);
-  };
-
-  const tiltStyle: CSSProperties = {
-    transform: `rotateX(${rotX}deg) rotateY(${rotY}deg)`,
-    transition: reduceMotion ? undefined : "transform 0.3s ease-out",
-  };
-
-  return (
-    <div
-      className="claude-usdc-coin"
-      aria-hidden
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div className={reduceMotion ? "claude-usdc-coin-glow-core" : "claude-usdc-coin-glow-core claude-usdc-coin-glow-core--anim"} />
-
-      <div className={reduceMotion ? "claude-usdc-coin-float" : "claude-usdc-coin-float claude-usdc-coin-float--anim"}>
-        <div className={reduceMotion ? "claude-usdc-coin-shadow" : "claude-usdc-coin-shadow claude-usdc-coin-shadow--anim"} />
-
-        <div className="claude-usdc-coin-tilt" style={tiltStyle}>
-          <div className={reduceMotion ? "claude-usdc-coin-spin" : "claude-usdc-coin-spin claude-usdc-coin-spin--anim"}>
-            <svg
-              viewBox="0 0 96 96"
-              fill="none"
-              className="claude-usdc-coin-svg"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden
-            >
-              <path
-                d="M48 95C73.9574 95 95 73.9574 95 48C95 22.0426 73.9574 1 48 1C22.0426 1 1 22.0426 1 48C1 73.9574 22.0426 95 48 95Z"
-                fill="#E54B7A"
-              />
-              <path
-                d="M56.4609 13.7778V19.8291C68.5341 23.4716 77.3759 34.6928 77.3759 47.9997C77.3759 61.3066 68.5341 72.5278 56.4609 76.1703V82.2216C71.8534 78.4616 83.2509 64.5672 83.2509 47.9997C83.2509 31.4322 71.8534 17.5378 56.4609 13.7778Z"
-                fill="white"
-              />
-              <path
-                d="M18.625 47.9997C18.625 34.6928 27.4669 23.4716 39.54 19.8291V13.7778C24.1475 17.5378 12.75 31.4322 12.75 47.9997C12.75 64.5672 24.1475 78.4616 39.54 82.2216V76.1703C27.4669 72.5572 18.625 61.3066 18.625 47.9997Z"
-                fill="white"
-              />
-              <path
-                d="M60.6319 54.5506C60.6319 42.5362 41.8025 47.4713 41.8025 40.8325C41.8025 38.4531 43.7119 36.9256 47.3544 36.9256C51.7019 36.9256 53.2 39.0406 53.67 41.89H59.6625C59.1279 36.5426 56.0588 33.1662 50.9382 32.1604V27.4375H45.0632V31.9918C39.4534 32.7062 35.9275 35.973 35.9275 40.8325C35.9275 52.9056 54.7863 48.3819 54.7863 54.9031C54.7863 57.3706 52.4069 59.0156 48.3825 59.0156C43.1244 59.0156 41.3913 56.695 40.745 53.4931H34.8994C35.2781 59.3502 38.8897 63.0159 45.0632 63.9307V68.5625H50.9382V63.9923C56.9633 63.2139 60.6319 59.7089 60.6319 54.5506Z"
-                fill="white"
-              />
-            </svg>
-            {!reduceMotion && <div className="claude-usdc-coin-sheen" />}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- SECTION 6: MEET PIA (Claude design handoff — local preview) ---------- */
 function PiaSection() {
   return (
     <section id="pia" className="claude-pia-section">
