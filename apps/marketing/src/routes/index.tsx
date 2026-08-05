@@ -556,8 +556,7 @@ function PiaSection() {
           Meet Pia
         </h2>
         <p className="claude-pia-copy">
-          A warm guide that explains, encourages, and cheers you on, whether you&apos;re saving
-          your first $100 or planning your next big move.
+          Your AI guide to DeFi tools. Knowledge, not financial advice.
         </p>
       </SectionScrollReveal>
 
