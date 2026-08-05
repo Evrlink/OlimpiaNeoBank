@@ -109,7 +109,7 @@ function Nav() {
           ))}
         </nav>
         <button type="button" onClick={openWaitlist} className="claude-nav-cta cursor-pointer border-0">
-          Download App
+          Join
         </button>
       </div>
     </header>
@@ -175,7 +175,7 @@ function Hero() {
           </p>
           <div className="flex flex-wrap items-center gap-7">
             <button type="button" onClick={openWaitlist} className="claude-hero-cta cursor-pointer">
-              Download App
+              Get early access
             </button>
             <a href="#why" className="claude-hero-link no-underline transition hover:opacity-80">
               Why it matters
