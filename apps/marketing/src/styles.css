@@ -2623,13 +2623,21 @@
   .stay-tuned-title {
     margin: 0;
     text-align: center;
+    font-family: var(--font-claude-sans) !important;
+    font-size: clamp(1.85rem, 3.4vw, 2.5rem) !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.2 !important;
+    color: #3a3028 !important;
   }
 
   .stay-tuned-lead {
     margin: 1rem auto 0;
     max-width: 28rem;
-    font-size: 1rem;
-    line-height: 1.6;
+    font-family: var(--font-claude-sans) !important;
+    font-size: 1.0625rem;
+    font-weight: 500;
+    line-height: 1.55;
     color: var(--ink-muted);
   }
 

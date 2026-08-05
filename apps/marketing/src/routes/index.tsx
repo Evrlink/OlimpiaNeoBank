@@ -482,7 +482,7 @@ function DefiEquitySection() {
 function UsdcVsUsdSection() {
   const compareRows = [
     { bank: "Money sits idle", usdc: "Money earns yield" },
-    { bank: "Wait days for transfers", usdc: "Send in seconds" },
+    { bank: "Days for global transfers", usdc: "Send globally in seconds" },
     { bank: "Higher transfer fees", usdc: "Send for pennies" },
     { bank: "Banking hours apply", usdc: "Available 24/7" },
     { bank: "Built for storing", usdc: "Built for growth" },
@@ -499,6 +499,7 @@ function UsdcVsUsdSection() {
           </h2>
           <p className="claude-compare-body">
             Olimpia makes it easy to turn your dollars into a stable coin and earn on your balance.
+            We handle the complexity. USDC stays pegged one to one with the U.S. dollar.
           </p>
         </SectionScrollReveal>
 
@@ -664,7 +665,7 @@ function StayTunedSection() {
             More choices. More freedom.
           </h2>
           <p className="stay-tuned-lead">
-            Join the waitlist and get early access to Olimpia.
+            When your money does more, so can you.
           </p>
         </SectionScrollReveal>
 
