@@ -456,8 +456,8 @@ function DefiEquitySection() {
             Why DeFi matters for women
           </h2>
           <p className="claude-defi-lead">
-            DeFi enables access financial tools without gatekeepers. You can save, earn, and move
-            money without geographic, economic or societal barriers.
+            Access financial tools without gatekeepers. You can save, earn, and move money without
+            geographic, economic or societal barriers.
           </p>
         </SectionScrollReveal>
 
