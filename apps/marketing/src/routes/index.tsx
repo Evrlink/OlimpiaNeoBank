@@ -7,8 +7,8 @@ import {
   Wallet,
   Fuel,
   CircleDollarSign,
-  Unlock,
-  Zap,
+  Layers,
+  LayoutGrid,
 } from "lucide-react";
 import { useEffect, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
@@ -79,7 +79,7 @@ const NAV_SECTIONS = ["why", "features", "how", "pia", "faq", "about"] as const;
 const navLinks = [
   { href: "#why", label: "Why DeFi", id: "why" },
   { href: "#features", label: "Features", id: "features" },
-  { href: "#how", label: "Advantages", id: "how" },
+  { href: "#how", label: "How It Works", id: "how" },
   { href: "#pia", label: "Pia", id: "pia" },
   { href: "#about", label: "About", id: "about" },
   { href: "#faq", label: "FAQ", id: "faq" },
@@ -275,9 +275,7 @@ function GoalsSection() {
             Olimpia Puts It to Work
           </h2>
           <p className="features-lead text-body text-ink-muted">
-            Traditional banks are designed to hold your money. Olimpia helps your money do
-            more. Earn on your savings, move globally in seconds, spend with ease, and learn modern
-            money skills along the way.
+            More opportunities for your money, without the limitations of traditional banking.
           </p>
         </SectionScrollReveal>
 
@@ -345,28 +343,32 @@ function GoalsSection() {
   );
 }
 
-/* ---------- ADVANTAGES (The upside is yours) ---------- */
+/* ---------- HOW IT WORKS (The upside is yours) ---------- */
 function EmpoweringCards() {
   const items = [
     {
       icon: Wallet,
-      t: "Absolute Ownership",
-      b: "You get a dedicated wallet only you control. Olimpia can't freeze your account or move your money.",
+      t: "You stay in charge",
+      b: "Your wallet belongs to you. Olimpia can never access, freeze, or move your funds.",
+      iconBg: "#fbdde6",
     },
     {
-      icon: Unlock,
-      t: "Total Freedom",
-      b: "No lockups or waiting periods. Withdraw anytime and send funds back to your traditional bank.",
+      icon: Layers,
+      t: "Complexity removed",
+      b: "Trusted protocols power saving, spending, and optional yield, with no blockchain expertise required.",
+      iconBg: "#f6cdd8",
     },
     {
-      icon: Zap,
-      t: "Money in a Snap",
-      b: "You can send money anywhere globally in just seconds, skipping expensive bank fees.",
+      icon: LayoutGrid,
+      t: "Everything in one place",
+      b: "Save, spend, and explore optional yield, all from a single app.",
+      iconBg: "#f0bece",
     },
     {
       icon: Fuel,
-      t: "Effortless Swapping",
-      b: "Easily switch between USDC and USD anytime without stress.",
+      t: "We cover network fees",
+      b: "Olimpia covers network fees on supported transactions, so you don't have to.",
+      iconBg: "#e9aec4",
     },
   ];
 
@@ -374,9 +376,11 @@ function EmpoweringCards() {
 
   return (
     <section id="how" className="claude-how-section">
+      <div className="claude-how-wash" aria-hidden />
+      <div className="claude-how-glow" aria-hidden />
       <div className="claude-how-inner">
         <SectionScrollReveal className="claude-how-header">
-          <p className="claude-how-eyebrow">The advantages</p>
+          <p className="claude-how-eyebrow">How It Works</p>
           <h2 className="how-section-heading text-h1 font-semibold text-foreground md:text-display-md">
             The upside is yours
           </h2>
@@ -387,7 +391,7 @@ function EmpoweringCards() {
         </SectionScrollReveal>
 
         <div className="claude-how-grid">
-          {items.map(({ icon: Icon, t, b }, index) => (
+          {items.map(({ icon: Icon, t, b, iconBg }, index) => (
             <div
               key={t}
               className={cn(!tilt.reduceMotion && "claude-how-card-enter")}
@@ -404,7 +408,11 @@ function EmpoweringCards() {
                   style={tilt.getSpotlightStyle(index)}
                   aria-hidden
                 />
-                <div className="claude-how-icon" aria-hidden>
+                <div
+                  className="claude-how-icon"
+                  style={{ background: iconBg }}
+                  aria-hidden
+                >
                   <Icon className="h-[22px] w-[22px]" strokeWidth={2} />
                 </div>
                 <h3 className="claude-how-card-title">{t}</h3>
@@ -423,15 +431,15 @@ function DefiEquitySection() {
   const points = [
     {
       title: "No Permission Needed",
-      body: "Control your assets from anywhere with just a smartphone.",
+      body: "Manage your money anytime, anywhere. All you need is your phone.",
     },
     {
       title: "Equal Access",
-      body: "Onchain means open for all, free from gatekeepers.",
+      body: "The same financial opportunities are available to everyone, not just those with wealth or connections.",
     },
     {
-      title: "Wealth-Building Tools",
-      body: "Access compounding yields and global markets instantly.",
+      title: "Put Your Money to Work",
+      body: "Earn on your savings and access financial tools designed to help your money grow.",
     },
   ];
 
@@ -440,7 +448,7 @@ function DefiEquitySection() {
       <div className="claude-defi-wash" aria-hidden />
       <div className="claude-defi-inner">
         <SectionScrollReveal className="claude-defi-header">
-          <p className="claude-defi-eyebrow">Leveling the Playing Field</p>
+          <p className="claude-defi-eyebrow">Financial Freedom Starts with Access</p>
           <h2
             id="defi-equity-title"
             className="defi-section-heading text-h1 font-semibold md:text-display-md"
@@ -448,9 +456,8 @@ function DefiEquitySection() {
             Why DeFi matters for women
           </h2>
           <p className="claude-defi-lead">
-            DeFi is your opportunity to access financial tools without gatekeepers.
-            <br />
-            Geographic, economic and societal barriers unlocked.
+            DeFi enables access financial tools without gatekeepers. You can save, earn, and move
+            money without geographic, economic or societal barriers.
           </p>
         </SectionScrollReveal>
 
@@ -498,8 +505,8 @@ function UsdcVsUsdSection() {
             in seconds, for pennies. USDC is always pegged one-to-one with the U.S. dollar.
           </p>
           <p className="claude-compare-help">
-            Olimpia turns that into an app — a wallet only you control, convert your dollars, and
-            earn yield on your balance without the crypto complexity.
+            Olimpia gives you a wallet only you control, converts your dollars to USDC, and helps
+            you earn on your balance without the complexity.
           </p>
         </SectionScrollReveal>
 
@@ -652,41 +659,31 @@ function StayTunedSection() {
   };
 
   return (
-    <section id="download" className="section-pad border-t border-border/30 bg-white">
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
-          <SectionScrollReveal className="claude-section-header max-w-md shrink-0">
-            <h2 className="claude-section-title">
-              Stay <span className="italic font-normal">tuned</span>
-            </h2>
-            <p className="mt-4 text-body text-ink-muted">
-              Be first to know when Olimpia launches.
-            </p>
-          </SectionScrollReveal>
+    <section id="download" className="stay-tuned-section">
+      <div className="stay-tuned-inner">
+        <SectionScrollReveal className="stay-tuned-copy">
+          <h2 className="claude-section-title stay-tuned-title">
+            More choices. More freedom.
+          </h2>
+          <p className="stay-tuned-lead">
+            Join the waitlist and get early access to Olimpia.
+          </p>
+        </SectionScrollReveal>
 
-          <SectionScrollReveal delay={120} className="flex-1 lg:max-w-2xl">
+        <SectionScrollReveal delay={120} className="stay-tuned-form-wrap">
           {status === "success" ? (
-            <div className="flex items-center gap-3 rounded-[32px] border border-border/40 bg-background px-6 py-5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background text-ink-muted ring-1 ring-border/50">
-                <Heart className="h-5 w-5 fill-current" />
-              </div>
-              <div>
-                <p className="text-body font-semibold text-foreground">You&apos;re on the list.</p>
-                <p className="mt-0.5 text-body-sm text-ink-muted">
-                  We&apos;ll email you the moment Olimpia is ready.
-                </p>
-              </div>
+            <div className="stay-tuned-success">
+              <p className="stay-tuned-success-title">You&apos;re on the list.</p>
+              <p className="stay-tuned-success-body">
+                We&apos;ll email you the moment Olimpia is ready.
+              </p>
             </div>
           ) : (
-            <div>
-              <form
-                onSubmit={handleSubmit}
-                className="flex flex-col gap-3 sm:flex-row sm:items-start"
-                noValidate
-              >
-                <label htmlFor="stay-tuned-email" className="sr-only">
-                  Email address
-                </label>
+            <form onSubmit={handleSubmit} className="stay-tuned-form" noValidate>
+              <label htmlFor="stay-tuned-email" className="sr-only">
+                Email address
+              </label>
+              <div className="stay-tuned-row">
                 <input
                   id="stay-tuned-email"
                   type="email"
@@ -698,31 +695,24 @@ function StayTunedSection() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="min-w-0 flex-1 rounded-full border border-border bg-background px-5 py-3.5 text-body text-foreground placeholder:text-ink-muted/70 focus:border-foreground/30 focus:outline-none focus:ring-2 focus:ring-foreground/10"
+                  className="stay-tuned-input"
                 />
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex h-[52px] shrink-0 items-center justify-center rounded-full bg-berry px-6 text-body-sm font-semibold text-white transition hover:opacity-90 disabled:pointer-events-none disabled:opacity-60 sm:px-8"
-                >
+                <button type="submit" disabled={isSubmitting} className="stay-tuned-cta">
                   {isSubmitting ? "Joining..." : "Join the waitlist"}
                 </button>
-              </form>
+              </div>
               {error && (
-                <p className="mt-3 px-2 text-body-sm text-ink-muted" role="alert">
+                <p className="stay-tuned-error" role="alert">
                   {error}
                 </p>
               )}
-              <p className="mt-4 text-body-sm text-ink-muted">
+              <p className="stay-tuned-privacy">
                 We&apos;ll only email you about Olimpia.{" "}
-                <Link to="/privacy" className="text-foreground underline decoration-border underline-offset-2 transition hover:opacity-70">
-                  Privacy Policy
-                </Link>
+                <Link to="/privacy">Privacy Policy</Link>
               </p>
-            </div>
+            </form>
           )}
-          </SectionScrollReveal>
-        </div>
+        </SectionScrollReveal>
       </div>
     </section>
   );
