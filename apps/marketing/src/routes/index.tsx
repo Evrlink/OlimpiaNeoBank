@@ -547,16 +547,12 @@ function PiaSection() {
   return (
     <section id="pia" className="claude-pia-section">
       <SectionScrollReveal className="flex w-full flex-col items-center text-center">
-        <p className="claude-pia-eyebrow">Let&apos;s talk money</p>
-        <span className="claude-pia-badge">
-          <span aria-hidden>♥</span>
-          <span>Your money bestie</span>
-        </span>
+        <p className="claude-pia-eyebrow">Learn with a guide</p>
         <h2 className="pia-section-heading text-h1 font-semibold text-foreground md:text-display-md">
           Meet Pia
         </h2>
         <p className="claude-pia-copy">
-          Your AI guide to DeFi tools. Knowledge, not financial advice.
+          Your guide to DeFi tools and learning.
         </p>
       </SectionScrollReveal>
 
