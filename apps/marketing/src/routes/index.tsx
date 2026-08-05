@@ -493,20 +493,17 @@ function UsdcVsUsdSection() {
       <div className="claude-compare-wash" aria-hidden />
       <div className="claude-compare-inner">
         <SectionScrollReveal className="claude-compare-copy">
-          <p className="claude-compare-eyebrow">How Olimpia helps</p>
+          <p className="claude-compare-eyebrow">How Olimpia Helps</p>
           <h2 className="compare-section-heading text-h1 font-semibold text-foreground md:text-display-md">
             Your money deserves to do more than sit in a bank.
           </h2>
-          <p className="claude-compare-lead">
-            Put your money to work with a stable coin (USDC).
-          </p>
           <p className="claude-compare-body">
-            Traditional banks store your money. USDC helps it work for you, earning yield, moving
-            in seconds, for pennies. USDC is always pegged one-to-one with the U.S. dollar.
+            Olimpia makes it easy to turn your dollars into USDC that can earn on your balance and
+            stay worth one U.S. dollar. USDC is pegged one to one with USD.
           </p>
           <p className="claude-compare-help">
-            Olimpia gives you a wallet only you control, converts your dollars to USDC, and helps
-            you earn on your balance without the complexity.
+            We handle the complexity. You get a wallet you control and take advantage of earning
+            yield, with additional learning tools to guide you.
           </p>
         </SectionScrollReveal>
 
