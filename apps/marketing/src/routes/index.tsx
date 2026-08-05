@@ -498,23 +498,24 @@ function UsdcVsUsdSection() {
             Your money deserves to do more than sit in a bank.
           </h2>
           <p className="claude-compare-body">
-            Olimpia makes it easy to turn your dollars into USDC that can earn on your balance and
-            stay worth one U.S. dollar. USDC is pegged one to one with USD.
-          </p>
-          <p className="claude-compare-help">
-            We handle the complexity. You get a wallet you control and take advantage of earning
-            yield, with additional learning tools to guide you.
+            Olimpia makes it easy to turn your dollars into a stable coin and earn on your balance.
           </p>
         </SectionScrollReveal>
 
         <SectionScrollReveal delay={120} className="claude-compare-table-wrap">
           <div className="claude-compare-table" role="table" aria-label="USDC compared to traditional USD bank accounts">
+            <div className="claude-compare-table-intro">
+              <p className="claude-compare-table-sub">USD vs USDC</p>
+              <p className="claude-compare-table-lead">
+                The difference is what the money can do
+              </p>
+            </div>
             <div className="claude-compare-table-head" role="row">
               <div className="claude-compare-col-bank" role="columnheader">
-                Traditional Bank Account (USD)
+                Bank account
               </div>
               <div className="claude-compare-col-usdc" role="columnheader">
-                Stable Coin (USDC)
+                Stable coin
               </div>
             </div>
             {compareRows.map(({ bank, usdc }, index) => (
