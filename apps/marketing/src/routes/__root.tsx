@@ -8,9 +8,12 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { GoogleAnalytics } from "tanstack-router-ga4";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+
+const GA_MEASUREMENT_ID = "G-EGSKZG2DL4";
 
 function NotFoundComponent() {
   return (
@@ -115,6 +118,9 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        {import.meta.env.PROD ? (
+          <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
+        ) : null}
         {children}
         <Scripts />
       </body>
