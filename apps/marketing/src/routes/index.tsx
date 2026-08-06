@@ -375,7 +375,7 @@ function EmpoweringCards() {
   const items = [
     {
       icon: Wallet,
-      t: "You stay in charge",
+      t: "You in charge",
       b: "Your wallet belongs to you. Olimpia can never access, freeze, or move your funds.",
       iconBg: "#fbdde6",
     },
@@ -551,8 +551,9 @@ function UsdcVsUsdSection() {
             Your money deserves to do more than sit in a bank.
           </h2>
           <p className="claude-compare-body">
-            Olimpia makes it easy to turn your dollars into a stable coin and earn on your balance.
-            We handle the complexity. USDC stays pegged one to one with the U.S. dollar.
+            Olimpia makes it easy to turn your dollars into stable coins and earn on your balance.
+            We handle the complexity and provide you with learning tools. Note: USDC stays pegged one
+            to one with the U.S. dollar.
           </p>
         </SectionScrollReveal>
 
@@ -566,7 +567,7 @@ function UsdcVsUsdSection() {
             </div>
             <div className="claude-compare-table-head" role="row">
               <div className="claude-compare-col-bank" role="columnheader">
-                Bank account
+                USD
               </div>
               <div className="claude-compare-col-usdc" role="columnheader">
                 Stable coin
