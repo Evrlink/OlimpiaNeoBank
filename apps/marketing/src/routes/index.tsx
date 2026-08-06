@@ -705,6 +705,12 @@ function StayTunedSection() {
       });
       return;
     }
+
+    setError(result.error);
+  };
+
+  return (
+    <section id="download" className="stay-tuned-section">
       <div className="stay-tuned-inner">
         <SectionScrollReveal className="stay-tuned-copy">
           <h2 className="claude-section-title stay-tuned-title">
@@ -822,6 +828,17 @@ function WaitlistModal() {
       });
       return;
     }
+
+    setError(result.error);
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="waitlist-title"
+      className="fixed inset-0 z-[100] flex items-center justify-center px-4 py-8"
+    >
       <button
         type="button"
         aria-label="Close waitlist"
