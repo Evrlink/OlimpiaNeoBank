@@ -7,13 +7,12 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { GoogleAnalytics } from "tanstack-router-ga4";
 
 import appCss from "../styles.css?url";
+import { GA_MEASUREMENT_ID } from "../lib/analytics";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-
-const GA_MEASUREMENT_ID = "G-EGSKZG2DL4";
 
 function NotFoundComponent() {
   return (
@@ -118,13 +117,27 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {import.meta.env.PROD ? (
-          <GoogleAnalytics measurementId={GA_MEASUREMENT_ID} />
-        ) : null}
+        {import.meta.env.PROD ? <ProductionGoogleAnalytics /> : null}
         {children}
         <Scripts />
       </body>
     </html>
+  );
+}
+
+/** Enables GA4 DebugView when the URL includes `?debug_mode=1`. */
+function ProductionGoogleAnalytics() {
+  const [debugMode, setDebugMode] = useState(false);
+
+  useEffect(() => {
+    setDebugMode(new URLSearchParams(window.location.search).get("debug_mode") === "1");
+  }, []);
+
+  return (
+    <GoogleAnalytics
+      measurementId={GA_MEASUREMENT_ID}
+      config={debugMode ? { debug_mode: true } : undefined}
+    />
   );
 }
 

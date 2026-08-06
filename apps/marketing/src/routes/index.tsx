@@ -22,6 +22,7 @@ import {
   pageSeoHead,
 } from "@/lib/seo";
 import { SiteFooter } from "@/components/site-footer";
+import { AnalyticsEvents, trackEvent } from "@/lib/analytics";
 import { submitWaitlistEmail } from "@/lib/waitlist";
 import { useActiveSection } from "@/hooks/use-active-section";
 import { useCardPointerTilt } from "@/hooks/use-card-pointer-tilt";
@@ -174,10 +175,29 @@ function Hero() {
             skip the gatekeepers, and put your dollars to work.
           </p>
           <div className="flex flex-wrap items-center gap-7">
-            <button type="button" onClick={openWaitlist} className="claude-hero-cta cursor-pointer">
+            <button
+              type="button"
+              onClick={() => {
+                trackEvent(AnalyticsEvents.heroCtaClick, {
+                  cta_label: "Get early access",
+                  location: "hero",
+                });
+                openWaitlist();
+              }}
+              className="claude-hero-cta cursor-pointer"
+            >
               Get early access
             </button>
-            <a href="#why" className="claude-hero-link no-underline transition hover:opacity-80">
+            <a
+              href="#why"
+              className="claude-hero-link no-underline transition hover:opacity-80"
+              onClick={() => {
+                trackEvent(AnalyticsEvents.learnMoreClick, {
+                  link_text: "Why it matters",
+                  location: "hero",
+                });
+              }}
+            >
               Why it matters
               <span aria-hidden> →</span>
             </a>
@@ -305,7 +325,14 @@ function GoalsSection() {
                   >
                     <button
                       type="button"
-                      onClick={() => toggle(title)}
+                      onClick={() => {
+                        trackEvent(AnalyticsEvents.learnMoreClick, {
+                          link_text: "Learn more",
+                          location: "features",
+                          feature: title,
+                        });
+                        toggle(title);
+                      }}
                       aria-expanded={isFlipped}
                       aria-label={`${title}. Learn more`}
                       className="goal-card-face feature-card-face backface-hidden absolute inset-0 flex h-full w-full cursor-pointer flex-col px-8 pb-8 pt-10 text-left font-inherit text-inherit"
@@ -488,6 +515,32 @@ function UsdcVsUsdSection() {
     { bank: "Built for storing", usdc: "Built for growth" },
   ];
 
+  useEffect(() => {
+    const el = document.getElementById("compare");
+    if (!el) return;
+
+    let sent = false;
+    const fire = () => {
+      if (sent) return;
+      sent = true;
+      trackEvent(AnalyticsEvents.usdcPageView, {
+        section_id: "compare",
+        page_path: window.location.pathname + window.location.hash,
+      });
+    };
+
+    if (window.location.hash === "#compare") fire();
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) fire();
+      },
+      { threshold: 0.35 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section id="compare" className="claude-compare-section">
       <div className="claude-compare-wash" aria-hidden />
@@ -646,14 +699,12 @@ function StayTunedSection() {
 
     if (result.ok) {
       setStatus("success");
+      trackEvent(AnalyticsEvents.waitlistSignup, {
+        source: "marketing_stay_tuned",
+        method: "email",
+      });
       return;
     }
-
-    setError(result.error);
-  };
-
-  return (
-    <section id="download" className="stay-tuned-section">
       <div className="stay-tuned-inner">
         <SectionScrollReveal className="stay-tuned-copy">
           <h2 className="claude-section-title stay-tuned-title">
@@ -765,19 +816,12 @@ function WaitlistModal() {
 
     if (result.ok) {
       setStatus("success");
+      trackEvent(AnalyticsEvents.waitlistSignup, {
+        source: "waitlist_modal",
+        method: "email",
+      });
       return;
     }
-
-    setError(result.error);
-  };
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="waitlist-title"
-      className="fixed inset-0 z-[100] flex items-center justify-center px-4 py-8"
-    >
       <button
         type="button"
         aria-label="Close waitlist"
