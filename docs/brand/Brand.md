@@ -587,10 +587,11 @@ Built on trusted infrastructure.
 |----------|
 | Privy |
 | Base |
-| Dakota — only after partnership/brand-use approval |
-| Aave — only after V1 strategy confirmation and brand-use approval |
+| Coinbase — only with brand-use approval (V1 onramp partner) |
+| Aave — only with brand-use approval (Growth) |
+| Circle — only with brand-use approval (USDC) |
 
-**Rules:** Logos only — no technical explanations or protocol deep-dives. Show only providers with a confirmed relationship and permission to use their marks. Do not show a candidate Privy fiat-onramp provider (including Coinbase) as selected before validation.
+**Rules:** Logos only — no technical explanations or protocol deep-dives. Show only providers with a confirmed relationship and permission to use their marks. Do not show Bridge or Dakota.
 
 **Anchor:** `id="infrastructure"`
 
@@ -626,7 +627,7 @@ Add money  →  Receive USDC  →  Grow your money  →  Spend anytime
 
 | Step | User-facing meaning |
 |------|---------------------|
-| 1. **Add Funds** | Choose Bank Transfer, Apple Pay or Card, or Transfer USDC |
+| 1. **Add Funds** | Choose Add Money or Transfer USDC |
 | 2. **Receive USDC** | Dollars arrive in your account (invisible conversion — user sees dollars) |
 | 3. **Grow your money** | Optional growth on savings — estimated, variable |
 | 4. **Spend anytime** | Card, send, and everyday use |

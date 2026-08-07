@@ -1,11 +1,25 @@
 # Olimpia — Product Requirements Document
 
-**Version:** 2.0
-**Status:** Draft for founder review
-**Platform:** React Native mobile app for iOS and Android
-**Architecture:** [Architecture.md](../architecture/Architecture.md)
-**V1 scope:** [V1Scope.md](./V1Scope.md)
+**Version:** 3.0  
+**Status:** Canonical — current V1 build  
+**Platform:** React Native / Expo mobile app — **iOS first** for App Store submission  
+**Architecture:** [Architecture.md](../architecture/Architecture.md)  
+**V1 scope:** [V1Scope.md](./V1Scope.md)  
 **Build plan:** [BuildPlan.md](../build/BuildPlan.md)
+
+---
+
+## Current MVP Architecture
+
+**Coinbase Headless Onramp + Privy + Base + USDC + Aave is the only active V1 architecture.**
+
+```text
+User → Privy auth → Privy embedded wallet
+  → Coinbase Headless Onramp → USDC on Base to Privy wallet
+  → Olimpia balance / activity → optional Aave Growth
+```
+
+Funding UI labels: **Add Money** (Coinbase Headless) and **Transfer USDC**. Provider names are not method labels. Bridge and Dakota are not part of V1. Full system design: [Architecture.md](../architecture/Architecture.md) · [ADR-013](../architecture/ArchitectureDecisionLog.md).
 
 ---
 
@@ -34,37 +48,34 @@ A V1 user can:
 
 1. Sign up and restore a session through Privy.
 2. Receive an embedded Privy wallet without managing keys.
-3. Add funds through one of three methods.
+3. Add funds through **Add Money** (Coinbase Headless Onramp) and/or **Transfer USDC**.
 4. See an authoritative balance and activity history.
-5. Send and receive money.
-6. Create and fund savings goals.
-7. Move eligible Available funds into or out of Growth.
-8. Withdraw Available funds to a bank after an off-ramp provider is selected.
-9. Manage profile and sign out.
+5. Create and fund savings goals.
+6. Move eligible Available funds into or out of Growth (Aave on Base).
+7. Send and receive money between Olimpia users (when included in the sprint critical path).
+8. Manage profile and sign out.
 
-Pia remains a static **Coming soon** preview. Card spending remains post-V1.
+**Not in App Store V1:** bank withdrawal / off-ramp, functional Pia chat, virtual debit card spending.
 
 ---
 
 ## 3. V1 funding methods
 
-The canonical Add Funds experience has exactly three primary methods, in this order:
+The canonical Add Funds experience has exactly **two** primary methods:
 
-1. **Bank Transfer**
-2. **Apple Pay or Card**
-3. **Transfer USDC**
+1. **Add Money** — Coinbase Headless Onramp delivers USDC to the user’s Privy wallet on Base
+2. **Transfer USDC** — user sends supported USDC on Base to their Privy address
 
-These labels describe what the user has and how she wants to fund the account. Infrastructure-provider names are not funding-method labels.
+These labels describe what the user wants to do. Infrastructure-provider names are not funding-method labels.
 
 ### Starting points
 
 | User starting point | Method |
 |---------------------|--------|
-| Has dollars in a bank account | Bank Transfer |
-| Wants to buy USDC quickly | Apple Pay or Card |
+| Has dollars (bank / debit / Apple Pay) | Add Money |
 | Already owns USDC in Coinbase or another compatible wallet | Transfer USDC |
 
-All three methods ultimately deliver supported USDC to the authenticated user's Privy wallet on Base and produce one validated Olimpia ledger credit.
+Both methods ultimately deliver supported USDC to the authenticated user’s Privy wallet on Base and produce one validated Olimpia ledger credit.
 
 ---
 
@@ -76,14 +87,9 @@ All three methods ultimately deliver supported USDC to the authenticated user's 
 Add Funds
 Choose how you would like to add money.
 
-Bank Transfer
+Add Money
 Recommended
-Best for larger deposits
-Expected arrival: provider-confirmed estimate
-$1 total transfer fee (after approval)
-
-Apple Pay or Card
-Fastest option
+Buy USDC with bank, debit card, or Apple Pay
 Provider fee shown before confirmation
 Identity verification may be required
 
@@ -93,77 +99,26 @@ Use the Base network
 Usually arrives after network confirmation
 ```
 
-This is an information hierarchy, not final copy or pixel-perfect design. Spacing, icons, borders, colors, and component treatment require design review.
+This is an information hierarchy, not final copy or pixel-perfect design.
 
 ### Method hierarchy requirements
 
-- Keep the order fixed.
-- Mark Bank Transfer **Recommended** only when confirmed as the lowest-cost or most suitable option for regular/larger deposits.
-- Emphasize relative speed for Apple Pay/card without promising an exact time.
-- Keep Transfer USDC visible; do not bury it.
-- Use provider-confirmed fees and arrival estimates. Do not hardcode the conceptual 1–2 business-day example.
-- Do not show Dakota, Privy, Coinbase Headless, Stripe, or another provider as the primary method label.
+- Keep **Add Money** first.
+- Keep **Transfer USDC** visible; do not bury it.
+- Use provider-confirmed fees and arrival estimates from Coinbase where available.
+- Do not show Coinbase, Privy, Aave, or another provider as the primary method label.
 
 ---
 
-## 5. Bank Transfer requirements
-
-### Conceptual amount/review hierarchy
-
-```text
-Add money from your bank
-
-Amount
-[$100.00]
-
-From
-Connected bank account
-
-To
-Your Olimpia account
-
-Summary
-Deposit amount
-Olimpia transfer fee
-Total bank withdrawal
-Exact amount your Olimpia account receives
-Expected arrival
-
-[Review Transfer]
-```
-
-### Requirements
-
-- Show the complete amount withdrawn from the bank.
-- Show the exact amount credited to the Olimpia account.
-- Disclose the intended $1 fee before confirmation, after commercial/compliance approval.
-- Show provider-confirmed expected arrival.
-- Use **Your Olimpia account** or another approved account name.
-- Do not use **High-Yield Wealth Account** unless legal and product terminology is approved.
-- Use **Review Transfer** or **Review & Continue** because the transfer is not complete.
-- Do not promise that funds begin earning immediately.
-- Explain that funds become eligible for Growth only after settlement, compliance checks, and required user authorization.
-
-### Pricing assumption
-
-Dakota has indicated an approximate $0.25 transaction cost. Olimpia intends to charge a $1 total bank-transfer fee, producing an intended $0.75 gross margin before other costs.
-
-This is not finalized or compliance-approved. It requires Dakota markup permission plus legal, compliance, and disclosure review.
-
----
-
-## 6. Apple Pay or Card requirements
+## 5. Add Money requirements (Coinbase Headless Onramp)
 
 ### Conceptual hierarchy
 
 ```text
-Add funds instantly
+Add Money
 
 Amount
 [$100.00]
-
-Payment method
-Apple Pay or Card
 
 You receive
 Estimated USDC amount after provider quote
@@ -176,22 +131,18 @@ Shown before confirmation
 
 ### Requirements
 
-- Use Privy's supported Fiat Onramp experience for MVP unless technical validation shows it cannot satisfy requirements.
-- The configured provider supplies the final quote and fee.
+- Use **Coinbase Headless Onramp** as the sole V1 fiat funding integration ([ADR-013](../architecture/ArchitectureDecisionLog.md)).
+- Destination wallet is the authenticated user’s Privy embedded wallet on Base; asset is supported USDC.
+- Coinbase supplies the final quote, fee, payment methods, and KYC.
 - Do not promise an exact USDC amount before the quote.
-- Apple Pay and debit card are intended.
-- Show credit card only if supported and approved.
-- Explain that identity verification may be required, particularly on a first transaction.
-- Do not promise every later transaction requires only one biometric click.
 - Do not build a hidden background WebView.
-- Do not imply Olimpia controls or bypasses provider checkout.
-- Provider fees may vary by provider, payment method, geography, amount, and percentage schedule.
-- Do not assume an Olimpia markup is allowed.
-- Do not apply the $1 Bank Transfer fee to this method without separate validation.
+- Do not imply Olimpia controls or bypasses Coinbase checkout.
+- Do not assume an Olimpia markup is allowed on this path.
+- Explain that identity verification may be required, particularly on a first transaction.
 
 ---
 
-## 7. Transfer USDC requirements
+## 6. Transfer USDC requirements
 
 ### Conceptual Receive USDC hierarchy
 
@@ -217,7 +168,7 @@ Only send supported USDC using the Base network.
 
 ### Requirements
 
-- Display the authenticated user's Privy wallet address.
+- Display the authenticated user’s Privy wallet address.
 - Provide a QR code and one-tap Copy Address.
 - Show **Base network** prominently near the QR code and address.
 - Provide beginner-friendly Coinbase instructions.
@@ -226,14 +177,13 @@ Only send supported USDC using the Base network.
 
 > Transfers sent using an unsupported asset or network may not appear in Olimpia and may be difficult or impossible to recover.
 
-- Do not promise arrival within three to five seconds.
 - Keep the transfer pending until backend confirmation policy is met.
 - Update balance and activity only through validated backend processing.
 - Never credit unsupported assets merely because they reach the address.
 
 ---
 
-## 8. Funding status and recovery
+## 7. Funding status and recovery
 
 Canonical backend states:
 
@@ -248,17 +198,15 @@ Mobile may combine pending and processing. Every method must support:
 
 - Clear processing copy
 - Duplicate-submit prevention
-- Cancel/close/return where the provider permits it
+- Cancel / close / return where the provider permits it
 - Retry or support path on failure
 - Explicit activity and balance correction on reversal
 
 ---
 
-## 9. Empty-account onboarding
+## 8. Empty-account onboarding
 
-When balance is zero, the primary message is setup—not the number.
-
-### Conceptual hierarchy
+When balance is zero, the primary message is setup — not the number.
 
 ```text
 Your account is ready
@@ -267,35 +215,30 @@ Add your first funds to begin using Olimpia.
 ```
 
 - `$0.00` may remain visible as secondary information.
-- Do not make zero balance the only dominant message.
 - Do not say **start earning immediately**.
 - Do not imply automatic enrollment into Growth.
-- The Add Funds CTA opens the same canonical three-method chooser from onboarding and Home.
+- The Add Funds CTA opens the same canonical two-method chooser from onboarding and Home.
 
 ---
 
-## 10. Navigation during funding
+## 9. Navigation during funding
 
 - Keep normal app navigation available by default.
-- User testing may support reducing distractions during provider checkout or confirmation.
-- A focused state must not make users feel trapped.
 - Every provider checkout and confirmation has a clear cancel, close, or return path.
-- Success returns to Home with refreshed balance/activity.
+- Success returns to Home with refreshed balance / activity.
 
 ---
 
-## 11. Copy requirements
+## 10. Copy requirements
 
 ### Prefer
 
 - Add Funds
-- Bank Transfer
-- Apple Pay or Card
+- Add Money
 - Transfer USDC
 - Receive USDC
 - Base network
 - Your Olimpia account
-- Review Transfer
 - Expected arrival
 - Provider fee
 - Growth Account
@@ -315,17 +258,17 @@ Add your first funds to begin using Olimpia.
 
 ---
 
-## 12. Authentication and profile
+## 11. Authentication and profile
 
 - Privy handles sign-up, sign-in, session, and embedded wallet provisioning.
 - Onboarding uses familiar account language.
 - Users never manage private keys or seed phrases.
-- Profile includes account information, security/session controls, support, notification preferences, and sign out.
+- Profile includes account information, security / session controls, support, notification preferences, and sign out.
 - Pia appears only as a static Coming soon preview in V1.
 
 ---
 
-## 13. Home, balance, and activity
+## 12. Home, balance, and activity
 
 Home answers: **What should I do next?**
 
@@ -336,11 +279,11 @@ Home answers: **What should I do next?**
 - Recent activity
 - Friendly processing and empty states
 
-The backend ledger is authoritative. Activity covers deposits, reversals, sends, receives, goal movements, Growth movements/earnings, and withdrawals.
+The backend ledger is authoritative. Activity covers deposits, reversals, sends, receives, goal movements, Growth movements / earnings.
 
 ---
 
-## 14. Send and receive
+## 13. Send and receive
 
 ### Send
 
@@ -351,13 +294,13 @@ The backend ledger is authoritative. Activity covers deposits, reversals, sends,
 
 ### Receive from another Olimpia user
 
-- Share approved handle/link/QR.
-- Keep this P2P receive flow distinct from **Receive USDC** funding.
+- Share approved handle / link / QR.
+- Keep this P2P receive flow distinct from **Transfer USDC** funding.
 - Update balance and activity through backend processing.
 
 ---
 
-## 15. Savings goals
+## 14. Savings goals
 
 - Create a named goal with target amount and optional date.
 - Allocate from Available and move funds back to Available.
@@ -367,30 +310,25 @@ The backend ledger is authoritative. Activity covers deposits, reversals, sends,
 
 ---
 
-## 16. Growth Account
+## 15. Growth Account
 
-- Aave on Base is the intended future yield destination.
+- Aave on Base is the V1 yield destination.
 - Users see one provider-neutral Growth Account.
 - Growth uses eligible Available funds only.
 - Moving funds to Growth requires explicit user authorization.
-- Earnings/rates are estimated and variable, never guaranteed.
+- Earnings / rates are estimated and variable, never guaranteed.
 - Users can withdraw Growth funds back to Available.
 - Provider names do not appear in mobile.
 
 ---
 
-## 17. Withdrawal
+## 16. Withdrawal
 
-Withdrawal to a linked bank remains a V1 requirement.
-
-- Provider is unresolved.
-- Withdraw from Available only.
-- Use provider-neutral UX and normalized statuses.
-- Validate fees, timing, KYC, destinations, returns, and reversals before release.
+Bank withdrawal / off-ramp is **deferred** (not required for App Store V1). No provider is selected. Do not implement withdrawal UI as if a provider exists.
 
 ---
 
-## 18. V1 navigation
+## 17. V1 navigation
 
 Bottom tabs:
 
@@ -398,40 +336,40 @@ Bottom tabs:
 Home · Savings · Card · Profile
 ```
 
-Stack/overlay flows:
+Stack / overlay flows:
 
 - Add Funds
+- Add Money (Coinbase Headless)
+- Transfer USDC / Receive USDC
 - Send
-- Receive
-- Receive USDC
+- Receive (P2P)
 - Transaction detail
 - New goal / goal detail
 - Growth Account
-- Withdrawal
 
-Card may remain a post-V1 placeholder.
+Card remains a post-V1 placeholder.
 
 ---
 
-## 19. Security and compliance requirements
+## 18. Security and compliance requirements
 
 - Provider secrets stay server-side.
 - Verify webhook signatures and blockchain events.
 - Use idempotency for all deposit and ledger processing.
-- Do not store sensitive card/bank details unless explicitly required and approved.
-- Assign provider KYC, sanctions, fraud, chargeback, and return responsibilities.
-- Apply limits and velocity controls.
+- Do not store sensitive card / bank details.
+- Coinbase owns Headless Onramp KYC, sanctions, fraud, chargeback, and return responsibilities for that path.
+- Apply limits and velocity controls where available.
 - Maintain audit logs and reconciliation.
 - Disclose fees, timing, network, and asset limitations clearly.
 - Do not move funding into Aave before finality, compliance checks, and user authorization.
 
 ---
 
-## 20. Success criteria
+## 19. Success criteria
 
 - Users understand which funding method fits what they already have.
-- Users can identify total cost, expected receipt, and timing before confirmation.
-- Users never need provider or blockchain knowledge except Base/USDC safety instructions.
+- Users can identify cost, expected receipt, and timing before confirmation where Coinbase provides a quote.
+- Users never need provider or blockchain knowledge except Base / USDC safety instructions.
 - Balance and activity never update from unvalidated mobile state.
 - Zero-balance onboarding provides one encouraging next step.
 - Savings and Growth remain conceptually separate.
@@ -439,8 +377,9 @@ Card may remain a post-V1 placeholder.
 
 ---
 
-## 21. Out of V1
+## 20. Out of V1 (App Store submission)
 
+- Bank withdrawal / off-ramp
 - Functional Pia chat
 - Functional debit card spending
 - Physical card
@@ -449,20 +388,18 @@ Card may remain a post-V1 placeholder.
 - Automatic yield enrollment
 - Request money
 - Full investment advice
+- Bridge.xyz or Dakota funding integrations
 
 ---
 
-## 22. Open decisions
+## 21. Open decisions
 
-- Dakota KYC, linking, conversion, settlement, webhook, return, and markup capabilities
-- Initial configured Privy Fiat Onramp provider
-- Fiat-onramp mobile/KYC/fee/callback behavior
+- Coinbase Headless production credentials, geography, and fee presentation
 - Base monitoring provider and confirmation threshold
-- Withdrawal provider
 - Final account terminology
-- Final arrival copy and fee approvals
-- Whether user testing supports focused funding navigation
+- Whether send / receive ships before or immediately after App Store submission (see BuildPlan tiers)
+- Off-ramp provider for a later release
 
 ---
 
-*End of PRD v2.0*
+*End of PRD v3.0*

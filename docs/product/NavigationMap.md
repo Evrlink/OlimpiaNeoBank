@@ -369,7 +369,7 @@ Money flows return to **tab root or parent** on success — not orphaned success
 | **A3** Pia intro | Card/modal | A2 | A4 / A5 |
 | **CVV reveal** | Inline/modal | A14 | A14 |
 | **Send success** | Inline/modal | A7 | A4 or A9 |
-| **Privy fiat-onramp checkout** | Provider-controlled sheet/browser/modal as supported | A5 | A5 (inline state) |
+| **Coinbase Headless checkout** | Provider-controlled sheet/browser/modal as supported | A5 | A5 (inline state) |
 
 Sheets/modals **do not** appear in tab bar. Dismiss always returns to presenter unless success explicitly navigates (A11 → A12). Every provider checkout and transaction confirmation must provide a clear cancel, close, or return path.
 

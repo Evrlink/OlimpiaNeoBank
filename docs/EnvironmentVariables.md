@@ -1,208 +1,99 @@
 # Olimpia — Environment Variables (Planning)
 
-**Status:** Planning document for implementation  
+**Status:** Aligned with Architecture v3.0  
 **Audience:** Founder, developers, Cursor agents  
-**Source of truth:** [Architecture.md](./architecture/Architecture.md) · [apps/marketing/.env.example](../apps/marketing/.env.example)
+**Source of truth:** [Architecture.md](./architecture/Architecture.md) · app `.env.example` files
 
 ---
 
-## What this file is for
+## Rules
 
-Environment variables are **configuration values** your apps read at startup — things like API keys, database URLs, and public site settings. This document lists what each Olimpia app needs, what each value does, and what must **never** be committed to GitHub.
-
-**This is not app code.** Use it when creating `.env.example` files and when setting up Vercel, Supabase, or your API host.
-
----
-
-## Rules (read this first)
-
-1. **Never commit real secrets.** Use `.env.local` locally. Add `.env.local` to `.gitignore` (already done for marketing).
-2. **Never put server secrets in the marketing site.** Anything starting with `VITE_` is visible in the browser.
-3. **Use sandbox keys** in local and staging until you are ready for production.
-4. If a value is unknown, leave it as **TBD** — do not guess production URLs or keys.
-5. **Pia / Anthropic is Future only** — no `ANTHROPIC_API_KEY` required for MVP backend.
+1. **Never commit real secrets.** Use `.env.local` locally.
+2. **Never put server secrets in the marketing site.** `VITE_*` is public.
+3. Use sandbox keys in local and staging until production is approved.
+4. **Pia / Anthropic is Future only.**
 
 ---
 
-## By application (overview)
+## Marketing (`apps/marketing`)
 
-| App | Config file | Status today |
-|-----|-------------|--------------|
-| **Marketing** (`apps/marketing`) | `.env.local` copied from [.env.example](../apps/marketing/.env.example) | **Partially live** (waitlist) |
-| **API** (`apps/api`) | `.env` / `.env.example` | **Not created yet** — Phase 0 |
-| **Mobile** (`apps/mobile`) | `.env` or Expo public vars | **Not created yet** — Phase 2 |
-
----
-
-## Marketing website (MVP — live today)
-
-These power the public site and waitlist. All `VITE_*` variables are **public** (bundled into the browser).
-
-| Variable | Required? | What it does | Where to get it |
-|----------|-----------|--------------|-----------------|
-| `VITE_SUPABASE_URL` | **Yes** | Supabase project URL for waitlist inserts | Supabase Dashboard → Project Settings → API |
-| `VITE_SUPABASE_ANON_KEY` | **Yes** | Anonymous key — insert-only via RLS | Same as above |
-| `VITE_SITE_URL` | Optional | Canonical site URL for SEO (sitemap, meta) | Your domain, e.g. `https://olimpia.app` **TBD** |
-| `VITE_SUPPORT_EMAIL` | Optional | Footer and contact links | e.g. `hello@olimpia.app` **TBD** |
-
-**Not needed on marketing for MVP:**
-
-- Privy and all funding/card/yield providers — mobile/API only
-- `DATABASE_URL` for main app — marketing waitlist uses Supabase directly today
-
-**Where to set in production:** Vercel → Project → Settings → Environment Variables (Production + Preview).
+| Variable | Required? | Purpose |
+|----------|-----------|---------|
+| `VITE_SUPABASE_URL` | Yes | Waitlist |
+| `VITE_SUPABASE_ANON_KEY` | Yes | Waitlist insert (RLS) |
+| `VITE_SITE_URL` | Optional | Canonical SEO URL |
+| `VITE_SUPPORT_EMAIL` | Optional | Footer / contact |
+| GA4 measurement ID | As configured | Production-only analytics |
 
 ---
 
-## API backend (MVP — planned Phase 0+)
+## API (`apps/api`)
 
-Create `apps/api/.env.example` when the API skeleton is built. **Do not commit real values.**
+### Core
 
-### Core server
+| Variable | Purpose |
+|----------|---------|
+| `NODE_ENV` | `development` / `staging` / `production` |
+| `PORT` | Local port (e.g. `3001`) |
+| `DATABASE_URL` | PostgreSQL |
+| `CORS_ORIGINS` | Allowed origins |
+| `API_BASE_URL` | Public API URL (optional) |
 
-| Variable | Required? | What it does |
-|----------|-----------|--------------|
-| `NODE_ENV` | Yes | `development`, `staging`, or `production` |
-| `PORT` | Yes | Server port locally — **TBD** (e.g. `3001`) |
-| `DATABASE_URL` | Yes | PostgreSQL connection string — **TBD** host |
-| `CORS_ORIGINS` | Yes | Allowed mobile app origins — **TBD** |
-| `API_BASE_URL` | Optional | Public URL of this API — **TBD** |
+### Privy
 
-### Authentication (Privy)
+| Variable | Purpose |
+|----------|---------|
+| `PRIVY_APP_ID` | App id |
+| `PRIVY_APP_SECRET` | Server verification — **secret** |
 
-| Variable | Required? | What it does |
-|----------|-----------|--------------|
-| `PRIVY_APP_ID` | Yes | Privy application ID |
-| `PRIVY_APP_SECRET` | Yes | Server-side verification — **secret** |
+### Funding — Coinbase Headless Onramp (V1)
 
-### Funding providers (names require implementation validation)
+| Variable | Purpose |
+|----------|---------|
+| `FUNDING_PROVIDER` | `mock` (non-production only) or `coinbase` |
+| Coinbase Headless API credentials | Exact names **TBD from Coinbase dashboard** — server only |
+| Coinbase webhook secret | Verify onramp callbacks — **secret** |
 
-| Variable | Required? | What it does |
-|----------|-----------|--------------|
-| `BANK_TRANSFER_PROVIDER` | Yes (Phase 4C+) | Current value intended: `dakota`; keeps selection replaceable |
-| Dakota API key / webhook secret | Yes (Phase 4C+) | Exact server-only names **TBD from Dakota sandbox** |
-| `FIAT_ONRAMP_PROVIDER` | Yes (Phase 4D+) | Provider configured through Privy; value **TBD after selection** |
-| Fiat-onramp server key / webhook secret | Provider-dependent | Exact names and need **TBD** |
-| Base monitor credentials | Yes (Phase 4B+) | RPC/indexer/webhook credentials; exact provider and names **TBD** |
-| Off-ramp provider credentials | Yes (Phase 9) | Replacement provider not selected |
+### Base monitoring
 
-Do not add or rename environment values in this documentation task. Dormant configuration cleanup requires a separate approved implementation task.
+| Variable | Purpose |
+|----------|---------|
+| `BASE_RPC_URL` or indexer credentials | Inbound USDC confirmation |
 
-### Virtual card (Gnosis Pay)
+### Optional V1
 
-| Variable | Required? | What it does |
-|----------|-----------|--------------|
-| `GNOSIS_PAY_API_KEY` | Yes (Phase 9+) | Card issue and management — **secret** |
-| `GNOSIS_PAY_WEBHOOK_SECRET` | Yes (Phase 9+) | Verify card webhooks — **secret** |
+| Variable | Purpose |
+|----------|---------|
+| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | Transactional email |
+| `YIELD_PROVIDER` / `AAVE_*` / shared Base RPC | Growth when shipped |
 
-Exact names **TBD** from Gnosis Pay sandbox.
+### Removed from active V1 config
 
-### Swaps / routing (LI.FI)
+Do **not** configure or document as active:
 
-| Variable | Required? | What it does |
-|----------|-----------|--------------|
-| `LIFI_API_KEY` | Yes (if routing used) | Server-side swap routing — **secret** |
+- `BRIDGE_API_KEY`, `BRIDGE_WEBHOOK_SECRET`, `BRIDGE_API_BASE_URL`
+- `FUNDING_PROVIDER=bridge`
+- Dakota API keys / webhook secrets
+- Gnosis Pay keys (post-V1)
+- LI.FI keys unless a specific send path requires them
 
-MVP should minimize LI.FI usage; still document the key for when needed.
-
-### Yield (Aave first)
-
-| Variable | Required? | What it does |
-|----------|-----------|--------------|
-| `YIELD_PROVIDER` | Yes (Phase 8+) | MVP value: `aave` |
-| `AAVE_RPC_URL` or shared `BASE_RPC_URL` | Yes | Base network RPC — **TBD** |
-| Provider-specific API keys | **TBD** | From Aave / integration partner docs |
-
-### Email (Resend)
-
-| Variable | Required? | What it does |
-|----------|-----------|--------------|
-| `RESEND_API_KEY` | Yes (Phase 4+) | Send transactional email — **secret** |
-| `RESEND_FROM_EMAIL` | Yes | From address — **TBD** verified domain |
-
-### Blockchain / gas sponsorship (Base + EIP-7702)
-
-| Variable | Required? | What it does |
-|----------|-----------|--------------|
-| `BASE_RPC_URL` | Yes (on-chain ops) | Read chain state, submit txs — **TBD** |
-| `RELAYER_PRIVATE_KEY` or vendor-specific | Yes | Sponsor gas so users never pay — **TBD** vendor |
-
-Relayer vendor and key format are **TBD** at implementation.
-
-### Webhooks (inbound)
-
-Store one secret per provider for signature verification:
-
-- Dakota and selected fiat-onramp webhook secrets where those providers support webhooks
-- Base monitor webhook secret where an indexed event provider is used
-- Gnosis Pay webhook secret (above)
-- Yield provider webhook secret — **TBD** if applicable
+> Note: Legacy Bridge variables may still appear in `apps/api/.env.example` until Day 1 BuildPlan cleanup removes them from code. Treat them as **dead** — not part of the current architecture.
 
 ---
 
-## Mobile app (MVP — planned Phase 2)
+## Mobile (`apps/mobile`)
 
-Exact naming depends on React Native setup (Expo public env vs native config). **TBD** at scaffold time.
+| Variable | Purpose |
+|----------|---------|
+| `EXPO_PUBLIC_PRIVY_APP_ID` (or project equivalent) | Public Privy app id |
+| `EXPO_PUBLIC_API_BASE_URL` | API base URL |
 
-| Variable | Required? | What it does |
-|----------|-----------|--------------|
-| `PRIVY_APP_ID` | Yes | Client-side Privy SDK (public) |
-| `API_BASE_URL` | Yes | Olimpia API base URL — **TBD** staging/production |
-
-**Never in mobile bundle:** Dakota/onramp/off-ramp/monitor provider keys, Gnosis keys, Resend, database URL, relayer keys, Anthropic.
-
----
-
-## Environment matrix
-
-| Surface | Local | Staging | Production |
-|---------|-------|---------|------------|
-| **Marketing URL** | `http://localhost:3000` | Vercel preview URL | `https://olimpia.app` **TBD** |
-| **API URL** | `http://localhost:TBD` | **TBD** | **TBD** |
-| **Waitlist DB** | Supabase dev project | Same or separate — **TBD** | Production Supabase — **TBD** |
-| **App PostgreSQL** | Local Docker or Supabase — **TBD** | **TBD** | **TBD** |
-| **Provider keys** | Sandbox | Sandbox | Production — **TBD** approval |
-
----
-
-## Where secrets live in production
-
-| Surface | Where to configure |
-|---------|-------------------|
-| Marketing | Vercel environment variables |
-| API | Host secrets (Railway / Fly / Render / AWS — **TBD**) |
-| Mobile | Build-time public vars only; no server secrets |
-| Supabase | Supabase Dashboard (URL + anon key for marketing) |
-
----
-
-## Future — Pia AI coach (not MVP)
-
-When Pia is approved for a later release, add on the **API only**:
-
-| Variable | What it does |
-|----------|--------------|
-| `ANTHROPIC_API_KEY` | Server-side LLM for Pia — **never** in mobile or marketing |
-
-Optional tuning vars (rate limits, model name) — **TBD**.
-
----
-
-## Decisions still TBD
-
-| Topic | Notes |
-|-------|-------|
-| API hosting provider | Drives how secrets are stored |
-| PostgreSQL provider | Supabase Postgres vs dedicated — **TBD** |
-| Exact Dakota / fiat-onramp / off-ramp / Gnosis env var names | Confirm from selected provider dashboards |
-| Relayer / EIP-7702 vendor | **TBD** |
-| Mobile env naming convention | Expo `EXPO_PUBLIC_*` vs other — **TBD** |
-| Production domain and email | **TBD** |
+**Never in mobile bundle:** Coinbase secrets, database URL, Resend, relayer keys, Anthropic.
 
 ---
 
 ## Related documents
 
-- [DatabaseSchema.md](./DatabaseSchema.md) — what `DATABASE_URL` connects to
-- [DeploymentPlan.md](./DeploymentPlan.md) — where to paste these values
-- [TestingChecklist.md](./TestingChecklist.md) — verify config before QA
+- [BuildPlan.md](./build/BuildPlan.md) — Day 1 env cleanup
+- [DeploymentPlan.md](./DeploymentPlan.md)
+- [TestingChecklist.md](./TestingChecklist.md)

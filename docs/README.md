@@ -1,32 +1,42 @@
 # Documentation
 
-Planning and design documents for **Olimpia** (Olympia Neobank).
+Canonical planning docs for **Olimpia** V1 (Architecture v3.0).
 
-## Structure
+## Current MVP Architecture
 
-| Folder | Contents |
-|--------|----------|
-| [`product/`](./product/) | PRD, user flows, screen inventory, navigation map |
-| [`architecture/`](./architecture/) | System architecture, launch geography assessment |
-| [`brand/`](./brand/) | Brand, tone, visual identity, design direction |
-| [`build/`](./build/) | Build plan, phases, implementation roadmap |
+**Coinbase Headless Onramp + Privy + Base + USDC + Aave is the only active V1 architecture.** Bridge and Dakota are not active providers. Start with the source-of-truth table below.
 
-## Engineering (implementation planning)
-
-Plain-English specs for developers and Cursor — **no app code**, MVP scope only (**Pia = Future**).
+## Source of truth (read these first)
 
 | File | Contents |
 |------|----------|
-| [`DatabaseSchema.md`](./DatabaseSchema.md) | Tables, relationships, balance rules |
-| [`EnvironmentVariables.md`](./EnvironmentVariables.md) | Secrets and config by app |
-| [`DeploymentPlan.md`](./DeploymentPlan.md) | Where and how to deploy each surface |
-| [`TestingChecklist.md`](./TestingChecklist.md) | Manual MVP QA script |
+| [`product/PRD.md`](./product/PRD.md) | Product requirements |
+| [`product/V1Scope.md`](./product/V1Scope.md) | Launch scope |
+| [`architecture/Architecture.md`](./architecture/Architecture.md) | System architecture — Privy → Coinbase Headless → Base USDC → ledger → Aave |
+| [`architecture/ArchitectureDecisionLog.md`](./architecture/ArchitectureDecisionLog.md) | ADRs (see **ADR-013**) |
+| [`build/BuildPlan.md`](./build/BuildPlan.md) | 3–4 day MVP critical path |
+| [`TestingChecklist.md`](./TestingChecklist.md) | Manual QA |
 
-## Root files
+## Folders
 
-- [`README.md`](../README.md) — repository overview
-- [`llms.txt`](../llms.txt) — agent/crawler summary for marketing SEO
+| Folder | Contents |
+|--------|----------|
+| [`product/`](./product/) | PRD, V1 scope, flows, screens, navigation |
+| [`architecture/`](./architecture/) | Architecture, ADRs, launch geography |
+| [`brand/`](./brand/) | Brand and visual identity |
+| [`build/`](./build/) | Build plan |
+| [`providers/`](./providers/) | Active provider index; **archive/** is historical only |
+| [`design/`](./design/) | Screen briefs |
+| [`engineering/`](./engineering/) | Phase readiness notes |
+
+## Engineering planning
+
+| File | Contents |
+|------|----------|
+| [`DatabaseSchema.md`](./DatabaseSchema.md) | Data model |
+| [`EnvironmentVariables.md`](./EnvironmentVariables.md) | Config by app |
+| [`DeploymentPlan.md`](./DeploymentPlan.md) | Deploy sequence |
 
 ## Status
 
-Planning docs are source of truth until implementation begins. Update docs before changing product scope.
+Docs describe **only** the architecture we are building now. Bridge and Dakota are not active V1 providers. Historical ADRs and archived evaluations may mention them when clearly labeled superseded / historical.

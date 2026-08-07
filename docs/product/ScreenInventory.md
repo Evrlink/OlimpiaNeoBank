@@ -415,7 +415,7 @@
 | **PRD #** | 4 |
 | **Type** | Stack / modal |
 | **MVP / Future** | **MVP** |
-| **Purpose** | Choose Bank Transfer, Apple Pay or Card, or Transfer USDC without coupling the screen to a provider |
+| **Purpose** | Choose **Add Money** (Coinbase Headless) or **Transfer USDC** without coupling the screen to a provider name |
 | **User flow** | UserFlows §5 |
 
 **Entry point(s):**
@@ -432,14 +432,12 @@
 **Components on screen:**
 
 - Funding method selector with:
-  - **Bank Transfer** — first; recommended only when confirmed as lower-cost/suitable; provider-confirmed arrival + approved $1 fee
-  - **Apple Pay or Card** — fastest positioning; provider quote/fee and possible identity verification disclosed
+  - **Add Money** — first; Coinbase Headless Onramp; provider quote/fee and possible identity verification disclosed
   - **Transfer USDC** — readily visible; send from Coinbase or another compatible wallet using Base
-- Amount/review/confirm where the selected method requires it
-- Provider-controlled Privy fiat-onramp experience for Apple Pay/card; never a hidden background WebView
-- Bank review: connected bank, Your Olimpia account, deposit amount, fee, total bank withdrawal, exact account credit, expected arrival, **Review Transfer**
-- Apple Pay/card: estimated receipt only after quote; final provider fee before confirmation; no repeat one-click promise
-- Receive USDC: authenticated Privy address, QR code, Copy Address, Coinbase guidance, prominent Base network/USDC warning
+- Amount / review / confirm where Add Money requires it
+- Coinbase Headless checkout experience; never a hidden background WebView
+- Add Money: estimated receipt only after quote; final provider fee before confirmation
+- Transfer USDC / Receive USDC: authenticated Privy address, QR code, Copy Address, Coinbase guidance, prominent Base network/USDC warning
 - **Inline states:** pending · processing · completed · failed · cancelled · reversed
 
 **Navigation:** Keep normal tabs/navigation unless user testing validates a focused presentation. Any provider checkout or confirmation must expose cancel, close, or return.
@@ -462,10 +460,10 @@
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| POST | `/api/v1/funding/deposits` | Start deposit |
+| POST | `/api/v1/funding/deposits` | Start deposit / onramp session |
 | GET | `/api/v1/funding/deposits/:id` | Poll status |
 
-**Providers:** Dakota (replaceable bank adapter) · Privy-configured fiat onramp · Base deposit monitor · Resend.
+**Providers:** Coinbase Headless Onramp · Base deposit monitor · Resend (optional).
 
 ---
 
@@ -475,8 +473,8 @@
 |-------|--------|
 | **Screen name** | Withdraw Money |
 | **Type** | Stack / modal (not a PRD numbered screen) |
-| **MVP / Future** | **MVP** |
-| **Purpose** | Off-ramp available balance to linked bank |
+| **MVP / Future** | **Deferred** — not App Store V1 ([ADR-014](../architecture/ArchitectureDecisionLog.md)); no off-ramp provider selected |
+| **Purpose** | Off-ramp available balance to linked bank (post-V1) |
 | **User flow** | UserFlows §6 |
 
 **Entry point(s):**

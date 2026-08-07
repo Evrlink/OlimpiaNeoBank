@@ -1,437 +1,201 @@
-# Olimpia — V1 Build Plan
+# Olimpia — V1 Build Plan (3–4 Day MVP Sprint)
 
-**Version:** 2.0
-**Status:** Draft for founder review
-**PRD:** [PRD.md](../product/PRD.md)
-**Architecture:** [Architecture.md](../architecture/Architecture.md)
-**Scope:** [V1Scope.md](../product/V1Scope.md)
-
-This plan documents implementation work only. It does not authorize application changes, APIs, migrations, provider credentials, or production deployment.
-
----
-
-## Build principles
-
-1. Backend ledger and authentication before real-money integrations.
-2. Provider-neutral mobile screens.
-3. Provider-specific behavior behind backend interfaces.
-4. One normalized funding state model.
-5. Idempotent crediting and reconciliation before production.
-6. iOS and Android tested in every mobile phase.
-7. No automatic movement into Growth.
-8. Conceptual PRD wireframes require design/content review before final implementation.
+**Version:** 3.0  
+**Status:** Canonical — aggressive completion plan against the **current codebase**  
+**PRD:** [PRD.md](../product/PRD.md)  
+**Architecture:** [Architecture.md](../architecture/Architecture.md)  
+**Scope:** [V1Scope.md](../product/V1Scope.md)  
+**Decisions:** [ADR-013](../architecture/ArchitectureDecisionLog.md)
 
 ---
 
-## Phase overview
+## Current MVP Architecture
 
-| Phase | Outcome |
-|-------|---------|
-| 0 | Foundation and provider validation |
-| 1 | Marketing and legal/support readiness |
-| 2 | Privy authentication, shell, and empty-account onboarding |
-| 3 | Authoritative dashboard and activity |
-| 4A | Funding architecture cleanup |
-| 4B | Receive USDC on Base |
-| 4C | Dakota ACH |
-| 4D | Privy Fiat Onramp |
-| 4E | Funding reconciliation and release readiness |
-| 5 | Savings goals |
-| 6 | Olimpia-user send and receive |
-| 7 | Growth Account / intended Aave strategy |
-| 8 | Withdrawal provider integration |
-| 9 | V1 hardening and release |
-
----
-
-## Phase 0 — Foundation and validation
-
-### Deliverables
-
-- Runnable mobile, API, and marketing workspaces.
-- Privy mobile/server project configuration.
-- PostgreSQL and ledger development environment.
-- Server-side secrets pattern.
-- Define provider-neutral interfaces:
-  - `BankTransferProvider`
-  - `FiatOnrampProvider`
-  - `BlockchainDepositMonitor`
-  - `FundingService`
-  - `LedgerService`
-- Validate launch geography and provider restrictions.
-- Start Dakota and fiat-onramp capability checklists.
-- Define Base USDC contract and monitoring options.
-
-### Acceptance
-
-- Mobile runs on iOS and Android.
-- API health check succeeds.
-- No secrets in mobile or git.
-- Provider decisions are clearly marked confirmed or pending.
-
----
-
-## Phase 1 — Marketing and release information
-
-### Deliverables
-
-- Public marketing site, legal/support pages, and waitlist/download paths.
-- Product copy aligned with canonical V1 features.
-- Trusted-provider branding only where relationships and logo usage are confirmed.
-- No claims of guaranteed yield, bank status, or unsupported security.
-
-### Acceptance
-
-- Public content does not describe a superseded funding implementation.
-- Add Funds messaging matches PRD.
-- Accessibility and SEO checks pass.
-
----
-
-## Phase 2 — Authentication, shell, and empty account
-
-### Backend
-
-- Privy token verification.
-- Auth sync creates/links user and embedded wallet.
-- Ledger initialization without resetting existing balances.
-- Profile/session endpoints and sign-out behavior.
-
-### Mobile
-
-- Welcome and Privy authentication.
-- Home, Savings, Card, Profile tabs.
-- Empty-account state:
+**Coinbase Headless Onramp + Privy + Base + USDC + Aave is the only active V1 architecture.**
 
 ```text
-Your account is ready
-Add your first funds to begin using Olimpia.
-[Add Funds]
+User → Privy auth → Privy embedded wallet
+  → Coinbase Headless Onramp → USDC on Base to Privy wallet
+  → Olimpia balance / activity → optional Aave Growth
 ```
 
-- `$0.00` secondary, not the dominant message.
-- Add Funds routes to the canonical method chooser.
-- No copy implying immediate or automatic yield.
+This sprint finishes that stack on the **current codebase** (not a rebuild). Day 1 removes legacy Bridge funding code. Do not implement Dakota, multi-provider ACH, or withdrawal. See [Architecture.md](../architecture/Architecture.md) · [ADR-013](../architecture/ArchitectureDecisionLog.md).
 
-### Acceptance
-
-- New and returning users authenticate on iOS and Android.
-- Wallet association remains invisible outside Receive USDC.
-- Empty-account onboarding has one clear next action.
+This plan assumes we finish the shippable iOS MVP in approximately **3–4 days**, then prepare App Store submission.
 
 ---
 
-## Phase 3 — Dashboard, ledger, and activity
+## Current codebase baseline (do not rebuild)
 
-### Backend
-
-- Authoritative balance buckets: Available, Savings, Growth.
-- Normalized transaction/activity records.
-- Balance, activity, and transaction-detail reads.
-- Canonical statuses: pending, processing, completed, failed, cancelled, reversed.
-
-### Mobile
-
-- Home balance and state-aware next action.
-- Add Funds, Send, Receive.
-- Recent activity and transaction detail.
-- Shared async and error states.
-
-### Acceptance
-
-- Displayed balances come from the backend ledger.
-- Reversals are explicit.
-- Activity labels remain plain and provider-neutral.
+| Area | Status today |
+|------|----------------|
+| Marketing (`apps/marketing`) | Live pattern: Vercel + waitlist + GA4 |
+| Mobile auth | Privy email OTP, auth sync, session restore — **shipped** |
+| Mobile shell | Home, Savings, Card, Profile tabs — **shipped**; Savings/Card/Send/Receive mostly placeholders |
+| Mobile Add Money | UI + API client exist; talks to mock / **legacy Bridge** funding path |
+| API auth / me / balance / activity | Present under `apps/api/src/routes/v1/` |
+| API ledger | `apps/api/src/ledger/` — balances + credit |
+| API funding | **Bridge-coupled** (`provider.ts`, `/webhooks/bridge`, `bridge_intent_id`, `FUNDING_PROVIDER=bridge`) |
+| Coinbase Headless | **Not implemented** |
+| Transfer USDC / Base monitor | **Not implemented** |
+| Savings goals / Growth / P2P | Mostly UI stubs or missing |
+| App Store packaging | `app.json` minimal; **no** `eas.json`, icons, splash |
 
 ---
 
-## Phase 4A — Funding architecture cleanup
+## Work tiers
 
-### Deliverables
+### REQUIRED BEFORE APP STORE SUBMISSION
 
-- Keep existing mocks only where useful for UI development.
-- Establish provider interfaces and normalized funding model.
-- Review deposit/ledger schema requirements; migration is a separate approved task.
-- Define idempotency keys, event records, status mapping, and reconciliation references.
-- Define eligible-method/config response without exposing provider business logic.
-- Retire dormant legacy-provider code/configuration only in a later approved implementation task.
+Must be done before uploading to App Store Connect.
 
-### Mobile requirements
+1. **Remove Bridge from the active funding path** (Day 1 — blocking)
+2. **Coinbase Headless Onramp → USDC to Privy wallet on Base** (Days 1–2)
+3. **Ledger credit + activity** for completed onramp deposits (extend existing ledger)
+4. **Transfer USDC** screen + Base deposit monitor (minimum viable confirmation)
+5. **Home**: real Available balance + recent activity from API
+6. **Empty-account → Add Funds** path polished
+7. **iOS App Store packaging**: icons, splash, EAS build, privacy questionnaire, support + privacy URLs
+8. **Production / staging API** with Privy + Coinbase credentials (no Bridge keys)
+9. Legal pages live (Privacy, Terms) and linked from app / marketing
 
-- Method order:
-  1. Bank Transfer
-  2. Apple Pay or Card
-  3. Transfer USDC
-- Provider names are not method labels.
-- Keep Transfer USDC visible.
-- Keep normal navigation unless validated testing supports focus mode.
-- Every checkout/confirmation provides cancel, close, or return.
+### REQUIRED BEFORE PUBLIC USER TESTING
 
-### Acceptance
+Needed before inviting real users with real money beyond internal TestFlight.
 
-- One provider-neutral Add Funds model is documented and ready for implementation.
-- No mobile dependency on provider payloads or raw statuses.
+1. Savings goals (create / allocate / return to Available)
+2. Growth Account (Aave deposit / withdraw) with explicit authorization
+3. Send / receive between Olimpia users (if not already in submission build)
+4. Full funding failure / cancel / reverse playbooks
+5. Reconciliation job or manual ops checklist for stuck deposits
+6. Support email monitored; fee / KYC / Base-USDC disclosures finalized
 
----
+### POST-LAUNCH / DEFERRED
 
-## Phase 4B — Receive existing USDC
-
-### Backend
-
-- Implement secure Base monitoring through approved webhook/indexer/RPC approach.
-- Validate chain, recipient, supported USDC token, amount, and transaction hash.
-- Apply confirmation threshold.
-- Prevent duplicate credits.
-- Create inbound activity and ledger credit after validation.
-- Handle delayed events and reorg/reversal policy.
-
-### Mobile
-
-- **Receive USDC** screen.
-- Authenticated Privy address.
-- QR code and Copy Address.
-- Prominent **Base network** label.
-- Beginner Coinbase instructions plus support for other compatible wallets.
-- Required unsupported asset/network warning.
-- Pending until backend confirmation.
-
-### Acceptance
-
-- Supported USDC on Base credits exactly once.
-- Unsupported token/network does not credit.
-- Replayed events do not duplicate activity or balance.
-- No three-to-five-second guarantee.
+1. Bank withdrawal / off-ramp (no provider selected — [ADR-014](../architecture/ArchitectureDecisionLog.md))
+2. Virtual debit card
+3. Functional Pia
+4. Android store submission polish
+5. Multi-provider funding, additional chains / assets
+6. Admin dashboard, push notifications
 
 ---
 
-## Phase 4C — Dakota ACH
+## Critical path (Day 1 → Day 4)
 
-### Validation before implementation
+### Day 1 — Kill Bridge; stand up Coinbase path
 
-- Customer creation and KYC ownership
-- Bank linking
-- Deposit creation
-- USD-to-USDC conversion responsibility
-- Direct-to-Privy-wallet support
-- Intermediate custody/settlement
-- Webhooks and status states
-- Failed ACH, cancellation, returns, refunds, reversals
-- $0.25 cost and markup permission
-- Sandbox and production access
+**Goal:** No production path can call Bridge. Coinbase Headless session creation is stubbed or sandbox-live.
 
-### Backend
+| Task | Where | Notes |
+|------|-------|-------|
+| Remove / replace Bridge funding provider | `apps/api/src/funding/provider.ts` | Delete `createBridgeOnRamp`; stop selecting `bridge` |
+| Remove Bridge webhook route | `apps/api/src/routes/webhooks/bridge.ts`, `apps/api/src/app.ts` | Unmount `/webhooks/bridge` |
+| Replace Bridge env | `apps/api/src/config/env.ts`, `apps/api/.env.example` | Remove `BRIDGE_*`; add Coinbase Headless env vars |
+| Rename / migrate deposit provider ref | `apps/api/migrations/*`, `types.ts`, `completeDeposit.ts`, `deposits.ts`, `mappers.ts`, `webhooks.ts` | Replace `bridge_intent_id` with generic `provider_transaction_id` (or equivalent) |
+| Keep mock provider for local UI | `funding/provider.ts` | `FUNDING_PROVIDER=mock` for non-production only |
+| Start Coinbase Headless session API | New module under `funding/` or `coinbase/` | Create session; destination = Privy wallet, Base, USDC |
+| Wire mobile Add Money to new session launch | `AddMoneyScreen.tsx`, `services/api/funding.ts` | Provider-neutral labels |
 
-- Dakota adapter behind `BankTransferProvider`.
-- Signature validation and idempotent webhook processing.
-- Normalized status mapping.
-- Ledger credit only after validated completion.
-- Reversal handling and reconciliation.
+**Exit criteria:** `FUNDING_PROVIDER=bridge` does not exist. Staging can create a Coinbase (or mock) deposit session without Bridge credentials.
 
-### Mobile
+### Day 2 — Complete Add Money + ledger; start Transfer USDC
 
-Conceptual review hierarchy:
+| Task | Where | Notes |
+|------|-------|-------|
+| Coinbase completion webhook / poll | API | Idempotent finalize → ledger credit |
+| Confirm USDC lands on Privy address | Base monitor or Coinbase status | Same credit path as ledger |
+| Activity row for deposit | Existing activity routes | Plain-language copy |
+| Transfer USDC UI | New or extend Receive screen | Address, QR, Copy, Base warning |
+| Base inbound monitor (MVP) | API | Confirmations + duplicate guard |
 
-- Amount
-- Connected bank
-- Your Olimpia account
-- Deposit amount
-- Olimpia transfer fee
-- Total bank withdrawal
-- Exact account credit
-- Provider-confirmed expected arrival
-- **Review Transfer** / **Review & Continue**
+**Exit criteria:** One sandbox Add Money completes → balance + activity update once. Transfer USDC screen shows correct Privy address.
 
-### Acceptance
+### Day 3 — Product surfaces for a credible V1
 
-- $1 total fee appears only after commercial/compliance approval.
-- Conceptual 1–2 business-day timing is not hardcoded.
-- Completed, failed, cancelled, returned, and reversed cases pass.
-- Funding does not start Growth automatically.
+| Task | Where | Notes |
+|------|-------|-------|
+| Home empty + funded states | Mobile | One clear next action |
+| Savings goals MVP | Mobile + API | Logical envelopes; no fake APY |
+| Growth entry (if time) | ChooseYield + API Aave adapter | Else ship Growth as Coming soon with honest copy — **prefer ship real Aave if hours allow** |
+| Send / Receive | Mobile + API | Prefer ship; if cut, move to “before public testing” |
+| End-to-end iOS TestFlight build | EAS | Against staging API |
 
----
+**Exit criteria:** Founder can walk Welcome → Auth → Add Money (sandbox) → Home balance on a device build.
 
-## Phase 4D — Privy Fiat Onramp
+### Day 4 — App Store submission readiness
 
-### Validation before implementation
+| Task | Notes |
+|------|-------|
+| App icon, splash, display name | `app.json` / assets |
+| `eas.json` + production profile | Bundle `app.olimpia.mobile` |
+| Privacy Policy / Terms / support URL | Marketing already has routes — confirm production domain |
+| App Store Connect metadata | Screenshots, description, age rating, finance disclosures |
+| Remove debug / mock-only paths from production builds | Mock funding forbidden in production |
+| Smoke test checklist | [TestingChecklist.md](../TestingChecklist.md) — App Store section |
+| Submit or upload for review | Depends on Apple account readiness |
 
-- Supported underlying providers
-- React Native, iOS, and Android support
-- Apple Pay and debit-card availability
-- Optional credit-card approval
-- Base, USDC, wallet destination, and amount configuration
-- Final quote/fee presentation
-- KYC and first-transaction behavior
-- Completion, cancellation, failure, and reversal callbacks
-- Geography and transaction limits
-- Convenience-fee restrictions
-
-### Backend
-
-- Configurable `FiatOnrampProvider`.
-- Launch/session configuration where required.
-- Completion verification and normalized statuses.
-- Reconciliation against wallet receipt and provider records.
-
-### Mobile
-
-- Amount and Apple Pay/card selection.
-- Launch Privy's supported onramp experience.
-- No hidden background WebView.
-- No exact USDC amount before provider quote.
-- Provider final fee before confirmation.
-- Identity-verification disclosure.
-
-### Acceptance
-
-- Checkout works on iOS and Android.
-- Cancel/failure returns safely to Add Funds.
-- Final receipt, ledger, balance, and activity reconcile.
-- No assumption that this method costs $1.
+**Exit criteria:** Archive uploaded (or ready to upload) with no Bridge dependency and working Coinbase sandbox path documented for reviewers if needed.
 
 ---
 
-## Phase 4E — Funding reconciliation and release readiness
+## Explicit Day 1 Bridge removal checklist
 
-### Deliverables
+Do not leave Bridge as “deprecated but still callable.”
 
-- Reconcile Dakota deposits.
-- Reconcile fiat-onramp provider records.
-- Reconcile Base transfers.
-- Reconcile all records against ledger entries.
-- Scheduled monitoring for stuck processing records.
-- Audit logs and operational alerts.
-- Support playbooks for failures, returns, chargebacks, and unsupported transfers.
-- Limits, velocity controls, sanctions/fraud ownership.
-- Production credential and compliance approval checklist.
-
-### Acceptance
-
-- Duplicate webhooks/events are harmless.
-- Delayed confirmation and provider outage tests pass.
-- Reversed funding corrects balance/activity exactly once.
-- Fee, timing, KYC, network, and asset disclosures are approved.
+- [ ] `createBridgeOnRamp` removed
+- [ ] `/webhooks/bridge` unmounted and file deleted or moved out of active tree
+- [ ] `BRIDGE_API_KEY`, `BRIDGE_WEBHOOK_SECRET`, `BRIDGE_API_BASE_URL` removed from env resolution and `.env.example`
+- [ ] `resolveFundingProvider()` no longer returns `"bridge"`; production uses Coinbase (or fails closed)
+- [ ] `bridge_intent_id` column / fields replaced or migrated
+- [ ] Docs and READMEs no longer describe Bridge as active (this plan + Architecture v3.0)
+- [ ] Smoke: production config cannot start a Bridge transfer
 
 ---
 
-## Phase 5 — Savings goals
+## What not to build in this sprint
 
-### Backend
-
-- Goal CRUD and allocation movements.
-- Available ↔ Savings ledger entries.
-- Goal activity.
-
-### Mobile
-
-- Goals list, create-goal sheet, detail, progress, add/remove funds.
-- No automatic yield or fake APY.
-
-### Acceptance
-
-- Goal movements preserve total balance.
-- Insufficient Available balance returns a clear error.
+- Multi-provider `BankTransferProvider` / Dakota adapter
+- Configurable Privy Fiat Onramp provider matrix
+- Withdrawal / off-ramp UI backed by a nonexistent provider
+- Gnosis Pay card
+- Pia chat
+- LI.FI routing unless a concrete send path requires it
+- Heavy new abstraction layers beyond FundingService + LedgerService
 
 ---
 
-## Phase 6 — Send and receive
+## Risk blockers that can prevent App Store submission
 
-### Backend
-
-- Registered-user lookup and transfer.
-- Sponsored Base transaction where required.
-- Idempotent sender/recipient ledger entries.
-- Receive handle/link support.
-
-### Mobile
-
-- Recipient, amount, note, review, authorization, status.
-- P2P Receive remains distinct from Receive USDC funding.
-
-### Acceptance
-
-- Two test users send/receive on iOS and Android.
-- Insufficient balance and unknown-recipient paths pass.
+| Blocker | Why it matters | Mitigation |
+|---------|----------------|------------|
+| Bridge still in production funding path | Wrong provider; compliance / ops / broken deposits | Day 1 removal — non-negotiable |
+| Coinbase Headless credentials or RN/iOS support gap | No fiat Add Money | Validate Day 1 morning; fall back to Transfer USDC-only only if founder accepts |
+| Privy production app / bundle ID mismatch | Auth fails in TestFlight / review | Confirm Privy dashboard iOS config Day 1 |
+| No Base USDC confirmation | Credits without finality or missed Transfer USDC | MVP monitor before submission |
+| Missing Privacy Policy / support URL | Apple rejection | Marketing pages + App Store Connect fields |
+| Missing icons / splash / EAS | Cannot archive | Day 4 morning dedicated |
+| Apple Developer account / agreements | Cannot submit | Founder checklist Day 1 |
+| Claiming banking / guaranteed yield in metadata | Review rejection | Align copy with PRD |
 
 ---
 
-## Phase 7 — Growth Account
+## Mapping old phases → this sprint
 
-### Backend
-
-- Intended Aave-on-Base adapter.
-- Growth deposit, withdrawal, position, and estimated earnings.
-- Reconciliation against ledger and protocol position.
-
-### Mobile
-
-- Provider-neutral Growth Account.
-- Explicit user authorization to move eligible Available funds.
-- Estimated variable earnings; no guarantees.
-
-### Acceptance
-
-- No automatic funding-to-Growth movement.
-- Funds return to Available on successful Growth withdrawal.
-- Provider names stay out of mobile.
+| Old BuildPlan v2 phase | Disposition |
+|------------------------|-------------|
+| 0–3 Foundation / auth / dashboard | Largely done — polish only |
+| 4A Funding cleanup | **Day 1 Bridge removal** |
+| 4C Dakota ACH | **Cancelled** — not in architecture |
+| 4D Privy Fiat Onramp | **Replaced** by Coinbase Headless |
+| 4B Transfer USDC | **Day 2** |
+| 4E Reconciliation | Before public testing |
+| 5 Savings | Day 3 / before public testing |
+| 6 Send / receive | Day 3 or before public testing |
+| 7 Growth / Aave | Day 3 if capacity; else before public testing |
+| 8 Withdrawal | **Deferred** |
+| 9 Hardening / stores | **Day 4** iOS focus |
 
 ---
 
-## Phase 8 — Withdrawal
-
-### Required first
-
-- Select and validate a replaceable off-ramp provider.
-- Confirm KYC, destinations, geography, fees, timing, webhooks, returns, and reconciliation.
-
-### Deliverables
-
-- Provider adapter and normalized withdrawal statuses.
-- Available-only withdrawal policy.
-- Linked destination flow.
-- Ledger debit/reversal and activity.
-
-### Acceptance
-
-- Withdrawal works in provider sandbox on iOS and Android.
-- Savings/ Growth funds cannot be withdrawn until returned to Available.
-
----
-
-## Phase 9 — V1 hardening and release
-
-- End-to-end iOS and Android testing.
-- Authentication/session recovery.
-- All three Add Funds methods.
-- Balance/activity reconciliation.
-- Savings, send/receive, Growth, withdrawal.
-- Security review: auth, authorization, secrets, signatures, idempotency, limits.
-- Legal, privacy, fee, KYC, network, asset, and yield disclosures.
-- Provider outage and delayed-event tests.
-- App Store and Google Play readiness.
-- Support and operational ownership.
-
-### Release gate
-
-- No unresolved duplicate-credit risk.
-- No provider-specific funding labels in mobile.
-- No hardcoded unconfirmed fee/arrival claim.
-- No automatic yield enrollment.
-- No raw provider errors.
-- All V1 launch blockers in V1Scope resolved or explicitly accepted.
-
----
-
-## Deferred
-
-- Functional Pia chat
-- Functional card spending
-- Physical card
-- Additional assets or networks
-- Multi-provider yield routing
-- Automatic yield
-- Request money
-- Admin dashboard beyond release-essential operations
-
----
-
-*End of Build Plan v2.0*
+*End of Build Plan v3.0*

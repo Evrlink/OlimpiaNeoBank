@@ -1,52 +1,40 @@
 # Olimpia — Launch Geography Assessment
 
-**Status:** Template — complete during BuildPlan Phase 0  
+**Status:** Template — complete during sprint Day 1–2  
 **Owner:** Engineering + founder  
-**References:** [Architecture.md §4A](./Architecture.md) · [BuildPlan.md Phase 0](../build/BuildPlan.md)
+**References:** [Architecture.md](./Architecture.md) · [BuildPlan.md](../build/BuildPlan.md) · [ADR-013](./ArchitectureDecisionLog.md)
 
 ---
 
 ## Summary
 
-**Initial supported countries:** TBD based on provider capabilities and launch strategy.
+**Initial supported countries:** TBD based on Coinbase Headless + Privy coverage and founder launch strategy.
 
-Olimpia does not default to US-only. Geographic scope is driven by provider coverage and founder launch strategy. Display currency (USD / dollar-denominated USDC) is separate from user residency / service geography.
+Olimpia does not default to US-only. Geographic scope is driven by provider coverage. Display currency (USD / dollar-denominated USDC) is separate from residency.
 
 ---
 
 ## Provider restriction matrix
 
-Complete during Phase 0 by reviewing each provider's sandbox, API docs, and compliance materials.
+| Provider | Capability | Supported geographies | KYC / compliance notes | Blocks feature when unavailable |
+|----------|------------|----------------------|------------------------|----------------------------------|
+| **Coinbase Headless Onramp** | Add Money (fiat → USDC) | _TBD_ | Confirm payment methods, KYC, fees, limits, destination wallet on Base | Add Money |
+| **Base monitoring / RPC** | Transfer USDC receipt | Base access; provider _TBD_ | Monitoring + sanctions responsibilities | Transfer USDC |
+| **Privy** | Auth + embedded wallet | _TBD_ | Restricted geographies | Onboarding |
+| **Aave on Base** | Growth | On-chain — confirm sanctions | _TBD_ | Growth |
+| Off-ramp (deferred) | Withdraw | N/A until provider selected | — | Withdraw (not in V1) |
 
-| Provider | Capability | Supported geographies (document findings) | KYC / compliance notes | Blocks feature when unavailable |
-|----------|------------|-------------------------------------------|------------------------|----------------------------------|
-| **Dakota** | Bank transfer | _TBD_ | Confirm customer/KYC, bank linking, fees, returns | Bank Transfer |
-| **Privy + configured provider** | Apple Pay / card onramp | _TBD_ | Confirm payment methods, KYC, fees, limits | Apple Pay or Card |
-| **Base monitoring provider/RPC** | External USDC receipt | Base access; provider availability _TBD_ | Confirm monitoring and sanctions responsibilities | Transfer USDC |
-| **Off-ramp provider (TBD)** | Withdraw | _TBD_ | Select provider; confirm payout rails and KYC | Withdraw |
-| **Gnosis Pay** | Virtual card | _TBD_ | _TBD_ | Card tab (gate with plain copy) |
-| **Privy** | Auth | _TBD_ | _TBD_ | Onboarding |
-| **LI.FI** | Routing | Generally global — confirm | _TBD_ | Internal only |
-| **Aave** | Growth deposits | On-chain — confirm sanctions | _TBD_ | Growth (if blocked) |
-
----
-
-## Globally accessible layers (minimal geo friction expected)
-
-- **Privy** — auth / wallets
-- **Base** — chain settlement
-- **LI.FI** — routing
-- **Yield layer** — on-chain; regulatory posture for end users TBD
+**Not in active V1 matrix:** Bridge, Dakota, Gnosis Pay, LI.FI.
 
 ---
 
 ## Recommended initial launch countries
 
-| Country / region | Bank transfer | Apple Pay/card | Transfer USDC | Off-ramp | Card | Auth | Notes |
-|------------------|---------------|----------------|---------------|----------|------|------|-------|
-| _TBD_ | | | | | | | |
+| Country / region | Add Money | Transfer USDC | Growth | Auth | Notes |
+|------------------|-----------|---------------|--------|------|-------|
+| _TBD_ | | | | | |
 
-**Founder decision:** _Pending — confirm before Phase 9/10._
+**Founder decision:** Pending before public user testing.
 
 ---
 
@@ -54,24 +42,20 @@ Complete during Phase 0 by reviewing each provider's sandbox, API docs, and comp
 
 | Feature | Eligibility flag (proposed) | UX when blocked |
 |---------|----------------------------|-----------------|
-| Card | `eligibility.card.available` | Gated Card tab — plain-language copy (UserFlows §13; ScreenInventory A14) |
-| Bank Transfer | `eligibility.bankTransfer.available` | Keep other eligible funding methods available |
-| Apple Pay or Card | `eligibility.fiatOnramp.available` | Keep other eligible funding methods available |
-| Transfer USDC | `eligibility.externalUsdc.available` | Disable only this method with a plain explanation |
-| Withdraw | `eligibility.offRamp.available` | Withdraw disabled with explanation |
-| Growth | `eligibility.growth.available` | Growth entry disabled if provider blocks jurisdiction |
-
-Eligibility delivery requires a separate API implementation review; Architecture §16 defines the mobile/backend boundary.
+| Add Money | `eligibility.coinbaseOnramp.available` | Keep Transfer USDC if available |
+| Transfer USDC | `eligibility.externalUsdc.available` | Disable only this method |
+| Growth | `eligibility.growth.available` | Disable Growth entry |
+| Withdraw | N/A for App Store V1 | Do not show |
 
 ---
 
-## Phase 0 sign-off
+## Sign-off
 
-- [ ] All provider sandboxes/docs reviewed
-- [ ] Restriction matrix filled in above
-- [ ] Initial supported countries recommended (or explicitly TBD)
-- [ ] Founder notified for launch strategy confirmation
+- [ ] Coinbase Headless geography reviewed
+- [ ] Privy restrictions reviewed
+- [ ] Initial countries recommended
+- [ ] Founder confirmed before public testing
 
 ---
 
-*Last updated: Phase 0 — TBD*
+*Last updated: 2026-08-07 — Architecture v3.0*

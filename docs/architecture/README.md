@@ -6,11 +6,12 @@ Technical architecture and system design for **Olimpia**.
 
 | Document | Purpose |
 |----------|---------|
-| [`Architecture.md`](./Architecture.md) | System design, providers, API routes, data model |
-| [`launch-geography.md`](./launch-geography.md) | Phase 0 provider geography assessment (template) |
+| [`Architecture.md`](./Architecture.md) | Canonical V1 system design (v3.0) |
+| [`ArchitectureDecisionLog.md`](./ArchitectureDecisionLog.md) | ADRs — **ADR-013** is current funding decision |
+| [`launch-geography.md`](./launch-geography.md) | Provider geography assessment |
 
 ## Related docs
 
 - Product scope → [`../product/`](../product/)
 - Build sequencing → [`../build/`](../build/)
-- Brand constraints → [`../brand/`](../brand/)
+- Historical provider notes → [`../providers/archive/`](../providers/archive/)

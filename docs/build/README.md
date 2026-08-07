@@ -1,15 +1,15 @@
 # Build Documentation
 
-Build plan, phases, implementation plan, and task tracking for **Olimpia**.
+Build plan and implementation roadmap for **Olimpia**.
 
 ## What belongs here
 
 | Document | Purpose |
 |----------|---------|
-| [`BuildPlan.md`](./BuildPlan.md) | Phase 0–10 implementation roadmap and acceptance criteria |
+| [`BuildPlan.md`](./BuildPlan.md) | **3–4 day MVP critical path** toward iOS App Store submission |
 
 ## Related docs
 
 - What to build → [`../product/`](../product/)
-- How systems connect → [`../architecture/`](../architecture/)
-- App folders → [`../../apps/`](../../apps/) · [`../../packages/`](../../packages/)
+- How systems connect → [`../architecture/Architecture.md`](../architecture/Architecture.md)
+- App folders → [`../../apps/`](../../apps/)

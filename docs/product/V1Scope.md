@@ -1,28 +1,42 @@
 # Olimpia — V1 Launch Scope
 
-**Version:** 2.0
-**Status:** Draft for founder review
-**Architecture:** [Architecture.md](../architecture/Architecture.md)
-**PRD:** [PRD.md](./PRD.md)
+**Version:** 3.0  
+**Status:** Canonical — current V1 build  
+**Architecture:** [Architecture.md](../architecture/Architecture.md)  
+**PRD:** [PRD.md](./PRD.md)  
 **Build plan:** [BuildPlan.md](../build/BuildPlan.md)
+
+---
+
+## Current MVP Architecture
+
+**Coinbase Headless Onramp + Privy + Base + USDC + Aave is the only active V1 architecture.**
+
+```text
+User → Privy auth → Privy embedded wallet
+  → Coinbase Headless Onramp → USDC on Base to Privy wallet
+  → Olimpia balance / activity → optional Aave Growth
+```
+
+iOS App Store first. Add Funds = **Add Money** + **Transfer USDC**. Withdrawal deferred. Bridge and Dakota are not active. Details: [Architecture.md](../architecture/Architecture.md) · [ADR-013](../architecture/ArchitectureDecisionLog.md).
 
 ---
 
 ## V1 definition
 
-V1 is the first public Olimpia mobile release for iOS and Android.
+V1 is the first public Olimpia mobile release, **iOS first**, prepared for App Store submission.
 
 ```text
-Authenticate
-    → Add Funds
+Authenticate (Privy)
+    → Privy embedded wallet
+    → Add Money (Coinbase Headless) and/or Transfer USDC
     → See balance and activity
     → Save in goals
-    → Send and receive
-    → Choose Growth
-    → Withdraw
+    → Optional Growth (Aave on Base)
+    → Send / receive (tiered — see BuildPlan)
 ```
 
-Balances are presented in dollars. The infrastructure uses Privy wallets, supported USDC, and Base. Provider names stay out of primary funding labels.
+Balances are presented in dollars. Infrastructure uses Privy wallets, supported USDC on Base, and Coinbase Headless Onramp. Provider names stay out of primary funding labels.
 
 ---
 
@@ -32,53 +46,39 @@ Balances are presented in dollars. The infrastructure uses Privy wallets, suppor
 |------------|----------------|
 | Authentication | Privy email authentication and session restore |
 | Embedded wallet | Privy wallet associated automatically with the user |
-| Add Funds | Bank Transfer, Apple Pay or Card, Transfer USDC |
+| Add Money | Coinbase Headless Onramp → USDC to Privy wallet on Base |
+| Transfer USDC | Inbound supported USDC on Base to Privy address |
 | Balance | Backend-ledger Available, Savings, Growth, and total display |
-| Activity | Deposits, reversals, P2P, goal/ growth movements, withdrawals |
-| Send/receive | Registered Olimpia-user P2P |
+| Activity | Deposits, reversals, P2P (when shipped), goal / Growth movements |
 | Savings goals | Create, allocate, remove, track progress |
-| Growth | Explicit user-authorized movement to intended Aave strategy |
-| Withdrawal | Bank off-ramp; provider selection required |
+| Growth | Explicit user-authorized movement to Aave on Base |
+| Send / receive | Registered Olimpia-user P2P (see BuildPlan tiering) |
 | Profile | Account, support, preferences, sign out |
 | Pia | Static Coming soon preview only |
-
-Functional card spending and live Pia chat are post-V1.
+| Withdrawal | **Deferred** — not required for App Store V1 |
+| Card | **Post-V1** placeholder only |
 
 ---
 
 ## Canonical Add Funds scope
 
-The V1 method order is:
+### 1. Add Money (Coinbase Headless Onramp)
 
-1. **Bank Transfer**
-2. **Apple Pay or Card**
-3. **Transfer USDC**
-
-### Bank Transfer
-
-- Current backend provider: Dakota ACH.
-- Provider remains replaceable.
-- Show total bank withdrawal, exact account credit, fee, and provider-confirmed expected arrival before confirmation.
-- Intended fee: $1 total, pending Dakota, legal, compliance, and disclosure approval.
-- CTA: **Review Transfer** or **Review & Continue**.
-
-### Apple Pay or Card
-
-- Use Privy Fiat Onramp with a configurable provider.
-- Intended payment methods: Apple Pay and debit card.
-- Credit card only when supported and approved.
+- Sole V1 fiat funding provider ([ADR-013](../architecture/ArchitectureDecisionLog.md)).
+- Coinbase delivers USDC to the user’s Privy embedded wallet on Base.
+- Payment methods are those Coinbase Headless supports for the user (typically bank / debit / Apple Pay).
 - Provider supplies final quote, fee, KYC, and checkout.
 - No hidden background WebView.
 - No exact USDC promise before quote.
 - No assumption that Olimpia may add a fee.
 
-### Transfer USDC
+### 2. Transfer USDC
 
 - Accept supported USDC on Base only.
 - Show authenticated Privy address, QR code, Copy Address, and Base network.
 - Include beginner Coinbase instructions and allow compatible wallets.
 - Keep pending until validated backend confirmation.
-- Credit balance/activity only through idempotent backend processing.
+- Credit balance / activity only through idempotent backend processing.
 
 Required warning:
 
@@ -90,7 +90,7 @@ Required warning:
 
 Every Add Funds method must:
 
-1. Deliver supported USDC to the user's Privy wallet on Base.
+1. Deliver supported USDC to the user’s Privy wallet on Base.
 2. Produce one validated ledger credit.
 3. Create matching activity.
 4. Refresh balance from the backend.
@@ -104,12 +104,9 @@ No automatic yield enrollment is in scope.
 
 - Explain methods by user starting point, cost, and speed.
 - Do not use infrastructure provider names as method labels.
-- Bank Transfer is Recommended only when confirmed as suitable/lower cost.
-- Transfer USDC remains easy to find.
-- Arrival times come from confirmed provider information.
-- Apple Pay/card fee is not assumed to be $1.
-- Keep normal app navigation unless testing validates focus mode.
-- Every provider/confirmation step has cancel, close, or return.
+- Keep Transfer USDC easy to find.
+- Arrival times and fees come from Coinbase or network confirmation reality — do not hardcode unverified claims.
+- Every provider / confirmation step has cancel, close, or return.
 - Conceptual wireframes in PRD are not final visual designs.
 
 ### Empty account
@@ -131,12 +128,15 @@ Add your first funds to begin using Olimpia.
 | Auth and wallet | Privy |
 | Network | Base |
 | Asset | Supported USDC on Base |
-| Bank funding | Dakota ACH behind an adapter |
-| Apple Pay/card | Privy Fiat Onramp, provider configurable |
+| Fiat Add Money | **Coinbase Headless Onramp** |
 | External USDC | Coinbase or another compatible Base wallet |
-| Ledger | Olimpia backend/database |
-| Yield destination | Aave intended, subject to validation |
-| Withdrawal | Provider unresolved |
+| Ledger | Olimpia backend / PostgreSQL |
+| Yield destination | Aave on Base |
+| Withdrawal | Deferred — provider unresolved |
+| Mobile priority | **iOS App Store first** |
+| Marketing | Existing site on Vercel; GA4 installed |
+
+**Removed from active V1 architecture:** Bridge.xyz, Dakota, Bridge-specific deposit / withdrawal / webhook design, multi-provider bank-transfer + Privy Fiat Onramp selection matrix.
 
 ---
 
@@ -148,23 +148,23 @@ Mobile may combine pending and processing. Raw provider statuses never define th
 
 ---
 
-## Launch blockers
+## Launch blockers (App Store submission)
 
-- Dakota capability and commercial validation
-- Approved $1 fee disclosure
-- Configured fiat-onramp provider selected and tested
-- Apple Pay/card/KYC/fee behavior validated
-- Base USDC monitor and confirmation policy implemented
-- Idempotent ledger credit and reconciliation verified
-- Deposit schema reviewed and migrated in a separate implementation task
-- Withdrawal provider selected and validated
-- Security/compliance ownership approved
-- All funding paths tested on iOS and Android
+See [BuildPlan.md](../build/BuildPlan.md) for the full tier split. Critical blockers:
+
+- Remove Bridge funding code, env vars, webhook route, and schema coupling from the active path
+- Coinbase Headless Onramp integrated and sandbox-tested on iOS
+- Base USDC monitor and confirmation policy for Transfer USDC (and onramp delivery confirmation)
+- Idempotent ledger credit verified
+- App Store packaging: icons, splash, EAS / archive, privacy disclosures, support URL
+- Privacy Policy and Terms live and linked
 
 ---
 
-## Explicitly out of scope
+## Explicitly out of scope for App Store V1
 
+- Bridge.xyz or Dakota as funding providers
+- Bank withdrawal / off-ramp
 - Additional networks or assets
 - Automatic Growth enrollment
 - Multi-provider yield routing
@@ -175,4 +175,4 @@ Mobile may combine pending and processing. Raw provider statuses never define th
 
 ---
 
-*End of V1 Scope v2.0*
+*End of V1 Scope v3.0*

@@ -449,7 +449,7 @@ Abstract **static gradient only**. The background supports the approved copy and
 
 *(Jargon restrictions above apply to the Add funds stub only — not to this confirmation screen.)*
 
-V1 funding methods are defined in PRD §§3–10 and V1Scope: Bank Transfer, Apple Pay or Card, and Transfer USDC. They remain absent from the Phase 2 stub UI.
+V1 funding methods are defined in PRD / V1Scope: **Add Money** (Coinbase Headless) and **Transfer USDC**. They remain absent from the Phase 2 stub UI.
 
 **Copy constraints — do not use:**
 
@@ -466,7 +466,7 @@ V1 funding methods are defined in PRD §§3–10 and V1Scope: Bank Transfer, App
 - Stack **Back** → previous screen (Home or onboarding confirmation)  
 - **No** amount input, funding-method selector, or processing states in Phase 2 stub UI  
 
-**Implementation note (internal — not user-facing):** Before launch, replace the stub with the provider-neutral V1 Add Funds chooser. Dakota, the configured Privy fiat-onramp provider, and Base monitoring stay behind backend interfaces.
+**Implementation note (internal — not user-facing):** Add Funds chooser is **Add Money** (Coinbase Headless Onramp) and **Transfer USDC** (Base monitor). Provider names stay out of UI.
 
 **Phase 2 stub behavior:** Continue may remain unwired until Phase 4 — user-facing copy stays as approved above regardless.
 
@@ -866,7 +866,7 @@ V1 funding methods are defined in PRD §§3–10 and V1Scope: Bank Transfer, App
 | 5 | **Welcome visual (mobile only)** | **Abstract static gradient only** on `#F7F4F1` — soft rose→raspberry radial wash; light, premium, calm, airy. Optional very subtle **static** sparkle dots only if they do not compete with the headline. **No** photography, character illustration, product mockup, decorative 3D objects, WebGL, animation, or full-screen illustration. Visual supports approved copy + CTA stack. Marketing site visuals **unchanged**. |
 | 6 | **Empty Home balance (Phase 2)** | Lead with *Your account is ready* + *Add your first funds to begin using Olimpia* + **Add Funds**. Keep *Money available · $0.00* quiet and secondary. No immediate-yield claim. |
 | 7 | **Savings / Card tabs (Phase 2)** | **Simple transparent empty states** via shared EmptyState — centered, calm, rose-circle icon. **Savings:** *Your savings goals will live here.* + optional *You'll be able to create and track goals here.* **Card:** *Your virtual debit card will live here.* + optional *Your card details and spending tools will appear here.* **No** skeleton shimmer, fake data, fake balances, or “Phase 3” labels. |
-| 8 | **Add funds screen routing + copy (Phase 2)** | Empty Home **Add Funds** opens the same shared Phase 2 stub as onboarding. Before V1 launch, replace the stub with the provider-neutral chooser for Bank Transfer, Apple Pay or Card, and Transfer USDC per PRD/V1Scope. |
+| 8 | **Add funds screen routing + copy (Phase 2)** | Empty Home **Add Funds** opens the same shared Phase 2 stub as onboarding. Before V1 launch, replace the stub with the provider-neutral chooser for **Add Money** and **Transfer USDC** per PRD/V1Scope. |
 | 9 | **Cormorant Garamond (mobile)** | Ship **actual Cormorant Garamond** for brand fidelity — **only** Olimpia wordmark (Welcome + optional Profile header) and italic *everything your bank can't do.* in Welcome headline. **Inter everywhere else.** No system serif fallback except on custom font load failure. **Implementation:** bundle/load Inter + Cormorant before rendering Welcome so there is **no visible font swap**. |
 | 10 | **Pia Coming Soon card (Profile)** | **One static Pia message bubble only** — no decorative user-question bubble. Keep: Pia avatar · name **Pia** · **Coming Soon** badge · message: *Pia will help you understand saving, growth, and financial confidence — supportive, never judgmental.* No input, send, suggested prompts, user bubble, chat interaction, or navigation. |
 | 11 | **Dark mode (MVP)** | **Light-only.** Approved warm light theme: background `#F7F4F1`, primary raspberry `#E54B7A`, supporting berry dark `#C73E72`, white cards, warm neutral surfaces. **Do not** design, build, document, or test dark mode for MVP. Future enhancement post-launch only. |

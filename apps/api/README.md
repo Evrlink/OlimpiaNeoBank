@@ -1,30 +1,27 @@
 # Backend API
 
-**Olimpia** Node.js backend — orchestration, persistence, and provider integrations.
+**Olimpia** Node.js / Express backend — orchestration, persistence, and provider integrations.
 
-## Phase 0 (current)
+## Current state
 
 - Express server with `GET /health`
-- `/api/v1` router stub
-- PostgreSQL connection via `DATABASE_URL`
-- SQL migrations: `users`, `wallets`, stub `transactions`
+- Privy auth sync / `/me`
+- Ledger balances + activity routes
+- Funding module present but **legacy Bridge-coupled** — must be removed on BuildPlan Day 1
+- SQL migrations including deposits / webhook idempotency
 
-**Not connected yet:** Privy, Bridge, Gnosis Pay, Aave, LI.FI, Resend, Anthropic, Base.
+**V1 funding target:** Coinbase Headless Onramp → USDC to user’s Privy wallet on Base.  
+**Not in active architecture:** Bridge.xyz, Dakota, off-ramp, Gnosis Pay, Pia/Anthropic.
 
 ## Local development
 
 ```bash
 # From repo root
 npm install
-
-# Configure env (once)
 cp apps/api/.env.example apps/api/.env.local
-# Edit DATABASE_URL for your PostgreSQL instance
+# Set DATABASE_URL, PRIVY_*, and (after Day 1) Coinbase credentials — not Bridge
 
-# Run migrations
 npm run migrate:api
-
-# Start dev server (port 3001)
 npm run dev:api
 ```
 
@@ -32,18 +29,13 @@ npm run dev:api
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev:api` | Start API with hot reload |
+| `npm run dev:api` | Hot reload (port 3001) |
 | `npm run migrate:api` | Apply SQL migrations |
-| `npm run build:api` | Compile TypeScript to `dist/` |
+| `npm run build:api` | Compile TypeScript |
 | `npm run start:api` | Run compiled server |
-
-## Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Liveness + database status |
-| GET | `/api/v1` | API v1 stub |
 
 ## Environment
 
-See [`.env.example`](./.env.example). Use `.env.local` locally — never commit secrets.
+See [`.env.example`](./.env.example) and [`docs/EnvironmentVariables.md`](../../docs/EnvironmentVariables.md). Until Day 1 cleanup, Bridge vars in `.env.example` are **legacy** — do not use for new work.
+
+Canonical architecture: [`docs/architecture/Architecture.md`](../../docs/architecture/Architecture.md).

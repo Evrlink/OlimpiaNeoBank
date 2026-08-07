@@ -308,7 +308,7 @@ Funding is the moment money becomes **real and usable** — and the starting poi
 
 Adding money is not about "activating a product." It is about **giving future-you more options**. *More choices. More freedom.*
 
-**User goal:** Add funds by bank transfer, Apple Pay/card, or existing USDC on Base.
+**User goal:** Add funds via **Add Money** (Coinbase Headless) or **Transfer USDC** on Base.
 
 **Entry point:** Home → **Add Funds** quick action.
 
@@ -322,20 +322,18 @@ Adding money is not about "activating a product." It is about **giving future-yo
 **User actions:**
 
 1. Tap **Add Funds** on Home.
-2. Choose **Bank Transfer**, **Apple Pay or Card**, or **Transfer USDC**.
-3. **Bank Transfer:** enter amount; review connected bank, **Your Olimpia account**, deposit amount, $1 fee (after approval), full bank withdrawal, exact account credit, and provider-confirmed expected arrival; choose **Review Transfer** or **Review & Continue**.
-4. **Apple Pay or Card:** enter/confirm amount; continue to the supported onramp experience; review the provider's final USDC quote and fee; complete any required identity verification.
-5. **Transfer USDC:** open **Receive USDC**; view the authenticated address, QR, Copy Address, and prominent **Base network** label; follow beginner Coinbase instructions or send from another compatible wallet.
-6. Wait through normalized inline states; the backend distinguishes pending/processing and may also return failed, cancelled, or reversed.
-7. See success → updated balance on Home; new activity row.
+2. Choose **Add Money** or **Transfer USDC**.
+3. **Add Money:** enter/confirm amount; continue to Coinbase Headless Onramp; review the provider's final USDC quote and fee; complete any required identity verification. Coinbase delivers USDC to the user's Privy wallet on Base.
+4. **Transfer USDC:** open **Receive USDC**; view the authenticated address, QR, Copy Address, and prominent **Base network** label; follow beginner Coinbase instructions or send from another compatible wallet.
+5. Wait through normalized inline states; the backend distinguishes pending/processing and may also return failed, cancelled, or reversed.
+6. See success → updated balance on Home; new activity row.
 
-**Method chooser hierarchy:** Bank Transfer first; Apple Pay or Card second; Transfer USDC third and readily visible. Bank Transfer is marked Recommended only when confirmed as lowest-cost or most suitable. Provider names never replace these labels.
+**Method chooser hierarchy:** Add Money first; Transfer USDC second and readily visible. Provider names never replace these labels.
 
 **Disclosure rules:**
 
-- Never hardcode the conceptual 1–2 business-day estimate; use confirmed provider data.
-- Apple Pay/card is the speed option, but its fee is not assumed to be $1.
-- Never promise an exact USDC amount before the provider quote or guarantee three-to-five-second wallet arrival.
+- Never hardcode unverified arrival estimates; use confirmed provider / network data.
+- Never promise an exact USDC amount before the Coinbase quote or guarantee instant wallet arrival.
 - Funds become eligible for Growth only after settlement, compliance checks, and required authorization; no automatic earning claim.
 - Keep normal navigation unless user testing validates focus mode. Provider checkout/confirmation always has cancel, close, or return.
 
@@ -362,6 +360,8 @@ Adding money is not about "activating a product." It is about **giving future-yo
 
 ## 6. Withdraw money
 
+> **Deferred — not App Store V1.** No off-ramp provider is selected ([ADR-014](../architecture/ArchitectureDecisionLog.md)). Do not implement this flow for the current sprint. Spec retained for a later release.
+
 ### Why This Matters
 
 Life happens outside any app — rent, bills, emergencies, opportunities. A user withdraws because she needs:
@@ -374,7 +374,7 @@ Withdrawal is an act of **control**, not exit. When it feels straightforward, sh
 
 **User goal:** Move available dollars from Olimpia back to a linked bank account.
 
-**Entry point:** Home or Profile → **Withdraw** (stack/modal flow — Architecture §14).
+**Entry point:** Home or Profile → **Withdraw** (stack/modal flow — Architecture §14 — deferred).
 
 **Screens involved:**
 
@@ -387,7 +387,7 @@ Withdrawal is an act of **control**, not exit. When it feels straightforward, sh
 
 1. Tap **Withdraw**
 2. Enter amount
-3. Select linked bank destination (replacement off-ramp provider TBD)
+3. Select linked bank destination (off-ramp provider TBD when this ships)
 4. Review summary (*$X will be sent to your bank*)
 5. Confirm
 6. Wait: *Preparing your withdrawal* → *Sending money to your bank*
