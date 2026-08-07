@@ -6,6 +6,12 @@ Canonical planning docs for **Olimpia** V1 (Architecture v3.0).
 
 **Coinbase Headless Onramp + Privy + Base + USDC + Aave is the only active V1 architecture.** Bridge and Dakota are not active providers. Start with the source-of-truth table below.
 
+## Primary execution document
+
+| File | Contents |
+|------|----------|
+| [`MVPLaunchChecklist.md`](./MVPLaunchChecklist.md) | **Work this top-down for App Store submission** — P0 → P1 → submission → P2 |
+
 ## Source of truth (read these first)
 
 | File | Contents |
