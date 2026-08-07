@@ -3,7 +3,7 @@ import { getPool } from "../db/pool.js";
 import { createOnRampIntent, FundingProviderError } from "./provider.js";
 import { toDepositRecord, toDepositResponse } from "./mappers.js";
 import { finalizeDepositStatus } from "./completeDeposit.js";
-import type { DbDepositRow, DepositResponse } from "./types.js";
+import { DEPOSIT_ROW_COLUMNS, type DbDepositRow, type DepositResponse } from "./types.js";
 import { parseDepositAmountUsd, parsePaymentMethod } from "./validation.js";
 
 export class FundingServiceError extends Error {
@@ -85,9 +85,7 @@ export async function createDepositForUser(input: {
   if (idempotencyKey) {
     const existing = await pool.query<DbDepositRow>(
       `
-        SELECT
-          id, user_id, amount_usd, status, bridge_intent_id, payment_method,
-          idempotency_key, failure_reason, metadata, created_at, updated_at
+        SELECT ${DEPOSIT_ROW_COLUMNS}
         FROM deposits
         WHERE user_id = $1 AND idempotency_key = $2
       `,
@@ -132,9 +130,7 @@ export async function createDepositForUser(input: {
     ) {
       const existing = await pool.query<DbDepositRow>(
         `
-          SELECT
-            id, user_id, amount_usd, status, bridge_intent_id, payment_method,
-            idempotency_key, failure_reason, metadata, created_at, updated_at
+          SELECT ${DEPOSIT_ROW_COLUMNS}
           FROM deposits
           WHERE user_id = $1 AND idempotency_key = $2
         `,
@@ -190,13 +186,11 @@ export async function createDepositForUser(input: {
     `
       UPDATE deposits
       SET status = $2,
-          bridge_intent_id = $3,
+          provider_transaction_id = $3,
           metadata = $4::jsonb,
           updated_at = now()
       WHERE id = $1
-      RETURNING
-        id, user_id, amount_usd, status, bridge_intent_id, payment_method,
-        idempotency_key, failure_reason, metadata, created_at, updated_at
+      RETURNING ${DEPOSIT_ROW_COLUMNS}
     `,
     [depositId, onRamp.initialStatus, onRamp.providerRef, JSON.stringify(metadata)],
   );
@@ -226,7 +220,7 @@ export async function getDepositForUser(input: {
   const result = await pool.query<DbDepositRow>(
     `
       SELECT
-        d.id, d.user_id, d.amount_usd, d.status, d.bridge_intent_id, d.payment_method,
+        d.id, d.user_id, d.amount_usd, d.status, d.provider_transaction_id, d.payment_method,
         d.idempotency_key, d.failure_reason, d.metadata, d.created_at, d.updated_at
       FROM deposits d
       INNER JOIN users u ON u.id = d.user_id

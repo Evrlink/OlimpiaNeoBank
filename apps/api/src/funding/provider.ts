@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { env } from "../config/env.js";
 import { finalizeDepositStatus } from "./completeDeposit.js";
 import type { CreateOnRampInput, CreateOnRampResult } from "./types.js";
@@ -20,7 +19,7 @@ function scheduleMockSettlement(input: {
   setTimeout(() => {
     void finalizeDepositStatus({
       depositId: input.depositId,
-      bridgeIntentId: input.providerRef,
+      providerTransactionId: input.providerRef,
       nextStatus: input.forceFail ? "failed" : "completed",
       failureReason: input.forceFail
         ? "We couldn’t complete this deposit."
@@ -52,60 +51,29 @@ async function createMockOnRamp(input: CreateOnRampInput): Promise<CreateOnRampR
   };
 }
 
-async function createBridgeOnRamp(input: CreateOnRampInput): Promise<CreateOnRampResult> {
-  if (!env.bridgeApiKey.trim()) {
-    throw new FundingProviderError("Funding provider is not configured.");
+/**
+ * Coinbase Headless Onramp — session creation lands in the next sprint task.
+ * Fails closed so production never silently uses another provider.
+ */
+async function createCoinbaseOnRamp(
+  _input: CreateOnRampInput,
+): Promise<CreateOnRampResult> {
+  if (!env.coinbaseOnrampApiKey.trim()) {
+    throw new FundingProviderError(
+      "Coinbase Headless is not configured. Set COINBASE_ONRAMP_API_KEY (and related secrets) on the API.",
+    );
   }
 
-  const response = await fetch(`${env.bridgeApiBaseUrl}/transfers`, {
-    method: "POST",
-    headers: {
-      "Api-Key": env.bridgeApiKey,
-      "Content-Type": "application/json",
-      "Idempotency-Key": input.idempotencyKey || randomUUID(),
-    },
-    body: JSON.stringify({
-      amount: input.amountUsd,
-      on_behalf_of: input.userId,
-      source: {
-        payment_rail: input.paymentMethod === "card" ? "card" : "ach_push",
-        currency: "usd",
-      },
-      destination: {
-        payment_rail: "base",
-        currency: "usdc",
-        to_address: input.walletAddress,
-      },
-      client_reference_id: input.depositId,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new FundingProviderError("Unable to start this deposit. Please try again.");
-  }
-
-  const body = (await response.json()) as {
-    id?: string;
-    state?: string;
-    source_deposit_instructions?: { url?: string };
-  };
-
-  if (!body.id) {
-    throw new FundingProviderError("Unable to start this deposit. Please try again.");
-  }
-
-  return {
-    providerRef: body.id,
-    hostedUrl: body.source_deposit_instructions?.url,
-    initialStatus: body.state === "awaiting_funds" ? "pending" : "processing",
-  };
+  throw new FundingProviderError(
+    "Coinbase Headless Onramp integration is not implemented yet.",
+  );
 }
 
 export async function createOnRampIntent(
   input: CreateOnRampInput,
 ): Promise<CreateOnRampResult> {
-  if (env.fundingProvider === "bridge") {
-    return createBridgeOnRamp(input);
+  if (env.fundingProvider === "coinbase") {
+    return createCoinbaseOnRamp(input);
   }
 
   return createMockOnRamp(input);

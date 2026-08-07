@@ -5,7 +5,7 @@ export type DepositRecord = {
   userId: string;
   amountUsd: string;
   status: DepositStatus;
-  bridgeIntentId: string | null;
+  providerTransactionId: string | null;
   paymentMethod: string | null;
   idempotencyKey: string | null;
   failureReason: string | null;
@@ -42,7 +42,7 @@ export type DbDepositRow = {
   user_id: string;
   amount_usd: string;
   status: DepositStatus;
-  bridge_intent_id: string | null;
+  provider_transaction_id: string | null;
   payment_method: string | null;
   idempotency_key: string | null;
   failure_reason: string | null;
@@ -50,3 +50,9 @@ export type DbDepositRow = {
   created_at: Date;
   updated_at: Date;
 };
+
+/** Shared SELECT / RETURNING column list for deposits. */
+export const DEPOSIT_ROW_COLUMNS = `
+  id, user_id, amount_usd, status, provider_transaction_id, payment_method,
+  idempotency_key, failure_reason, metadata, created_at, updated_at
+`.trim();

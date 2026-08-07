@@ -11,7 +11,7 @@ React Native / Expo **Olimpia** app — **iOS first** for App Store submission.
 | Session restore (`GET /api/v1/me`) | Shipped |
 | Authenticated 4-tab shell (Home, Savings, Card, Profile) | Shipped |
 | Home — synced user + balance | Shipped |
-| Add Money UI + funding API client | Present — must move off legacy Bridge to **Coinbase Headless** |
+| Add Money UI + funding API client | Present — next: wire to **Coinbase Headless** (Bridge removed from API) |
 | Savings, Card, Send, Receive | Placeholder / Coming soon (except where wired) |
 | Profile | Read-only synced fields |
 
