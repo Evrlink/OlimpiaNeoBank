@@ -51,8 +51,13 @@
 | Variable | Purpose |
 |----------|---------|
 | `FUNDING_PROVIDER` | `mock` (non-production only) or `coinbase` |
-| Coinbase Headless API credentials | Exact names **TBD from Coinbase dashboard** — server only |
-| Coinbase webhook secret | Verify onramp callbacks — **secret** |
+| `COINBASE_ONRAMP_API_KEY` | CDP Secret API Key ID — server only |
+| `COINBASE_ONRAMP_API_SECRET` | CDP Secret API Key secret (PEM EC or base64 Ed25519) — **secret** |
+| `COINBASE_WEBHOOK_SECRET` | CDP webhook subscription secret (`X-Hook0-Signature`) — **secret** |
+| `COINBASE_SANDBOX` | `true` outside production by default. Prefixes `partnerUserRef` with `sandbox-` and appends `useApplePaySandbox=true` |
+| `COINBASE_PROJECT_ID` | **Not loaded by the API.** CDP Portal / CLI only — required when creating the webhook subscription (`labels.project`) |
+
+Full Headless contract (docs, endpoints, webhooks, sandbox / production): [integrations/CoinbaseHeadlessIntegration.md](./integrations/CoinbaseHeadlessIntegration.md).
 
 ### Base monitoring
 
@@ -77,7 +82,7 @@ Do **not** configure or document as active:
 - Gnosis Pay keys (post-V1)
 - LI.FI keys unless a specific send path requires them
 
-> Note: Legacy Bridge variables may still appear in `apps/api/.env.example` until Day 1 BuildPlan cleanup removes them from code. Treat them as **dead** — not part of the current architecture.
+> Note: Legacy Bridge variables are **dead**. Do not configure them.
 
 ---
 

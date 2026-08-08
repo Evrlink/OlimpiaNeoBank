@@ -41,8 +41,35 @@ export function parseDepositAmountUsd(value: unknown): ParsedDepositAmount {
 
 export function parsePaymentMethod(value: unknown): string {
   if (typeof value !== "string" || !value.trim()) {
-    return "bank";
+    return "apple_pay";
   }
 
-  return value.trim().slice(0, 64);
+  const normalized = value.trim().slice(0, 64);
+  if (normalized === "bank" || normalized === "card") {
+    return "apple_pay";
+  }
+
+  return normalized;
+}
+
+export function parseIsoTimestamp(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
+  }
+
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+
+  return new Date(parsed).toISOString();
+}
+
+export function parseVerificationId(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, 128) : null;
 }

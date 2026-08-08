@@ -1,6 +1,6 @@
 # Provider evaluations
 
-Active V1 funding provider: **Coinbase Headless Onramp** — see [Architecture.md](../architecture/Architecture.md) and [ADR-013](../architecture/ArchitectureDecisionLog.md).
+Active V1 funding provider: **Coinbase Headless Onramp** — see [Architecture.md](../architecture/Architecture.md), [ADR-013](../architecture/ArchitectureDecisionLog.md), and the implementation spec [CoinbaseHeadlessIntegration.md](../integrations/CoinbaseHeadlessIntegration.md).
 
 ## Archive (historical only)
 

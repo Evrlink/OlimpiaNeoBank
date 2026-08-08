@@ -15,6 +15,33 @@ export type CreateDepositInput = {
   /** Development-only: force the mock deposit to end in `failed`. */
   forceFail?: boolean;
   idempotencyKey?: string;
+  agreementAcceptedAt?: string;
+  smsVerificationId?: string;
+  emailVerificationId?: string;
+  paymentMethod?: string;
+};
+
+export type FundingVerificationChannel = "sms" | "email";
+
+export type StartVerificationInput = {
+  accessToken: string;
+  channel: FundingVerificationChannel;
+  destination?: string;
+};
+
+export type FundingVerification = {
+  verificationId: string;
+  otpExpiresAt?: string;
+  channel: FundingVerificationChannel;
+  destination: string;
+};
+
+export type SubmitVerificationInput = {
+  accessToken: string;
+  verificationId: string;
+  otpCode: string;
+  channel?: FundingVerificationChannel;
+  destination?: string;
 };
 
 type ApiErrorBody = {
@@ -69,10 +96,14 @@ function assertDeposit(body: unknown, status: number): Deposit {
   return body as Deposit;
 }
 
-/**
- * POST /api/v1/funding/deposits
- */
-export async function createDeposit(input: CreateDepositInput): Promise<Deposit> {
+async function authorizedJson(input: {
+  accessToken: string;
+  path: string;
+  method: "GET" | "POST";
+  body?: Record<string, unknown>;
+  idempotencyKey?: string;
+  fallbackError: string;
+}): Promise<{ response: Response; body: unknown }> {
   const token = input.accessToken.trim();
 
   if (!token) {
@@ -85,8 +116,11 @@ export async function createDeposit(input: CreateDepositInput): Promise<Deposit>
 
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
   };
+
+  if (input.body) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (input.idempotencyKey?.trim()) {
     headers["Idempotency-Key"] = input.idempotencyKey.trim();
@@ -95,13 +129,10 @@ export async function createDeposit(input: CreateDepositInput): Promise<Deposit>
   let response: Response;
 
   try {
-    response = await fetch(`${apiBaseUrl}/api/v1/funding/deposits`, {
-      method: "POST",
+    response = await fetch(`${apiBaseUrl}${input.path}`, {
+      method: input.method,
       headers,
-      body: JSON.stringify({
-        amountUsd: input.amountUsd,
-        ...(input.forceFail ? { forceFail: true } : {}),
-      }),
+      body: input.body ? JSON.stringify(input.body) : undefined,
     });
   } catch {
     throw new FundingApiError(
@@ -117,10 +148,100 @@ export async function createDeposit(input: CreateDepositInput): Promise<Deposit>
     const errorBody = (body ?? {}) as ApiErrorBody;
     throw new FundingApiError(
       errorBody.error?.code ?? "INTERNAL_ERROR",
-      getSafeErrorMessage(errorBody, "We couldn’t start this deposit."),
+      getSafeErrorMessage(errorBody, input.fallbackError),
       response.status,
     );
   }
+
+  return { response, body };
+}
+
+/**
+ * POST /api/v1/funding/verifications
+ */
+export async function startFundingVerification(
+  input: StartVerificationInput,
+): Promise<FundingVerification> {
+  const { response, body } = await authorizedJson({
+    accessToken: input.accessToken,
+    path: "/api/v1/funding/verifications",
+    method: "POST",
+    body: {
+      channel: input.channel,
+      ...(input.destination?.trim() ? { destination: input.destination.trim() } : {}),
+    },
+    fallbackError: "Unable to start verification.",
+  });
+
+  if (
+    !body ||
+    typeof body !== "object" ||
+    typeof (body as FundingVerification).verificationId !== "string" ||
+    typeof (body as FundingVerification).channel !== "string" ||
+    typeof (body as FundingVerification).destination !== "string"
+  ) {
+    throw new FundingApiError(
+      "INVALID_RESPONSE",
+      "Received an unexpected response from the server.",
+      response.status,
+    );
+  }
+
+  return body as FundingVerification;
+}
+
+/**
+ * POST /api/v1/funding/verifications/:id/submit
+ */
+export async function submitFundingVerification(
+  input: SubmitVerificationInput,
+): Promise<{ verificationId: string; verificationExpiresAt?: string }> {
+  const { response, body } = await authorizedJson({
+    accessToken: input.accessToken,
+    path: `/api/v1/funding/verifications/${encodeURIComponent(input.verificationId)}/submit`,
+    method: "POST",
+    body: {
+      otpCode: input.otpCode,
+      ...(input.channel ? { channel: input.channel } : {}),
+      ...(input.destination?.trim() ? { destination: input.destination.trim() } : {}),
+    },
+    fallbackError: "Unable to verify that code.",
+  });
+
+  if (
+    !body ||
+    typeof body !== "object" ||
+    typeof (body as { verificationId?: unknown }).verificationId !== "string"
+  ) {
+    throw new FundingApiError(
+      "INVALID_RESPONSE",
+      "Received an unexpected response from the server.",
+      response.status,
+    );
+  }
+
+  return body as { verificationId: string; verificationExpiresAt?: string };
+}
+
+/**
+ * POST /api/v1/funding/deposits
+ */
+export async function createDeposit(input: CreateDepositInput): Promise<Deposit> {
+  const { response, body } = await authorizedJson({
+    accessToken: input.accessToken,
+    path: "/api/v1/funding/deposits",
+    method: "POST",
+    idempotencyKey: input.idempotencyKey,
+    body: {
+      amountUsd: input.amountUsd,
+      paymentMethod: input.paymentMethod ?? "apple_pay",
+      ...(input.forceFail ? { forceFail: true } : {}),
+      ...(input.agreementAcceptedAt ? { agreementAcceptedAt: input.agreementAcceptedAt } : {}),
+      ...(input.smsVerificationId ? { smsVerificationId: input.smsVerificationId } : {}),
+      ...(input.emailVerificationId ? { emailVerificationId: input.emailVerificationId } : {}),
+    },
+    fallbackError: "We couldn’t start this deposit.",
+  });
 
   return assertDeposit(body, response.status);
 }
@@ -129,43 +250,40 @@ export async function createDeposit(input: CreateDepositInput): Promise<Deposit>
  * GET /api/v1/funding/deposits/:id
  */
 export async function getDeposit(accessToken: string, id: string): Promise<Deposit> {
-  const token = accessToken.trim();
+  const { response, body } = await authorizedJson({
+    accessToken,
+    path: `/api/v1/funding/deposits/${id}`,
+    method: "GET",
+    fallbackError: "Unable to load this deposit.",
+  });
 
-  if (!token) {
-    throw new FundingApiError(
-      "UNAUTHORIZED",
-      "Missing or invalid authorization header.",
-      401,
-    );
-  }
+  return assertDeposit(body, response.status);
+}
 
-  let response: Response;
+/**
+ * POST /api/v1/funding/deposits/:id/cancel
+ */
+export async function cancelDeposit(accessToken: string, id: string): Promise<Deposit> {
+  const { response, body } = await authorizedJson({
+    accessToken,
+    path: `/api/v1/funding/deposits/${id}/cancel`,
+    method: "POST",
+    fallbackError: "Unable to cancel this deposit.",
+  });
 
-  try {
-    response = await fetch(`${apiBaseUrl}/api/v1/funding/deposits/${id}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  } catch {
-    throw new FundingApiError(
-      "NETWORK_ERROR",
-      "Unable to reach the server. Check your connection and try again.",
-      0,
-    );
-  }
+  return assertDeposit(body, response.status);
+}
 
-  const body = await parseJson(response);
-
-  if (!response.ok) {
-    const errorBody = (body ?? {}) as ApiErrorBody;
-    throw new FundingApiError(
-      errorBody.error?.code ?? "INTERNAL_ERROR",
-      getSafeErrorMessage(errorBody, "Unable to load this deposit."),
-      response.status,
-    );
-  }
+/**
+ * POST /api/v1/funding/deposits/:id/reconcile
+ */
+export async function reconcileDeposit(accessToken: string, id: string): Promise<Deposit> {
+  const { response, body } = await authorizedJson({
+    accessToken,
+    path: `/api/v1/funding/deposits/${id}/reconcile`,
+    method: "POST",
+    fallbackError: "Unable to refresh this deposit.",
+  });
 
   return assertDeposit(body, response.status);
 }

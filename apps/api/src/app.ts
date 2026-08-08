@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import { env } from "./config/env.js";
 import { healthRouter } from "./routes/health.js";
+import { coinbaseWebhookRouter } from "./routes/webhooks/coinbase.js";
 import { v1Router } from "./routes/v1/index.js";
 
 export function createApp() {
@@ -15,6 +16,12 @@ export function createApp() {
       }),
     );
   }
+
+  app.use(
+    "/webhooks/coinbase",
+    express.raw({ type: "application/json" }),
+    coinbaseWebhookRouter,
+  );
 
   app.use(express.json());
   app.use(healthRouter);

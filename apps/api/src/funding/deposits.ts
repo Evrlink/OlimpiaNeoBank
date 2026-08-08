@@ -4,7 +4,12 @@ import { createOnRampIntent, FundingProviderError } from "./provider.js";
 import { toDepositRecord, toDepositResponse } from "./mappers.js";
 import { finalizeDepositStatus } from "./completeDeposit.js";
 import { DEPOSIT_ROW_COLUMNS, type DbDepositRow, type DepositResponse } from "./types.js";
-import { parseDepositAmountUsd, parsePaymentMethod } from "./validation.js";
+import {
+  parseDepositAmountUsd,
+  parseIsoTimestamp,
+  parsePaymentMethod,
+  parseVerificationId,
+} from "./validation.js";
 
 export class FundingServiceError extends Error {
   constructor(
@@ -25,11 +30,16 @@ type CreateDepositBody = {
   amountUsd?: unknown;
   paymentMethod?: unknown;
   forceFail?: unknown;
+  agreementAcceptedAt?: unknown;
+  smsVerificationId?: unknown;
+  emailVerificationId?: unknown;
 };
 
 async function resolveUserContext(privyUserId: string): Promise<{
   userId: string;
   walletAddress: string;
+  email: string | null;
+  phone: string | null;
 }> {
   const pool = getPool();
 
@@ -37,9 +47,14 @@ async function resolveUserContext(privyUserId: string): Promise<{
     throw new FundingServiceError("Unable to start this deposit.", "INTERNAL_ERROR");
   }
 
-  const result = await pool.query<{ id: string; address: string }>(
+  const result = await pool.query<{
+    id: string;
+    address: string;
+    email: string | null;
+    phone: string | null;
+  }>(
     `
-      SELECT u.id, w.address
+      SELECT u.id, u.email, u.phone, w.address
       FROM users u
       INNER JOIN wallets w ON w.user_id = u.id
       WHERE u.privy_user_id = $1
@@ -56,7 +71,12 @@ async function resolveUserContext(privyUserId: string): Promise<{
     );
   }
 
-  return { userId: row.id, walletAddress: row.address };
+  return {
+    userId: row.id,
+    walletAddress: row.address,
+    email: row.email,
+    phone: row.phone,
+  };
 }
 
 export async function createDepositForUser(input: {
@@ -74,8 +94,13 @@ export async function createDepositForUser(input: {
   const paymentMethod = parsePaymentMethod(input.body.paymentMethod);
   const forceFail = input.allowForceFail && input.body.forceFail === true;
   const idempotencyKey = input.idempotencyKey?.trim() || null;
+  const agreementAcceptedAt = parseIsoTimestamp(input.body.agreementAcceptedAt);
+  const smsVerificationId = parseVerificationId(input.body.smsVerificationId);
+  const emailVerificationId = parseVerificationId(input.body.emailVerificationId);
 
-  const { userId, walletAddress } = await resolveUserContext(input.privyUserId);
+  const { userId, walletAddress, email, phone } = await resolveUserContext(
+    input.privyUserId,
+  );
   const pool = getPool();
 
   if (!pool) {
@@ -159,6 +184,11 @@ export async function createDepositForUser(input: {
       walletAddress,
       idempotencyKey: idempotencyKey ?? depositId,
       forceFail,
+      email,
+      phone,
+      agreementAcceptedAt,
+      smsVerificationId,
+      emailVerificationId,
     });
   } catch (error) {
     await finalizeDepositStatus({
@@ -179,6 +209,8 @@ export async function createDepositForUser(input: {
 
   const metadata = {
     forceFail,
+    partnerOrderRef: depositId,
+    ...(agreementAcceptedAt ? { agreementAcceptedAt } : {}),
     ...(onRamp.hostedUrl ? { hostedUrl: onRamp.hostedUrl } : {}),
   };
 

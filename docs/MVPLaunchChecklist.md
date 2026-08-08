@@ -3,7 +3,7 @@
 **Status:** Primary execution document  
 **Architecture:** [Architecture.md](./architecture/Architecture.md) · [ADR-013](./architecture/ArchitectureDecisionLog.md)  
 **Scope:** [V1Scope.md](./product/V1Scope.md) · [PRD.md](./product/PRD.md)  
-**Last status review:** 2026-08-07 (against current `apps/mobile` + `apps/api` codebase)
+**Last status review:** 2026-08-07 (sandbox Coinbase Headless E2E verified)
 
 ---
 
@@ -135,29 +135,39 @@ These tasks block App Store readiness. Work top to bottom. Checkboxes reflect **
 
 ## Coinbase Headless Onramp
 
-- [ ] Obtain Coinbase Headless sandbox + production credentials
-- [ ] Backend: create onramp session (destination = Privy wallet, Base, USDC)
-- [ ] Mobile: launch Coinbase Headless purchase flow from Add Money
-- [ ] Receive completion callback / webhook (or equivalent confirmation)
-- [ ] Deliver / confirm USDC to embedded wallet on Base
-- [ ] Idempotent ledger credit once (`LedgerService` path already exists for deposits — wire to Coinbase completion)
-- [ ] Handle errors (failed quote, payment fail, provider error)
-- [ ] Handle cancellations (safe return; no credit)
-- [ ] Flip `/me` eligibility `onRamp` to available when live (currently hardcoded `false` in API)
+Implementation spec: [integrations/CoinbaseHeadlessIntegration.md](./integrations/CoinbaseHeadlessIntegration.md)
+
+- [x] Obtain Coinbase Headless **sandbox** credentials and complete sandbox E2E
+- [ ] Obtain Coinbase Headless **production** credentials
+- [x] Backend: create onramp session (destination = Privy wallet, Base, USDC, `partnerOrderRef` = deposit id)
+- [x] JWT authentication for CDP Onramp APIs
+- [x] Mobile: launch Coinbase Headless purchase flow from Add Money (ToS + verification + Apple Pay WebView)
+- [x] Sandbox purchase tested (WebView checkout opens + completes)
+- [x] Receive completion callback / webhook (`onramp.transaction.created|updated|success|failed`) + Get Order poll fallback
+- [x] Webhook signature verified; duplicate / replayed events ignored
+- [x] Deliver / confirm USDC to embedded wallet on Base (**sandbox**)
+- [x] Idempotent ledger credit once (`finalizeDepositStatus`; created/updated never credit)
+- [x] Handle errors (failed quote, payment fail, provider error, `polling_error` / `commit_error`)
+- [x] Handle cancellations (safe return; no credit)
+- [x] Flip `/me` eligibility `onRamp` to available when Coinbase path is live
+- [ ] Production webhook HTTPS URL subscribed in CDP Portal
+- [ ] Apple device testing (real Apple Pay, not simulator-only)
 
 ## USDC / balances
 
 - [x] Backend balance buckets (`available`, `goals`, `growth`, `totalDisplay`) readable via API
 - [x] Home shows backend balance (funded + empty states)
-- [x] Add Money UI amount → review → status + deposit polling (today hits **mock / Bridge**, not Coinbase)
-- [ ] Real USDC receipt via Coinbase Headless confirmed on-chain / by provider
-- [ ] Balance refreshes after completed onramp on Home without manual restart
+- [x] Add Money UI amount → review → Coinbase ToS / verification → Apple Pay WebView → status + deposit polling
+- [x] Real USDC receipt via Coinbase Headless confirmed in **sandbox**
+- [x] Balance refreshes after completed onramp
+- [ ] Production USDC receipt confirmed with production credentials + Apple device
 - [ ] Transfer USDC (receive address + QR + Base warning) — **not built** (Receive screen is Coming soon stub)
 
 ## Activity
 
 - [x] API activity list + detail routes exist (`GET /api/v1/activity`, `/:id`)
 - [x] Ledger writes a deposit activity row on completed deposit credit
+- [x] Activity row created on successful Coinbase sandbox deposit
 - [ ] Mobile Home “Recent activity” loads from API (today is **hardcoded empty state only**)
 - [ ] Activity shows deposits with clear status
 - [ ] Activity shows Growth deposits / withdrawals when Growth ships
@@ -185,11 +195,11 @@ These tasks block App Store readiness. Work top to bottom. Checkboxes reflect **
 
 ## Staging / production API readiness
 
-- [ ] Staging API deployed with HTTPS (webhooks)
+- [ ] Staging / production API deployed with HTTPS (**production webhook URL**)
 - [ ] PostgreSQL migrations applied in staging / production
 - [ ] Mobile pointed at staging via `EXPO_PUBLIC_API_BASE_URL`
-- [ ] Secrets: Privy + Coinbase only (no Bridge keys)
-- [ ] Mock funding forbidden in production builds
+- [ ] Secrets: Privy + Coinbase **production** keys (no Bridge keys)
+- [x] Mock funding forbidden in production builds
 
 ---
 
@@ -240,6 +250,18 @@ These do not change core business logic but are required for a production-qualit
 - [ ] Activity: deposit appears once
 - [ ] Growth: deposit, withdraw, APY display (variable disclaimer)
 - [ ] Edge cases: airplane mode, expired session, API 5xx
+
+## Apple Testing Milestones
+
+- [ ] Development build installed on iPhone
+- [ ] Authentication tested
+- [ ] Wallet creation tested
+- [ ] Coinbase Add Money tested
+- [ ] Balance updates tested
+- [ ] Activity updates tested
+- [ ] TestFlight build uploaded
+- [ ] TestFlight smoke test passed
+- [ ] App Store submission completed
 
 ---
 
@@ -373,20 +395,19 @@ Exact order for unchecked work. Do not reorder unless blocked.
 
 | Rank | Task | Why this order |
 |------|------|----------------|
-| 1 | Remove Bridge from API path (provider, webhook, env, schema field) | Production currently hard-wires Bridge; cannot ship Coinbase beside it |
-| 2 | Coinbase Headless credentials + backend session create | Unlocks real Add Money |
-| 3 | Wire mobile Add Money to Coinbase launch + cancel/fail | Completes purchase UX |
-| 4 | Coinbase completion → idempotent ledger credit + balance refresh | Money becomes real in-app |
-| 5 | Fix `/me` eligibility + Home refresh after funding | Reviewer sees updated balance |
-| 6 | Wire Home activity list to `GET /api/v1/activity` | Journey “activity reflects transaction” |
-| 7 | Remove hardcoded Home APY / gate Choose Yield until Aave works | Avoid false yield claims |
-| 8 | Aave Growth: backend deposit/withdraw + mobile Choose Yield | Completes earn step of journey |
-| 9 | Growth balances + activity types + eligibility.growth | Dashboard truth |
-| 10 | Staging deploy + device TestFlight auth/funding smoke | Proves journey off localhost |
-| 11 | App icon + splash + `eas.json` + versioning | Packaging parallelizable once funding unblocked |
-| 12 | Privacy/Terms/support URLs in App Store Connect + metadata | Submission requirements |
-| 13 | P1 polish / a11y / security pass on funded path | Production quality |
-| 14 | Full TestFlight walkthrough → submit for review | Launch |
+| 1 | ~~Remove Bridge~~ | Done |
+| 2 | ~~Coinbase Headless sandbox E2E~~ | Done — create order, JWT, WebView, sandbox purchase, webhook, one ledger credit, balance + activity |
+| 3 | Production Coinbase credentials + production webhook HTTPS URL | Unlocks live Add Money |
+| 4 | Apple device testing (real Apple Pay) | Confirms iOS checkout before TestFlight |
+| 5 | Wire Home activity list to `GET /api/v1/activity` | Journey “activity reflects transaction” in the UI |
+| 6 | Remove hardcoded Home APY / gate Choose Yield until Aave works | Avoid false yield claims |
+| 7 | Aave Growth: backend deposit/withdraw + mobile Choose Yield | Completes earn step of journey |
+| 8 | Growth balances + activity types + eligibility.growth | Dashboard truth |
+| 9 | Staging deploy + TestFlight auth/funding smoke | Proves journey off localhost |
+| 10 | App icon + splash + `eas.json` + versioning | Packaging |
+| 11 | Privacy/Terms/support URLs in App Store Connect + metadata | Submission requirements |
+| 12 | P1 polish / a11y / security pass on funded path | Production quality |
+| 13 | Full TestFlight walkthrough → submit for review | Launch |
 
 **Explicitly defer if schedule slips (still P2):** Transfer USDC screen, P2P send/receive, persisted Savings goals, Android, off-ramp.
 
@@ -398,6 +419,8 @@ Exact order for unchecked work. Do not reorder unless blocked.
 |------|-----------------|----------|------------------------|
 | 2026-08-07 | Docs reset to Coinbase Headless architecture; this checklist created from codebase audit | Coinbase credentials; Bridge still in API | Rank 1 — Remove Bridge funding path |
 | 2026-08-07 | **Removed Bridge** from API (provider, webhook, env, `provider_transaction_id` migration). Mock remains for local; Coinbase stub fails closed until credentials + implementation. | Coinbase credentials not configured; Headless session not implemented | Rank 2 — Coinbase Headless credentials + backend session create |
+| 2026-08-07 | **Task 2:** Coinbase Headless E2E implemented (CDP JWT + create order + Verification APIs + Apple Pay WebView + `onramp.transaction.*` webhooks). Ledger still credits only on success / completed. | CDP credentials, US phone verification, public HTTPS webhook URL, production Onramp approval | Rank 3 — sandbox E2E with real Coinbase credentials; then Home activity |
+| 2026-08-07 | **Sandbox E2E verified:** create order, JWT, WebView checkout, sandbox purchase, webhook, single ledger credit, balance refresh, activity row, duplicate webhook ignored. | Production credentials; production webhook URL; Apple device testing | Rank 3 — production Coinbase credentials + HTTPS webhook URL |
 
 ---
 

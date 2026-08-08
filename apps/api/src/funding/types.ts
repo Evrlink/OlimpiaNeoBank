@@ -29,6 +29,11 @@ export type CreateOnRampInput = {
   walletAddress: string;
   idempotencyKey: string;
   forceFail?: boolean;
+  email?: string | null;
+  phone?: string | null;
+  agreementAcceptedAt?: string | null;
+  smsVerificationId?: string | null;
+  emailVerificationId?: string | null;
 };
 
 export type CreateOnRampResult = {

@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,20 +15,41 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
 import {
+  CoinbaseCheckoutWebView,
+  type OnrampApiEvent,
+} from "@/components/CoinbaseCheckoutWebView";
+import {
+  cancelDeposit,
   createDeposit,
+  reconcileDeposit,
+  startFundingVerification,
+  submitFundingVerification,
   watchDepositStatus,
   type Deposit,
   type DepositStatus,
+  type FundingVerification,
 } from "@/services/api/funding";
 import { colors, radius, spacing } from "@/theme/colors";
 
-type FlowStep = "amount" | "review" | "status";
+type FlowStep =
+  | "amount"
+  | "review"
+  | "verify-email"
+  | "verify-email-otp"
+  | "verify-phone"
+  | "verify-phone-otp"
+  | "checkout"
+  | "status";
 
 type AddMoneyScreenProps = {
   onBack: () => void;
   onCompleted: (amountUsd: string) => void;
   showTabBar?: boolean;
 };
+
+const COINBASE_TOS_URL = "https://www.coinbase.com/legal/guest-checkout/us";
+const COINBASE_UA_URL = "https://www.coinbase.com/legal/user_agreement";
+const COINBASE_PRIVACY_URL = "https://www.coinbase.com/legal/privacy";
 
 function statusCopy(status: DepositStatus): { title: string; body: string } {
   switch (status) {
@@ -79,6 +101,17 @@ export function AddMoneyScreen({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deposit, setDeposit] = useState<Deposit | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [tosAccepted, setTosAccepted] = useState(false);
+  const [agreementAcceptedAt, setAgreementAcceptedAt] = useState<string | null>(null);
+  const [emailDestination, setEmailDestination] = useState("");
+  const [phoneDestination, setPhoneDestination] = useState("");
+  const [emailVerification, setEmailVerification] = useState<FundingVerification | null>(null);
+  const [smsVerification, setSmsVerification] = useState<FundingVerification | null>(null);
+  const [emailVerificationId, setEmailVerificationId] = useState<string | null>(null);
+  const [smsVerificationId, setSmsVerificationId] = useState<string | null>(null);
+  const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
+  const [checkoutHint, setCheckoutHint] = useState("Apple Pay is ready when the button appears.");
+  const otpRefs = useRef<Array<TextInput | null>>([]);
   const completedRef = useRef(false);
   const onCompletedRef = useRef(onCompleted);
 
@@ -96,7 +129,7 @@ export function AddMoneyScreen({
   );
 
   useEffect(() => {
-    if (step !== "status" || !deposit?.id || !accessToken) {
+    if ((step !== "status" && step !== "checkout") || !deposit?.id || !accessToken) {
       return;
     }
 
@@ -105,9 +138,12 @@ export function AddMoneyScreen({
     const stop = watchDepositStatus(accessToken, deposit.id, (next) => {
       setDeposit(next);
 
+      if (next.status === "completed" || next.status === "failed") {
+        setStep("status");
+      }
+
       if (next.status === "completed" && !completedRef.current) {
         completedRef.current = true;
-        // Brief pause so success copy is readable before returning home.
         setTimeout(() => {
           onCompletedRef.current(next.amountUsd);
         }, 900);
@@ -116,6 +152,10 @@ export function AddMoneyScreen({
 
     return stop;
   }, [step, deposit?.id, accessToken]);
+
+  const resetOtp = () => {
+    setOtpDigits(["", "", "", "", "", ""]);
+  };
 
   const handleContinueFromAmount = () => {
     if (!canContinue) {
@@ -127,6 +167,22 @@ export function AddMoneyScreen({
     setStep("review");
   };
 
+  const handleAcceptTos = (accepted: boolean) => {
+    setTosAccepted(accepted);
+    setAgreementAcceptedAt(accepted ? new Date().toISOString() : null);
+    setInlineError(null);
+  };
+
+  const requireToken = async (): Promise<string | null> => {
+    const token = accessToken ?? (await getAccessToken());
+    if (!token) {
+      setInlineError("Please sign in again to add money.");
+      return null;
+    }
+    setAccessToken(token);
+    return token;
+  };
+
   const startDeposit = async (shouldFail: boolean) => {
     if (!amountUsd) {
       return;
@@ -136,22 +192,29 @@ export function AddMoneyScreen({
     setInlineError(null);
 
     try {
-      const token = await getAccessToken();
-
+      const token = await requireToken();
       if (!token) {
-        setInlineError("Please sign in again to add money.");
         return;
       }
-
-      setAccessToken(token);
 
       const created = await createDeposit({
         accessToken: token,
         amountUsd,
         forceFail: shouldFail,
         idempotencyKey: `add-money-${Date.now()}`,
+        agreementAcceptedAt: agreementAcceptedAt ?? undefined,
+        smsVerificationId: smsVerificationId ?? undefined,
+        emailVerificationId: emailVerificationId ?? undefined,
+        paymentMethod: "apple_pay",
       });
       setDeposit(created);
+
+      if (created.hostedUrl && !shouldFail) {
+        setCheckoutHint("Apple Pay is ready when the button appears.");
+        setStep("checkout");
+        return;
+      }
+
       setStep("status");
     } catch (error) {
       setInlineError(
@@ -163,18 +226,216 @@ export function AddMoneyScreen({
   };
 
   const handleConfirm = () => {
-    void startDeposit(false);
+    if (!tosAccepted || !agreementAcceptedAt) {
+      setInlineError("Accept the Coinbase Guest Checkout terms to continue.");
+      return;
+    }
+
+    setInlineError(null);
+    setStep("verify-email");
+  };
+
+  const sendEmailCode = async () => {
+    setIsSubmitting(true);
+    setInlineError(null);
+
+    try {
+      const token = await requireToken();
+      if (!token) {
+        return;
+      }
+
+      const started = await startFundingVerification({
+        accessToken: token,
+        channel: "email",
+        destination: emailDestination.trim() || undefined,
+      });
+      setEmailVerification(started);
+      setEmailDestination(started.destination);
+      resetOtp();
+      setStep("verify-email-otp");
+    } catch (error) {
+      setInlineError(error instanceof Error ? error.message : "Unable to send a code.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const sendSmsCode = async () => {
+    setIsSubmitting(true);
+    setInlineError(null);
+
+    try {
+      const token = await requireToken();
+      if (!token) {
+        return;
+      }
+
+      const started = await startFundingVerification({
+        accessToken: token,
+        channel: "sms",
+        destination: phoneDestination.trim() || undefined,
+      });
+      setSmsVerification(started);
+      setPhoneDestination(started.destination);
+      resetOtp();
+      setStep("verify-phone-otp");
+    } catch (error) {
+      setInlineError(error instanceof Error ? error.message : "Unable to send a code.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const submitCurrentOtp = async () => {
+    const otpCode = otpDigits.join("");
+    if (otpCode.length !== 6) {
+      setInlineError("Enter the 6-digit code.");
+      return;
+    }
+
+    const isEmail = step === "verify-email-otp";
+    const verification = isEmail ? emailVerification : smsVerification;
+
+    if (!verification) {
+      setInlineError("Start verification again.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setInlineError(null);
+
+    try {
+      const token = await requireToken();
+      if (!token) {
+        return;
+      }
+
+      const submitted = await submitFundingVerification({
+        accessToken: token,
+        verificationId: verification.verificationId,
+        otpCode,
+        channel: verification.channel,
+        destination: verification.destination,
+      });
+
+      if (isEmail) {
+        setEmailVerificationId(submitted.verificationId);
+        resetOtp();
+        setStep("verify-phone");
+        return;
+      }
+
+      setSmsVerificationId(submitted.verificationId);
+      await startDeposit(false);
+    } catch (error) {
+      setInlineError(error instanceof Error ? error.message : "Unable to verify that code.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCheckoutEvent = (event: OnrampApiEvent) => {
+    const localized = event.data?.errorMessage?.trim();
+
+    switch (event.eventName) {
+      case "onramp_api.load_pending":
+        setCheckoutHint("Preparing Apple Pay…");
+        break;
+      case "onramp_api.load_success":
+        setCheckoutHint("Tap Apple Pay to continue. Payment must be started from that button.");
+        break;
+      case "onramp_api.load_error":
+        setInlineError(localized || "Apple Pay couldn’t load. Start a new deposit.");
+        break;
+      case "onramp_api.commit_success":
+        setCheckoutHint("Payment started. Keep this screen open while it finishes.");
+        break;
+      case "onramp_api.commit_error":
+        setInlineError(localized || "Apple Pay couldn’t start. Nothing was added to your balance.");
+        if (accessToken && deposit?.id) {
+          void cancelDeposit(accessToken, deposit.id)
+            .then(setDeposit)
+            .catch(() => undefined);
+        }
+        setStep("status");
+        break;
+      case "onramp_api.cancel":
+        if (accessToken && deposit?.id) {
+          void cancelDeposit(accessToken, deposit.id)
+            .then((next) => {
+              setDeposit(next);
+              setStep("status");
+            })
+            .catch(() => {
+              setStep("status");
+            });
+        } else {
+          setStep("status");
+        }
+        break;
+      case "onramp_api.polling_start":
+        setCheckoutHint("Checking payment status…");
+        break;
+      case "onramp_api.polling_success":
+        setCheckoutHint("Funds sent. Updating your Olimpia balance…");
+        if (accessToken && deposit?.id) {
+          void reconcileDeposit(accessToken, deposit.id)
+            .then(setDeposit)
+            .catch(() => undefined);
+        }
+        break;
+      case "onramp_api.polling_error":
+        setInlineError(localized || "Payment processing failed. Nothing was added to your balance.");
+        if (accessToken && deposit?.id) {
+          void reconcileDeposit(accessToken, deposit.id)
+            .then((next) => {
+              setDeposit(next);
+              if (next.status === "completed" || next.status === "failed") {
+                setStep("status");
+              }
+            })
+            .catch(() => undefined);
+        }
+        break;
+    }
   };
 
   const handleTryAgain = () => {
     setDeposit(null);
     setInlineError(null);
+    setCheckoutHint("Apple Pay is ready when the button appears.");
     setStep("amount");
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, "").slice(-1);
+    const next = [...otpDigits];
+    next[index] = digit;
+    setOtpDigits(next);
+    setInlineError(null);
+    if (digit && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
   };
 
   const handleBack = () => {
     if (step === "review") {
       setStep("amount");
+      return;
+    }
+
+    if (step === "verify-email" || step === "verify-email-otp") {
+      setStep("review");
+      return;
+    }
+
+    if (step === "verify-phone" || step === "verify-phone-otp") {
+      setStep("verify-email");
+      return;
+    }
+
+    if (step === "checkout") {
       return;
     }
 
@@ -192,6 +453,8 @@ export function AddMoneyScreen({
 
   const status = deposit?.status ?? "processing";
   const copy = statusCopy(status);
+  const backDisabled =
+    (step === "status" && status !== "failed") || step === "checkout";
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -213,9 +476,9 @@ export function AddMoneyScreen({
             style={styles.backButton}
             onPress={handleBack}
             accessibilityLabel="Back"
-            disabled={step === "status" && status !== "failed"}
+            disabled={backDisabled}
           >
-            {step === "status" && status !== "failed" ? (
+            {backDisabled ? (
               <View style={styles.backButtonSpacer} />
             ) : (
               <Ionicons name="arrow-back" size={20} color={colors.ink} />
@@ -271,13 +534,39 @@ export function AddMoneyScreen({
           <View style={styles.section}>
             <Text style={styles.title}>Review</Text>
             <Text style={styles.subtitle}>
-              ${formatDisplayAmount(amountUsd)} will be added to your balance.
+              ${formatDisplayAmount(amountUsd)} will be added with Apple Pay via Coinbase.
             </Text>
 
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>You’re adding</Text>
               <Text style={styles.summaryAmount}>${formatDisplayAmount(amountUsd)}</Text>
               <Text style={styles.summaryHint}>Shown in dollars in your Olimpia balance.</Text>
+            </View>
+
+            <Pressable
+              style={styles.tosRow}
+              onPress={() => handleAcceptTos(!tosAccepted)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: tosAccepted }}
+            >
+              <View style={[styles.checkbox, tosAccepted ? styles.checkboxChecked : null]}>
+                {tosAccepted ? <Ionicons name="checkmark" size={14} color={colors.white} /> : null}
+              </View>
+              <Text style={styles.tosText}>
+                I agree to Coinbase’s Guest Checkout Terms, User Agreement, and Privacy Policy.
+              </Text>
+            </Pressable>
+
+            <View style={styles.linkRow}>
+              <Pressable onPress={() => void Linking.openURL(COINBASE_TOS_URL)}>
+                <Text style={styles.linkText}>Guest Checkout Terms</Text>
+              </Pressable>
+              <Pressable onPress={() => void Linking.openURL(COINBASE_UA_URL)}>
+                <Text style={styles.linkText}>User Agreement</Text>
+              </Pressable>
+              <Pressable onPress={() => void Linking.openURL(COINBASE_PRIVACY_URL)}>
+                <Text style={styles.linkText}>Privacy Policy</Text>
+              </Pressable>
             </View>
 
             {inlineError ? (
@@ -287,11 +576,11 @@ export function AddMoneyScreen({
             ) : null}
 
             <Pressable
-              style={[styles.primaryButton, isSubmitting ? styles.buttonDisabled : null]}
+              style={[styles.primaryButton, !tosAccepted || isSubmitting ? styles.buttonDisabled : null]}
               onPress={handleConfirm}
-              disabled={isSubmitting}
+              disabled={!tosAccepted || isSubmitting}
             >
-              <Text style={styles.primaryLabel}>Confirm</Text>
+              <Text style={styles.primaryLabel}>Continue</Text>
             </Pressable>
 
             {typeof __DEV__ !== "undefined" && __DEV__ ? (
@@ -306,6 +595,116 @@ export function AddMoneyScreen({
                 <Text style={styles.devButtonLabel}>Simulate failure (dev)</Text>
               </Pressable>
             ) : null}
+          </View>
+        ) : null}
+
+        {step === "verify-email" || step === "verify-phone" ? (
+          <View style={styles.section}>
+            <Text style={styles.title}>
+              {step === "verify-email" ? "Verify your email" : "Verify your phone"}
+            </Text>
+            <Text style={styles.subtitle}>
+              {step === "verify-email"
+                ? "Coinbase needs a verified email before Apple Pay checkout."
+                : "Coinbase needs a verified US cell number. Sandbox can use +10005550100."}
+            </Text>
+
+            <View style={styles.fieldCard}>
+              <Text style={styles.fieldLabel}>
+                {step === "verify-email" ? "Email address" : "US phone number"}
+              </Text>
+              <TextInput
+                value={step === "verify-email" ? emailDestination : phoneDestination}
+                onChangeText={(value) => {
+                  if (step === "verify-email") {
+                    setEmailDestination(value);
+                  } else {
+                    setPhoneDestination(value);
+                  }
+                  setInlineError(null);
+                }}
+                keyboardType={step === "verify-email" ? "email-address" : "phone-pad"}
+                autoCapitalize="none"
+                placeholder={step === "verify-email" ? "you@example.com" : "+15555550100"}
+                placeholderTextColor={colors.inkMuted}
+                style={styles.textInput}
+              />
+            </View>
+
+            {inlineError ? (
+              <Text style={styles.errorText} accessibilityRole="alert">
+                {inlineError}
+              </Text>
+            ) : null}
+
+            <Pressable
+              style={[styles.primaryButton, isSubmitting ? styles.buttonDisabled : null]}
+              onPress={() => {
+                void (step === "verify-email" ? sendEmailCode() : sendSmsCode());
+              }}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.primaryLabel}>Send code</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {step === "verify-email-otp" || step === "verify-phone-otp" ? (
+          <View style={styles.section}>
+            <Text style={styles.title}>Enter the code</Text>
+            <Text style={styles.subtitle}>
+              We sent a 6-digit code to{" "}
+              {step === "verify-email-otp"
+                ? emailVerification?.destination ?? emailDestination
+                : smsVerification?.destination ?? phoneDestination}
+              .
+            </Text>
+
+            <View style={styles.otpGrid}>
+              {otpDigits.map((digit, index) => (
+                <TextInput
+                  key={`${step}-${index}`}
+                  ref={(element) => {
+                    otpRefs.current[index] = element;
+                  }}
+                  value={digit}
+                  onChangeText={(value) => handleOtpChange(index, value)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  selectTextOnFocus
+                  style={[styles.otpCell, inlineError ? styles.fieldError : null]}
+                />
+              ))}
+            </View>
+
+            {inlineError ? (
+              <Text style={styles.errorText} accessibilityRole="alert">
+                {inlineError}
+              </Text>
+            ) : null}
+
+            <Pressable
+              style={[styles.primaryButton, isSubmitting ? styles.buttonDisabled : null]}
+              onPress={() => void submitCurrentOtp()}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.primaryLabel}>
+                {step === "verify-email-otp" ? "Verify email" : "Verify phone"}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {step === "checkout" && deposit?.hostedUrl ? (
+          <View style={styles.checkoutSection}>
+            <Text style={styles.title}>Pay with Apple Pay</Text>
+            <Text style={styles.subtitle}>{checkoutHint}</Text>
+            {inlineError ? (
+              <Text style={styles.errorText} accessibilityRole="alert">
+                {inlineError}
+              </Text>
+            ) : null}
+            <CoinbaseCheckoutWebView url={deposit.hostedUrl} onEvent={handleCheckoutEvent} />
           </View>
         ) : null}
 
@@ -390,6 +789,11 @@ const styles = StyleSheet.create({
   section: {
     flex: 1,
     paddingTop: spacing.block,
+  },
+  checkoutSection: {
+    flex: 1,
+    paddingTop: spacing.block,
+    gap: 12,
   },
   title: {
     fontFamily: "CormorantGaramond_400Regular",
@@ -490,6 +894,61 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     color: colors.inkMuted,
+  },
+  tosRow: {
+    marginTop: 20,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.raspberry,
+    borderColor: colors.raspberry,
+  },
+  tosText: {
+    flex: 1,
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    lineHeight: 20,
+    color: colors.ink,
+  },
+  linkRow: {
+    marginTop: 12,
+    gap: 8,
+  },
+  linkText: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    color: colors.raspberry,
+  },
+  otpGrid: {
+    marginTop: 24,
+    flexDirection: "row",
+    gap: 7,
+  },
+  otpCell: {
+    flex: 1,
+    height: 48,
+    minWidth: 0,
+    borderRadius: 11,
+    borderWidth: 1,
+    borderColor: "rgba(232, 225, 218, 0.5)",
+    backgroundColor: colors.card,
+    textAlign: "center",
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 19,
+    color: colors.ink,
   },
   devButton: {
     marginTop: 12,

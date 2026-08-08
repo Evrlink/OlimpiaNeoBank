@@ -34,6 +34,7 @@ Canonical planning docs for **Olimpia** V1 (Architecture v3.0).
 | [`providers/`](./providers/) | Active provider index; **archive/** is historical only |
 | [`design/`](./design/) | Screen briefs |
 | [`engineering/`](./engineering/) | Phase readiness notes |
+| [`integrations/`](./integrations/) | Active provider integration specs |
 
 ## Engineering planning
 
@@ -41,6 +42,7 @@ Canonical planning docs for **Olimpia** V1 (Architecture v3.0).
 |------|----------|
 | [`DatabaseSchema.md`](./DatabaseSchema.md) | Data model |
 | [`EnvironmentVariables.md`](./EnvironmentVariables.md) | Config by app |
+| [`integrations/CoinbaseHeadlessIntegration.md`](./integrations/CoinbaseHeadlessIntegration.md) | Coinbase Headless docs, endpoints, webhooks, sandbox / production |
 | [`DeploymentPlan.md`](./DeploymentPlan.md) | Deploy sequence |
 
 ## Status

@@ -1,15 +1,12 @@
 import { env } from "../config/env.js";
 import { finalizeDepositStatus } from "./completeDeposit.js";
+import { createOnrampOrder } from "./coinbase/client.js";
+import { FundingProviderError } from "./errors.js";
 import type { CreateOnRampInput, CreateOnRampResult } from "./types.js";
 
 const MOCK_SETTLE_MS = 1600;
 
-export class FundingProviderError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "FundingProviderError";
-  }
-}
+export { FundingProviderError };
 
 function scheduleMockSettlement(input: {
   depositId: string;
@@ -51,22 +48,59 @@ async function createMockOnRamp(input: CreateOnRampInput): Promise<CreateOnRampR
   };
 }
 
-/**
- * Coinbase Headless Onramp — session creation lands in the next sprint task.
- * Fails closed so production never silently uses another provider.
- */
-async function createCoinbaseOnRamp(
-  _input: CreateOnRampInput,
-): Promise<CreateOnRampResult> {
-  if (!env.coinbaseOnrampApiKey.trim()) {
+function requireVerifiedContact(value: string | null | undefined, label: string): string {
+  const trimmed = value?.trim() ?? "";
+
+  if (!trimmed) {
     throw new FundingProviderError(
-      "Coinbase Headless is not configured. Set COINBASE_ONRAMP_API_KEY (and related secrets) on the API.",
+      `A verified ${label} is required before adding money with Coinbase.`,
     );
   }
 
-  throw new FundingProviderError(
-    "Coinbase Headless Onramp integration is not implemented yet.",
+  return trimmed;
+}
+
+async function createCoinbaseOnRamp(
+  input: CreateOnRampInput,
+): Promise<CreateOnRampResult> {
+  if (!env.coinbaseOnrampApiKey.trim() || !env.coinbaseOnrampApiSecret.trim()) {
+    throw new FundingProviderError(
+      "Coinbase Headless is not configured. Set COINBASE_ONRAMP_API_KEY and COINBASE_ONRAMP_API_SECRET on the API.",
+    );
+  }
+
+  const email = requireVerifiedContact(input.email, "email");
+  const phoneNumber = requireVerifiedContact(input.phone, "US phone number");
+  const agreementAcceptedAt = requireVerifiedContact(
+    input.agreementAcceptedAt,
+    "Coinbase Guest Checkout agreement",
   );
+  const smsVerificationId = requireVerifiedContact(
+    input.smsVerificationId,
+    "phone verification",
+  );
+  const emailVerificationId = requireVerifiedContact(
+    input.emailVerificationId,
+    "email verification",
+  );
+
+  const order = await createOnrampOrder({
+    depositId: input.depositId,
+    userId: input.userId,
+    amountUsd: input.amountUsd,
+    walletAddress: input.walletAddress,
+    email,
+    phoneNumber,
+    agreementAcceptedAt,
+    smsVerificationId,
+    emailVerificationId,
+  });
+
+  return {
+    providerRef: order.orderId,
+    hostedUrl: order.paymentLinkUrl,
+    initialStatus: "processing",
+  };
 }
 
 export async function createOnRampIntent(

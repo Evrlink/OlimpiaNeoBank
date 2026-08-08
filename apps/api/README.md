@@ -7,7 +7,7 @@
 - Express server with `GET /health`
 - Privy auth sync / `/me`
 - Ledger balances + activity routes
-- Funding module: **mock** (local) or **Coinbase Headless** (production target)
+- Funding module: **mock** (local) or **Coinbase Headless** (create order, verification, `/webhooks/coinbase`)
 - Bridge.xyz funding path **removed**
 - SQL migrations including deposits / webhook idempotency
 
