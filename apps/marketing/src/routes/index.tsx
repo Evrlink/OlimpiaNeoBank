@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
 import piaIllo from "@/assets/pia-raspberry.png";
+import heartGlassesMeadow from "@/assets/heart-glasses-meadow.png";
 import { SectionScrollReveal, ScrollReveal } from "@/components/scroll-reveal";
 import { HeroDesignBackground } from "@/components/hero-design-background";
 import { HeroAnimatedPhone } from "@/components/hero-animated-phone";
@@ -60,6 +61,7 @@ function Home() {
         <PiaSection />
         <Faq />
         <TrustStrip />
+        <PerspectiveSection />
         <StayTunedSection />
       </main>
       <SiteFooter />
@@ -670,6 +672,35 @@ function Faq() {
               </details>
             ))}
           </div>
+        </SectionScrollReveal>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- PERSPECTIVE (Look beyond traditional banking) ---------- */
+function PerspectiveSection() {
+  return (
+    <section id="perspective" className="lens-section" aria-labelledby="perspective-title">
+      <div className="lens-media">
+        <img
+          src={heartGlassesMeadow}
+          alt="Pink heart-shaped sunglasses held up over a green wildflower meadow and coastline"
+        />
+      </div>
+      <div className="lens-copy">
+        <SectionScrollReveal className="lens-copy-inner">
+          <p className="lens-eyebrow">Perspective</p>
+          <h2 id="perspective-title" className="lens-headline">
+            Look beyond traditional banking.
+          </h2>
+          <p className="lens-body">
+            A new generation of financial tools can give your money more possibilities and more
+            choices.
+          </p>
+          <button type="button" onClick={openWaitlist} className="lens-cta cursor-pointer bg-transparent">
+            Explore a better way →
+          </button>
         </SectionScrollReveal>
       </div>
     </section>
