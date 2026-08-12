@@ -25,11 +25,13 @@ Monorepo for **Olimpia** — planning docs in `docs/`, implementation in `apps/`
 
 | Path | Purpose |
 |------|---------|
-| [`docs/product/PRD.md`](docs/product/PRD.md) | Product requirements |
+| [`docs/V1Architecture.md`](docs/V1Architecture.md) | Simplified V1 product + verified implementation status |
+| [`docs/MVPLaunchChecklist.md`](docs/MVPLaunchChecklist.md) | Execution checklist (work top-down) |
 | [`docs/product/V1Scope.md`](docs/product/V1Scope.md) | Launch scope |
+| [`docs/product/PRD.md`](docs/product/PRD.md) | Product requirements |
 | [`docs/architecture/Architecture.md`](docs/architecture/Architecture.md) | System architecture |
 | [`docs/architecture/ArchitectureDecisionLog.md`](docs/architecture/ArchitectureDecisionLog.md) | ADRs |
-| [`docs/build/BuildPlan.md`](docs/build/BuildPlan.md) | 3–4 day MVP critical path |
+| [`docs/build/BuildPlan.md`](docs/build/BuildPlan.md) | Build plan (aligned to simplified V1) |
 | [`docs/TestingChecklist.md`](docs/TestingChecklist.md) | Manual QA |
 
 See [`docs/README.md`](docs/README.md) for the full index.
@@ -38,34 +40,33 @@ See [`docs/README.md`](docs/README.md) for the full index.
 
 ```text
 User → Privy auth → Privy embedded wallet
-  → Coinbase Headless Onramp → USDC on Base to Privy wallet
-  → Olimpia balance / activity → optional Aave Growth
+  → Receive USDC on Base
+  → Balance + transaction activity
+  → Grow → withdraw back to wallet
 ```
 
 | Layer | Choice |
 |-------|--------|
 | Mobile | React Native / Expo (iOS first) |
-| Auth + wallet | Privy |
+| Auth + wallet | Privy embedded wallet |
 | Chain / asset | Base / USDC |
-| Add Money | **Coinbase Headless Onramp** |
-| Transfer USDC | Inbound USDC on Base |
+| Funding (V1) | Inbound USDC on Base |
 | Backend | Node.js / Express + PostgreSQL |
-| Growth | Aave on Base |
+| Grow | Aave on Base (intended) |
 | Marketing | Existing site on Vercel + GA4 |
 
-**Not in active V1 architecture:** Bridge.xyz, Dakota, bank off-ramp (deferred), virtual card.
+**Post-V1 (code preserved):** Coinbase Headless Onramp, Apple Pay funding, fiat offramp, virtual card.
+
+**Not in active V1 architecture:** Bridge.xyz, Dakota.
 
 ## Core V1 features
 
 | Feature | Description |
 |---------|-------------|
 | Account creation | Privy email auth + embedded wallet |
-| Add Money | Coinbase Headless → USDC to Privy wallet on Base |
-| Transfer USDC | Receive supported USDC on Base |
-| Balance + activity | Backend ledger |
-| Savings goals | Named envelopes (no auto yield) |
-| Growth | Optional Aave allocation |
-| Send / receive | Olimpia-user P2P (tiered in BuildPlan) |
+| Receive USDC | Supported USDC on Base into Privy wallet |
+| Balance + transaction activity | Backend-authoritative display |
+| Grow | Optional yield allocation; withdraw back to wallet |
 
 ## Development
 
@@ -78,7 +79,7 @@ npm run start -w @olimpia/mobile
 
 ## Current status
 
-Documentation reset to Architecture v3.0 complete. Implementation sprint: remove legacy Bridge funding path, ship Coinbase Headless, prepare iOS App Store submission — see [`docs/build/BuildPlan.md`](docs/build/BuildPlan.md).
+V1 simplified: no fiat on-ramp required for launch. Immediate priorities — Privy wallet, Receive USDC, balance, wallet transaction activity, Grow deposit/withdraw, real Base USDC verification — see [`docs/MVPLaunchChecklist.md`](docs/MVPLaunchChecklist.md) and [`docs/V1Architecture.md`](docs/V1Architecture.md).
 
 ---
 

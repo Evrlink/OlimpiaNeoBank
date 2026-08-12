@@ -66,7 +66,7 @@ Rules:
 | Entity | Key fields |
 |--------|------------|
 | **User** | `id`, `privy_user_id`, `email`, `phone`, `username`, `display_name`, `created_at` |
-| **Wallet** | `id`, `user_id`, `address`, `chain` (= base), `privy_wallet_id` — address not shown except Transfer USDC |
+| **Wallet** | `id`, `user_id`, `address`, `chain` (= base), `privy_wallet_id` — address not shown except Receive USDC |
 
 ### Money and activity
 

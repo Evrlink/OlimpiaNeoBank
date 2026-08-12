@@ -1,11 +1,13 @@
-# Coinbase Headless Onramp — Olimpia V1
+# Coinbase Headless Onramp — Post-V1 (preserved)
 
-**Status:** Implementation source of truth for Add Money  
-**Architecture:** [Architecture.md](../architecture/Architecture.md) · [ADR-013](../architecture/ArchitectureDecisionLog.md)  
+**Status:** Implementation source of truth for Add Money — **out of scope for simplified V1 launch**  
+**Architecture:** [V1Architecture.md](../V1Architecture.md) · [Architecture.md](../architecture/Architecture.md) · [ADR-015](../architecture/ArchitectureDecisionLog.md)  
 **Env names:** [EnvironmentVariables.md](../EnvironmentVariables.md) · `apps/api/.env.example`  
 **Execution:** [MVPLaunchChecklist.md](../MVPLaunchChecklist.md)
 
-Olimpia V1 funds via **CDP Headless Onramp (Guest Checkout / Apple Pay)** only.
+**Policy:** Do **not** delete this integration. Prefer gating Add Money / `eligibility.onRamp` until V1.1+. Simplified V1 funds via **Receive USDC on Base** (ADR-015). ADR-013 remains the historical selection record for this fiat path.
+
+When enabled, Olimpia funds via **CDP Headless Onramp (Guest Checkout / Apple Pay)**:
 
 ```text
 User → Privy auth → Privy embedded wallet
@@ -80,7 +82,7 @@ JWT is per-request (method + host + path), ES256 (PEM EC) or EdDSA (base64 Ed255
 | `POST` | `/api/v1/funding/deposits/:id/reconcile` | Privy Bearer | Get Order fallback |
 | `POST` | `/webhooks/coinbase` | `X-Hook0-Signature` (raw JSON) | CDP onramp transaction events |
 
-Local mock (`FUNDING_PROVIDER=mock`, non-production only) bypasses Coinbase and settles in-process. Production **must** use Coinbase.
+Local mock (`FUNDING_PROVIDER=mock`, non-production only) bypasses Coinbase and settles in-process. When the **Coinbase funding provider is enabled** (post-V1 Add Money), production must use Coinbase credentials — never mock. Simplified V1 does **not** require enabling this provider.
 
 ---
 

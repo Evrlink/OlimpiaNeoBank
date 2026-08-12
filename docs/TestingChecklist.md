@@ -8,9 +8,9 @@
 
 ## Current MVP Architecture
 
-**Coinbase Headless Onramp + Privy + Base + USDC + Aave is the only active V1 architecture.**
+**Privy + Base + USDC + Grow is the active V1 architecture.** Fiat on-ramp is not required for V1.
 
-Test **Add Money** (Coinbase Headless → USDC to Privy wallet on Base) and **Transfer USDC**. Do not test Bridge, Dakota, bank withdrawal, or virtual card as V1 paths. Full design: [Architecture.md](./architecture/Architecture.md) · [ADR-013](./architecture/ArchitectureDecisionLog.md).
+Test **Receive USDC** (inbound USDC on Base to Privy wallet), balance, transaction activity, and Grow when shipped. Coinbase Headless / Apple Pay Add Money is **post-V1** (preserve; do not treat as launch gate). Do not test Bridge, Dakota, bank withdrawal, or virtual card as V1 paths. Full design: [V1Architecture.md](./V1Architecture.md) · [ADR-015](./architecture/ArchitectureDecisionLog.md).
 
 ---
 
@@ -26,17 +26,15 @@ Check each box when behavior matches **Expected result**. Note environment (loca
 
 ## MVP features to test (current architecture)
 
-- Onboarding and invisible Privy wallet
-- Dashboard, balance, activity
-- **Add Money** (Coinbase Headless Onramp → USDC to Privy wallet on Base)
-- **Transfer USDC** (inbound supported USDC on Base)
-- Savings goals
-- Growth account (Aave) — when shipped
-- Send and receive (Olimpia users) — when shipped
+- Onboarding and Privy embedded wallet
+- Dashboard, balance, transaction activity
+- **Receive USDC** (inbound supported USDC on Base)
+- Grow (Aave) — when shipped
 - Profile and sign out
 - Marketing waitlist + GA4 (production)
 
-**Not in App Store V1 checklist:** bank withdrawal, Gnosis / virtual card, Bridge, Dakota.
+**Post-V1 (optional regression only):** Add Money via Coinbase Headless / Apple Pay  
+**Not in App Store V1 checklist:** bank withdrawal, virtual card, Bridge, Dakota.
 
 ---
 
@@ -69,7 +67,7 @@ Check each box when behavior matches **Expected result**. Note environment (loca
 | 3 | Land on Home | No wallet address shown |
 | 4 | Profile tab | Name / email from synced API |
 | 5 | Sign out | Returns to Welcome |
-| 6 | Zero-balance Home | “Your account is ready” + Add Funds; `$0.00` secondary; no immediate-yield claim |
+| 6 | Zero-balance Home | Encouraging setup CTA toward **Receive USDC**; `$0.00` secondary; no immediate-yield claim |
 
 **Platform priority:** iOS device / TestFlight first.
 
@@ -80,26 +78,30 @@ Check each box when behavior matches **Expected result**. Note environment (loca
 | Step | Action | Expected result |
 |------|--------|-----------------|
 | 1 | Open Home | Balance in **dollars** from backend |
-| 2 | Activity list | Plain-language transactions |
-| 3 | Tap activity item | Detail: amount, status, date |
+| 2 | Activity list | Plain-language transactions from API (not hardcoded empty state) |
+| 3 | Tap activity item | Detail: amount, status, date (if detail ships) |
 | 4 | Pull to refresh / reopen | No crash; data consistent |
 
 ---
 
-## 5. Add Funds
+## 5. Receive USDC (V1 funding)
 
-**Requires:** Staging API + Coinbase Headless sandbox (or mock in local only) + Base monitor for Transfer USDC
+**Requires:** Staging API + Base monitor (or equivalent confirmation) + real or testnet-capable Base USDC path
 
 | Step | Action | Expected result |
 |------|--------|-----------------|
-| 1 | Tap Add Funds | **Add Money** and **Transfer USDC** appear; no Bridge / Dakota / Coinbase as method labels |
-| 2 | Add Money | Amount → Coinbase Headless experience with quote / fee / KYC as applicable |
-| 3 | Complete sandbox onramp | Status completes; ledger credited **once**; USDC destination is Privy wallet on Base |
-| 4 | Cancel / fail onramp | Safe return; no credit |
-| 5 | Transfer USDC | Address, QR, Copy, Base + unsupported-asset warning |
-| 6 | Send supported USDC on Base | Backend confirms; activity + balance once |
-| 7 | Unsupported token / duplicate event | No credit; no duplicate |
-| 8 | Return to Home | Balance and activity refreshed |
+| 1 | Tap Receive | Address, QR, Copy, Base + unsupported-asset warning |
+| 2 | Send supported USDC on Base to Privy address | Backend confirms; ledger credited **once** |
+| 3 | Return to Home | Balance and transaction activity refreshed |
+| 4 | Unsupported token / duplicate event | No credit; no duplicate |
+
+### Post-V1 regression (optional): Add Money / Coinbase Headless
+
+| Step | Action | Expected result |
+|------|--------|-----------------|
+| 1 | Add Money (if ungated) | Amount → Coinbase Headless experience with quote / fee / KYC as applicable |
+| 2 | Complete sandbox onramp | Status completes; ledger credited once; destination Privy wallet on Base |
+| 3 | Cancel / fail onramp | Safe return; no credit |
 
 ---
 
@@ -141,12 +143,12 @@ Check each box when behavior matches **Expected result**. Note environment (loca
 ## 9. Provider and security smoke tests
 
 - [ ] Privy login works on iOS
-- [ ] Coinbase Headless completion / cancel / fail handled
 - [ ] Base monitor rejects wrong token / network / recipient and duplicates
-- [ ] Replayed webhooks / events do not double-credit
+- [ ] Replayed events do not double-credit
 - [ ] No provider secrets in mobile bundle or marketing source
-- [ ] Wallet address only on Transfer USDC safety UI
+- [ ] Wallet address only on Receive USDC safety UI
 - [ ] Bridge API keys and webhook secrets absent from staging / production config
+- [ ] Coinbase Headless (post-V1 / optional): completion / cancel / fail handled without credit on fail
 
 ---
 

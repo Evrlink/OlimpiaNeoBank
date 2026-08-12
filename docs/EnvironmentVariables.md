@@ -46,7 +46,9 @@
 | `PRIVY_APP_ID` | App id |
 | `PRIVY_APP_SECRET` | Server verification — **secret** |
 
-### Funding — Coinbase Headless Onramp (V1)
+### Funding — Coinbase Headless Onramp (post-V1; preserve)
+
+Used when `FUNDING_PROVIDER=coinbase`. **Not required for simplified V1 launch** (ADR-015). V1 funding is Receive USDC on Base.
 
 | Variable | Purpose |
 |----------|---------|

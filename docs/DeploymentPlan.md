@@ -1,7 +1,7 @@
 # Olimpia — Deployment Plan (Planning)
 
-**Status:** Aligned with Architecture v3.0 / BuildPlan v3.0  
-**Source of truth:** [BuildPlan.md](./build/BuildPlan.md) · [Architecture.md](./architecture/Architecture.md)
+**Status:** Aligned with simplified V1 (Architecture v4.0 / ADR-015)  
+**Source of truth:** [MVPLaunchChecklist.md](./MVPLaunchChecklist.md) · [V1Architecture.md](./V1Architecture.md) · [BuildPlan.md](./build/BuildPlan.md)
 
 ---
 
@@ -11,7 +11,7 @@
 |---------|------------|--------|
 | Marketing | TanStack Start + Vite | **Vercel** (live pattern) |
 | Mobile | React Native / Expo | **iOS App Store first** |
-| Backend API | Node.js / Express | Host **TBD** (HTTPS required for webhooks) |
+| Backend API | Node.js / Express | Host **TBD** (HTTPS required for webhooks / monitors) |
 
 ### Supporting services
 
@@ -20,9 +20,9 @@
 | Supabase | Marketing waitlist |
 | PostgreSQL | App database |
 | Privy | Auth + embedded wallets |
-| **Coinbase Headless Onramp** | V1 fiat Add Money |
-| Base RPC / monitor | Transfer USDC + onramp delivery confirmation |
-| Aave on Base | Growth (when shipped) |
+| Base RPC / monitor | **V1** Receive USDC confirmation |
+| Aave on Base | Grow (when shipped) |
+| **Coinbase Headless Onramp** | **Post-V1** fiat Add Money (code preserved) |
 | Resend | Optional transactional email |
 | GA4 | Marketing analytics (already installed) |
 
@@ -35,21 +35,22 @@
 | Component | Status |
 |-----------|--------|
 | Marketing | Built; Vercel + Supabase waitlist + GA4 |
-| API | Auth, ledger, activity, funding module — **funding still Bridge-coupled until Day 1 cleanup** |
-| Mobile | Privy auth + shell + Add Money UI; App Store packaging incomplete |
+| API | Auth, ledger, activity; Coinbase funding preserved (post-V1); Base receive monitor **not built** |
+| Mobile | Privy auth + shell; Receive USDC stub; Add Money UI preserved for post-V1; App Store packaging incomplete |
 | Main PostgreSQL | Migrations present; host TBD for staging/production |
 
 ---
 
-## Sprint deploy sequence
+## Deploy sequence (simplified V1)
 
 | When | Deploy / provision | Done when |
 |------|-------------------|-----------|
-| Day 1 | Staging API + Postgres; remove Bridge from config | Health OK; no Bridge env required |
-| Day 1–2 | Coinbase sandbox credentials on API | Onramp session creates |
-| Day 2–3 | Base monitor config | Transfer USDC / delivery confirm works |
-| Day 3 | TestFlight build → staging API | Founder walkthrough on device |
-| Day 4 | Production API keys (Privy + Coinbase); App Store archive | Upload ready |
+| Early | Staging API + Postgres + Privy | Health OK; auth sync works |
+| Critical | Base monitor / RPC config | Receive USDC confirmation works |
+| Critical | TestFlight build → staging API | Founder walkthrough: receive USDC → balance → activity |
+| When Grow ready | Aave / Grow credentials + config | Deposit + withdraw verified |
+| Packaging | App Store archive; Privacy/Terms URLs | Upload ready |
+| Post-V1 | Coinbase production credentials + webhook URL | Fiat Add Money optional |
 
 ---
 
@@ -64,14 +65,14 @@ Env: `VITE_SUPABASE_*`, optional `VITE_SITE_URL`, `VITE_SUPPORT_EMAIL`, GA4 as c
 
 ---
 
-## API webhooks (current architecture)
+## API webhooks / monitors (current architecture)
 
 | Provider | Path pattern |
 |----------|--------------|
-| Coinbase Headless | `https://{api-host}/api/v1/webhooks/coinbase` **TBD confirm Coinbase docs** |
-| Base monitor | Provider webhook or secure backend polling **TBD** |
+| Base monitor | Provider webhook or secure backend polling **TBD** (required for V1 Receive) |
+| Coinbase Headless | `https://{api-host}/webhooks/coinbase` — **post-V1**; preserve route |
 
-**Do not register Bridge webhook URLs.** Legacy `/webhooks/bridge` is removed in Day 1 cleanup.
+**Do not register Bridge webhook URLs.** Bridge funding path is removed from the active API.
 
 ---
 

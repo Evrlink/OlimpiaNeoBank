@@ -6,7 +6,7 @@
 **Source of truth:** [PRD.md](./PRD.md) (v2.0) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v2.0)
 **Scope:** Experience definition only — no code, no build tasks, no product redesign
 
-**V1 launch (see [V1Scope.md](./V1Scope.md)):** Working **savings goals** and **USDC yield** are V1. **Pia** is visible as a static **Coming soon** card on Profile only — no Ask Pia buttons, no chat, no AI. **Virtual card** is **post-V1**.
+**V1 launch (see [V1Scope.md](./V1Scope.md) · [V1Architecture.md](../V1Architecture.md)):** Working **Receive USDC**, **balance**, **transaction activity**, and **Grow** are V1 goals. **Coinbase Headless / Apple Pay Add Money**, **Pia** chat, and **virtual card** are **post-V1**. Prefer V1Scope when flows below still describe Add Money as primary funding.
 
 ---
 

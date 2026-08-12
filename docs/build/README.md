@@ -6,10 +6,12 @@ Build plan and implementation roadmap for **Olimpia**.
 
 | Document | Purpose |
 |----------|---------|
-| [`BuildPlan.md`](./BuildPlan.md) | **3–4 day MVP critical path** toward iOS App Store submission |
+| [`BuildPlan.md`](./BuildPlan.md) | Critical path for simplified V1 (Receive USDC → Grow) |
 
 ## Related docs
 
+- Day-to-day execution → [`../MVPLaunchChecklist.md`](../MVPLaunchChecklist.md)
+- Verified status → [`../V1Architecture.md`](../V1Architecture.md)
 - What to build → [`../product/`](../product/)
 - How systems connect → [`../architecture/Architecture.md`](../architecture/Architecture.md)
 - App folders → [`../../apps/`](../../apps/)

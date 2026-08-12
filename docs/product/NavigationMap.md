@@ -17,7 +17,7 @@
 
 **Out of scope for this map:** `llms.txt` (static file) · FAQ (`#faq` section on M1) · Settings (merged into A16) · inline async states (same route).
 
-**V1 launch (see [V1Scope.md](./V1Scope.md)):** Functional **savings goals** and **USDC yield** are V1. **Ask Pia → A15** chat routes and **A14 Card spend** are **post-V1**. At V1, Pia is visible as a static **Coming soon** card on **A16 Profile** only (no chat, no Ask Pia quick actions).
+**V1 launch (see [V1Scope.md](./V1Scope.md) · [V1Architecture.md](../V1Architecture.md)):** **Receive USDC** and **Grow** are V1. **Coinbase Headless Add Money**, **Ask Pia → A15** chat, and **A14 Card spend** are **post-V1**. Prefer V1Scope when this map still routes empty Home to Add Money first.
 
 ---
 

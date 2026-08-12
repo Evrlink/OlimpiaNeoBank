@@ -21,7 +21,7 @@
 
 **Settings:** PRD merges settings into **Profile** — there is **no separate Settings screen** in MVP.
 
-**V1 launch scope:** See [V1Scope.md](./V1Scope.md). **Savings goals** and **USDC yield** are **V1 requirements** (not placeholders). **Functional Pia** and **virtual card** are **post-V1**; V1 shows Pia as a static Coming soon preview on Profile only.
+**V1 launch scope:** See [V1Scope.md](./V1Scope.md) · [V1Architecture.md](../V1Architecture.md). **Receive USDC on Base** is the V1 funding path. **Grow** is in V1 scope. **Coinbase Headless / Apple Pay Add Money**, **functional Pia**, and **virtual card** are **post-V1** (Coinbase code preserved). This inventory may still describe Add Money screens for the preserved post-V1 path — prefer V1Scope when they conflict.
 
 **Card management:** Virtual debit card viewing and controls (freeze, CVV reveal) live on the **Card** tab — **post-V1**; not a separate screen.
 

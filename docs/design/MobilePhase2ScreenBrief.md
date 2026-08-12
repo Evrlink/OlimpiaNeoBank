@@ -449,7 +449,7 @@ Abstract **static gradient only**. The background supports the approved copy and
 
 *(Jargon restrictions above apply to the Add funds stub only — not to this confirmation screen.)*
 
-V1 funding methods are defined in PRD / V1Scope: **Add Money** (Coinbase Headless) and **Transfer USDC**. They remain absent from the Phase 2 stub UI.
+V1 funding is defined in PRD / V1Scope / V1Architecture: **Receive USDC on Base**. **Add Money** (Coinbase Headless / Apple Pay) is **post-V1** (code preserved). Phase 2 stub UI should not list live funding methods.
 
 **Copy constraints — do not use:**
 
@@ -466,7 +466,7 @@ V1 funding methods are defined in PRD / V1Scope: **Add Money** (Coinbase Headles
 - Stack **Back** → previous screen (Home or onboarding confirmation)  
 - **No** amount input, funding-method selector, or processing states in Phase 2 stub UI  
 
-**Implementation note (internal — not user-facing):** Add Funds chooser is **Add Money** (Coinbase Headless Onramp) and **Transfer USDC** (Base monitor). Provider names stay out of UI.
+**Implementation note (internal — not user-facing):** V1 funding is **Receive USDC** (Base monitor). **Add Money** (Coinbase Headless Onramp) is post-V1 and preserved in code. Provider names stay out of UI.
 
 **Phase 2 stub behavior:** Continue may remain unwired until Phase 4 — user-facing copy stays as approved above regardless.
 

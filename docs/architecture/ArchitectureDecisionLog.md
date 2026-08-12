@@ -1,8 +1,8 @@
 # Olimpia — Architecture Decision Log
 
 **Status:** Active  
-**Last Updated:** 2026-08-07  
-**Last Reviewed:** 2026-08-07  
+**Last Updated:** 2026-08-12  
+**Last Reviewed:** 2026-08-12  
 **Next Review:** Before App Store submission  
 **Purpose:** Single source of truth for major product and architecture decisions.
 
@@ -10,15 +10,16 @@
 
 ## Current MVP Architecture
 
-**Coinbase Headless Onramp + Privy + Base + USDC + Aave is the only active V1 architecture.**
+**Privy + Base + USDC + Grow is the active V1 architecture.** Fiat on-ramp / off-ramp are not required for V1.
 
 ```text
 User → Privy auth → Privy embedded wallet
-  → Coinbase Headless Onramp → USDC on Base to Privy wallet
-  → Olimpia balance / activity → optional Aave Growth
+  → Receive USDC on Base
+  → Balance + transaction activity
+  → Grow → withdraw back to wallet
 ```
 
-Governing decision: **ADR-013**. Superseded: ADR-004 (Dakota), ADR-005 (Privy Fiat Onramp strategy), ADR-009 (deferred Coinbase Headless). Bridge remains excluded; remaining Bridge **code** must be removed (BuildPlan Day 1). Do not implement from superseded ADRs.
+Governing decision: **ADR-015**. ADR-013 remains historical for the Coinbase Headless implementation that is **preserved as post-V1**. Superseded for V1 funding dependency: treating Coinbase Headless as a launch requirement. Bridge remains excluded. Do not implement from superseded ADRs.
 
 ---
 
@@ -45,62 +46,64 @@ Update an existing decision when its architectural direction remains materially 
 | Decision ID | Decision | Status | Confidence | Decision Date | Rationale | Alternatives Considered | Validation Required | Owner |
 |-------------|----------|--------|------------|---------------|-----------|-------------------------|---------------------|-------|
 | ADR-001 | Use Base as the V1 blockchain network | Confirmed | High | 2026-07-20 | A single supported network reduces user risk, monitoring complexity, transaction-state complexity, and operational scope. | Ethereum mainnet; additional EVM networks; multi-chain support | Confirm production RPC/monitoring reliability, supported USDC contract, confirmation policy, sanctions responsibilities, and operational alerting. | Product & Engineering |
-| ADR-002 | Use supported USDC as the primary V1 asset | Confirmed | High | 2026-07-20 | USDC supports a dollar-denominated experience while allowing funding, transfers, and Growth on Base. | Fiat-only ledger; other stablecoins; multiple assets | Confirm canonical Base USDC contract, decimal handling, provider support, reconciliation, and user disclosures. | Product & Engineering |
+| ADR-002 | Use supported USDC as the primary V1 asset | Confirmed | High | 2026-07-20 | USDC supports a dollar-denominated experience while allowing funding, transfers, and Grow on Base. | Fiat-only ledger; other stablecoins; multiple assets | Confirm canonical Base USDC contract, decimal handling, provider support, reconciliation, and user disclosures. | Product & Engineering |
 | ADR-003 | Use Privy for authentication and embedded wallets | Confirmed | High | 2026-07-20 | Privy provides familiar authentication and embedded wallets without requiring users to manage keys or seed phrases. | Custom authentication and wallet infrastructure; other embedded-wallet providers | Confirm production configuration, session recovery, wallet ownership model, mobile support, security controls, and restricted geographies. | Engineering |
-| ADR-004 | Use Dakota as the planned ACH / Bank Transfer provider | **Superseded by ADR-013** | — | 2026-07-20 | Historical: Dakota was evaluated for low-cost bank funding. **No longer active.** See ADR-013 and archived evaluation notes. | Other ACH providers; delaying bank funding | N/A — superseded | Founder, Product & Engineering |
-| ADR-005 | Use Privy Fiat Onramp as the Apple Pay / Card strategy | **Superseded by ADR-013** | — | 2026-07-20 | Historical: Privy’s configurable Fiat Onramp was the interim card strategy. **Replaced by Coinbase Headless Onramp as the sole V1 fiat funding path.** | Direct Coinbase; Stripe; other onramp SDKs | N/A — superseded | Product & Engineering |
-| ADR-006 | Support direct receipt of existing USDC from another Base wallet | Planned | Medium | 2026-07-20 | Existing Coinbase and wallet users need a direct funding path without repurchasing USDC. | P2P receive only; Coinbase-only transfer integration; no external wallet funding | Validate backend monitoring provider/RPC, canonical token contract, address ownership, confirmation threshold, duplicate prevention, reorg/reversal policy, unsupported-token handling, operational monitoring, and recovery messaging. | Product & Engineering |
-| ADR-007 | Use Aave as the intended V1 Growth/yield protocol | Confirmed | Medium | 2026-07-20 (updated 2026-08-07) | One protocol limits V1 complexity while supporting a provider-neutral Growth Account. | Morpho; Compound; multiple-provider routing; no Growth at V1 | Validate Base market/contracts, security review, compliance and geography, rate source, deposit/withdrawal behavior, liquidity, user authorization, accounting, reconciliation, failure handling, and production readiness. | Founder, Product & Engineering |
-| ADR-008 | Exclude Bridge from the active V1 architecture | Rejected (historical) / **Superseded by ADR-013 for cleanup mandate** | High | 2026-07-20 | Bridge was evaluated and excluded from product architecture. **ADR-013 additionally requires removing remaining Bridge code from the active implementation path.** | Continue with Bridge-centered onramp/off-ramp | Implementation cleanup tracked in BuildPlan Day 1 | Founder |
-| ADR-009 | Defer Coinbase Headless as a dedicated fiat-onramp integration | **Superseded by ADR-013** | — | 2026-07-20 | Historical: Coinbase Headless was deferred in favor of Privy Fiat Onramp. **Reversed — Coinbase Headless is now the selected V1 fiat funding provider.** | Select Coinbase Headless at MVP (chosen in ADR-013) | N/A — superseded | Founder, Product & Engineering |
-| ADR-010 | Implement provider integrations behind thin abstraction layers | Confirmed | High | 2026-07-20 (updated 2026-08-07) | Keep FundingService + LedgerService + normalized statuses. Do **not** build multi-provider BankTransfer / FiatOnramp adapter layers for a single V1 provider (Coinbase). | Heavy multi-provider adapter matrix; provider logic in screens | Validate interface contracts stay thin; Coinbase-specific code stays in one backend module | Engineering |
+| ADR-004 | Use Dakota as the planned ACH / Bank Transfer provider | **Superseded by ADR-013** | — | 2026-07-20 | Historical: Dakota was evaluated for low-cost bank funding. **No longer active.** | Other ACH providers; delaying bank funding | N/A — superseded | Founder, Product & Engineering |
+| ADR-005 | Use Privy Fiat Onramp as the Apple Pay / Card strategy | **Superseded by ADR-013** | — | 2026-07-20 | Historical: Privy’s configurable Fiat Onramp was the interim card strategy. Replaced by Coinbase Headless (then deferred from V1 by ADR-015). | Direct Coinbase; Stripe; other onramp SDKs | N/A — superseded | Product & Engineering |
+| ADR-006 | Support direct receipt of existing USDC from another Base wallet | Confirmed | High | 2026-07-20 (updated 2026-08-12) | **V1 funding path** under ADR-015. Users fund by sending USDC on Base into their Privy address. | P2P receive only; Coinbase-only transfer integration; no external wallet funding | Validate backend monitoring provider/RPC, canonical token contract, address ownership, confirmation threshold, duplicate prevention, reorg/reversal policy, unsupported-token handling, operational monitoring, and recovery messaging. | Product & Engineering |
+| ADR-007 | Use Aave as the intended V1 Grow/yield protocol | Confirmed | Medium | 2026-07-20 (updated 2026-08-12) | One protocol limits V1 complexity while supporting a provider-neutral Grow experience. | Morpho; Compound; multiple-provider routing; no Grow at V1 | Validate Base market/contracts, security review, compliance and geography, rate source, deposit/withdrawal behavior, liquidity, user authorization, accounting, reconciliation, failure handling, and production readiness. | Founder, Product & Engineering |
+| ADR-008 | Exclude Bridge from the active V1 architecture | Rejected (historical) / cleanup completed under ADR-013 | High | 2026-07-20 | Bridge was evaluated and excluded. Remaining Bridge code was removed from the active funding path. | Continue with Bridge-centered onramp/off-ramp | N/A | Founder |
+| ADR-009 | Defer Coinbase Headless as a dedicated fiat-onramp integration | **Superseded by ADR-013** (then funding requirement superseded by ADR-015) | — | 2026-07-20 | Historical oscillation on Coinbase Headless timing. | Select Coinbase Headless at MVP | N/A — superseded | Founder, Product & Engineering |
+| ADR-010 | Implement provider integrations behind thin abstraction layers | Confirmed | High | 2026-07-20 (updated 2026-08-12) | Keep thin Funding / Ledger boundaries. Coinbase-specific code stays in one backend module for post-V1. | Heavy multi-provider adapter matrix; provider logic in screens | Validate interface contracts stay thin | Engineering |
 | ADR-011 | Treat the backend ledger as the source of truth | Confirmed | High | 2026-07-20 | A server-authoritative ledger enables idempotent credits, consistent balances/activity, reversals, auditability, and provider/blockchain reconciliation. | Wallet balance as UI truth; mobile-computed balances; provider status as direct balance authority | Validate ledger invariants, idempotency constraints, reversal semantics, reconciliation jobs, audit logs, and operational recovery before real-money launch. | Engineering |
-| ADR-012 | Keep the Add Funds mobile UI provider-neutral | Confirmed | High | 2026-07-20 (updated 2026-08-07) | Users choose **Add Money** or **Transfer USDC** — not Coinbase, Aave, or other vendor names. | Provider-branded primary method labels | Validate usability; confirm fee/timing disclosures and accessible cancel/return behavior. | Product & Design |
-| **ADR-013** | **Coinbase Headless Onramp selected for V1; Bridge and Dakota removed from active architecture** | **Confirmed** | High | **2026-08-07** | Finish MVP in 3–4 days for iOS App Store submission with one fiat funding provider that delivers USDC to the Privy’s embedded wallet on Base. Multi-provider ACH + Privy Fiat Onramp architecture added unnecessary complexity. Bridge remains in legacy API code and must be removed before production funding. Dakota evaluation notes are historical only. | Keep Dakota ACH + Privy Fiat Onramp; keep Bridge; multi-provider funding matrix | Confirm Coinbase Headless React Native / iOS support, session creation, destination wallet (Privy) on Base USDC, KYC/geography, fees, webhooks/callbacks, sandbox + production credentials. Remove Bridge env, routes, schema fields, and provider code. Archive Dakota evaluation. | Founder, Product & Engineering |
-| ADR-014 | Defer bank withdrawal / off-ramp from App Store V1 submission | Deferred | High | 2026-08-07 | No off-ramp provider is selected; withdrawal cannot ship in the 3–4 day sprint. | Keep withdrawal as App Store gate; require before public testing | Select provider later; then validate KYC, payout rails, fees, webhooks, returns | Founder |
+| ADR-012 | Keep funding mobile UI provider-neutral | Confirmed | High | 2026-07-20 (updated 2026-08-12) | V1 primary label is **Receive USDC**. Post-V1 may reintroduce **Add Money**. Do not use vendor names as method labels. | Provider-branded primary method labels | Validate usability; confirm disclosures and accessible cancel/return behavior. | Product & Design |
+| ADR-013 | Coinbase Headless Onramp selected as fiat funding integration; Bridge and Dakota removed | **Superseded for V1 launch dependency by ADR-015** | High | 2026-08-07 | Implemented and sandbox-verified Coinbase Headless path. Still the intended post-V1 fiat Add Money integration. **No longer a V1 launch requirement.** Preserve code. | Keep Dakota ACH + Privy Fiat Onramp; keep Bridge; multi-provider funding matrix | Production credentials deferred to V1.1+ | Founder, Product & Engineering |
+| ADR-014 | Defer bank withdrawal / offramp from App Store V1 submission | Deferred | High | 2026-08-07 | No offramp provider is selected. | Keep withdrawal as App Store gate | Select provider later; then validate KYC, payout rails, fees, webhooks, returns | Founder |
+| **ADR-015** | **Simplify V1: no fiat on-ramp/off-ramp required; fund via Receive USDC on Base; preserve Coinbase Headless as post-V1** | **Confirmed** | High | **2026-08-12** | Ship a self-custodial USDC experience faster: Privy wallet → receive USDC → balance → Grow → withdraw from Grow. Fiat onramp adds KYC/Apple Pay/credential risk not needed for first launch. | Keep Coinbase Headless as V1 gate (ADR-013); delete Coinbase code | Receive UI + Base monitor + activity wiring + Grow deposit/withdraw; gate Add Money; verify with real Base USDC | Founder, Product & Engineering |
 
-Future decisions continue sequentially with **ADR-015** and so on.
+Future decisions continue sequentially with **ADR-016** and so on.
 
 # Cross-reference Guidance
 
-- Active funding architecture → **ADR-013** and [Architecture.md](./Architecture.md)
+- Active V1 funding architecture → **ADR-015** and [V1Architecture.md](../V1Architecture.md)
+- Coinbase Headless implementation (post-V1) → ADR-013 (historical selection) + [CoinbaseHeadlessIntegration.md](../integrations/CoinbaseHeadlessIntegration.md)
 - Do **not** cite ADR-004, ADR-005, or ADR-009 as current direction
-- Growth Account → **ADR-007**
+- Grow → **ADR-007**
 - Ledger authority → **ADR-011**
 - Thin abstractions → **ADR-010**
 
 # Guiding Principles
 
-## Single V1 fiat provider
+## V1 funding without fiat rails
 
-Coinbase Headless Onramp is the only active V1 fiat funding integration. Do not reintroduce Bridge, Dakota, or a multi-provider bank-transfer matrix into current docs or the sprint plan.
+Receive USDC on Base is the V1 funding path. Do not treat Coinbase Headless, Apple Pay, or offramp as launch blockers.
+
+## Preserve post-V1 Coinbase work
+
+Do not delete Coinbase Headless modules. Prefer feature flag / eligibility / inactive route.
 
 ## Thin provider boundaries
 
-Coinbase-specific SDKs, payloads, statuses, and webhooks stay in one backend module. Mobile consumes normalized funding methods and states. Avoid unused abstraction layers.
+Coinbase-specific SDKs, payloads, statuses, and webhooks stay in one backend module. Mobile consumes normalized states.
 
 ## Beginner-first UX
 
-Primary labels remain **Add Money** and **Transfer USDC**.
+Primary V1 funding label: **Receive USDC**. Protocol names stay out of primary UI.
 
 ## Hide blockchain complexity
 
-Balances are presented in dollars. Wallet, token, and network mechanics remain hidden except where required for safe **Transfer USDC** instructions.
-
-## Compliance before convenience
-
-KYC, sanctions, fraud, fee, disclosure, chargeback, return, and provider requirements must be validated before optimizing for fewer steps.
+Balances are presented in dollars. Wallet, token, and network mechanics remain hidden except where required for safe Receive USDC instructions.
 
 ## Ledger-first accounting
 
-The backend ledger, not mobile state or an unvalidated provider event, determines displayed balances and activity.
+The backend ledger, not mobile state or an unvalidated chain event, determines displayed balances and transaction activity.
 
 # Future Re-evaluation
 
 Revisit after MVP / App Store submission:
 
-- Bank off-ramp / withdrawal provider
-- Additional ACH or onramp providers (only if Coinbase Headless cannot cover a required geography or rail)
+- Coinbase Headless production Add Money / Apple Pay (V1.1+)
+- Bank offramp / withdrawal provider
 - International funding and eligibility
 - Gnosis Pay or another card provider
 - Additional yield providers
@@ -112,20 +115,24 @@ Re-evaluation does not change the active V1 architecture until a new decision is
 
 ## Original funding architecture (historical)
 
-Early Olimpia planning used a Bridge-centered model for fiat funding and withdrawal. That code still exists in parts of `apps/api` and must be removed under **ADR-013**.
+Early Olimpia planning used a Bridge-centered model for fiat funding and withdrawal. Bridge was removed from the active path under ADR-013.
 
 ## Provider-separated interim model (historical)
 
-A later model separated Dakota ACH, Privy Fiat Onramp, and Transfer USDC. That model is **superseded**. Dakota and multi-provider Privy Fiat Onramp selection are no longer active V1 architecture.
+A later model separated Dakota ACH, Privy Fiat Onramp, and Transfer USDC. That model is **superseded**.
 
-## Current model (2026-08-07)
+## Coinbase Headless as V1 fiat gate (2026-08-07 → superseded 2026-08-12)
 
-- **Add Money** via Coinbase Headless Onramp → USDC to Privy wallet on Base
-- **Transfer USDC** via inbound Base USDC to the same Privy wallet
-- Backend ledger + Base monitoring
-- Optional Aave Growth Account
-- Withdrawal deferred
+ADR-013 selected Coinbase Headless as the V1 fiat funding provider. Implementation and sandbox E2E completed. **ADR-015** removes fiat onramp as a V1 launch dependency while preserving the code for post-V1.
+
+## Current model (2026-08-12)
+
+- **Receive USDC** via inbound Base USDC to the Privy embedded wallet
+- Backend ledger + Base monitoring (monitor still to build)
+- Grow via Aave (adapter still to build)
+- Coinbase Headless Add Money preserved as post-V1
+- Fiat offramp deferred
 
 ---
 
-When a decision changes, update the existing entry’s status only if its meaning remains the same. For a material reversal, preserve the prior outcome in **Decision History** and add a new dated decision entry.
+*End of Architecture Decision Log*
