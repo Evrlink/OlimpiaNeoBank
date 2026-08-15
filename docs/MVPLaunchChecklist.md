@@ -3,7 +3,7 @@
 **Status:** Primary execution document  
 **Architecture:** [V1Architecture.md](./V1Architecture.md) · [Architecture.md](./architecture/Architecture.md) · [ADR-015](./architecture/ArchitectureDecisionLog.md)  
 **Scope:** [V1Scope.md](./product/V1Scope.md) · [PRD.md](./product/PRD.md)  
-**Last status review:** 2026-08-12 (V1 simplified: no fiat on-ramp required)
+**Last status review:** 2026-08-12 (V1 simplified: Receive USDC + Privy balance/activity/Grow; Coinbase on-ramp/off-ramp post-V1)
 
 ---
 
@@ -63,13 +63,14 @@ Analytics
 - Google Analytics 4
 
 ```text
-User → Privy auth → Privy embedded wallet
+Privy embedded wallet
   → Receive USDC on Base
-  → Balance + transaction activity
-  → Grow → withdraw back to wallet
+  → USDC balance via Privy
+  → Real wallet transaction activity via Privy
+  → Grow / yield → withdraw back to Privy wallet
 ```
 
-**Not required for this MVP:** Coinbase Headless Onramp, Apple Pay funding, fiat USD→USDC, bank withdrawal / offramp, virtual card, functional Pia.
+**Not V1 launch blockers:** Coinbase Headless Onramp, Apple Pay, fiat funding, Offramp, virtual card, functional Pia.
 
 **Preserved for post-V1:** Coinbase Headless implementation (API + mobile Add Money). Do not delete; gate rather than remove. Spec: [integrations/CoinbaseHeadlessIntegration.md](./integrations/CoinbaseHeadlessIntegration.md).
 
@@ -111,58 +112,57 @@ Understands what happened through a simple UI
 
 These tasks block App Store readiness. Work top to bottom. Checkboxes reflect **current repo status** (checked = already satisfied in code / product surfaces today).
 
-## Authentication
+## Set up and validate Privy
 
 - [x] Privy email OTP sign-up / sign-in wired (`AuthScreen`, `useEmailAuthFlow`)
 - [x] Backend auth sync (`POST /api/v1/auth/sync`) creates / links user
 - [x] Session restoration on cold start (`useSessionRestore`, `GET /api/v1/me`)
-- [x] Logout via Privy (`ProfileScreen`)
-- [ ] End-to-end auth verified on **TestFlight / device** against staging or production API
+- [ ] Valid Privy app credentials for the environment (local smoke previously saw `401 Invalid app ID or app secret`)
 - [ ] Production Privy app config matches iOS bundle ID `app.olimpia.mobile` and scheme `olimpia`
+- [ ] Persist non-null `privy_wallet_id` on auth sync (local DB currently can store address with null wallet id)
+- [ ] Smoke-test Privy `balance.get` + `transactions.get` against a real embedded wallet (not done — blocked on creds / wallet id)
 
 ## Wallet
 
 - [x] Embedded Ethereum wallet created on login when missing (`useEmbeddedEthereumWallet().create()`)
 - [x] Wallet address stored via auth sync (`wallets` table, chain `base`)
 - [x] Wallet never shown on Home / Profile (only needed on Receive USDC)
+- [x] Logout via Privy (`ProfileScreen`)
 - [ ] Wallet persistence / recovery validated on fresh install + reinstall (device)
 - [ ] Confirm Privy wallet is always available before Receive / Grow
+- [ ] End-to-end auth verified on **TestFlight / device** against staging or production API
 
 ## Receive USDC on Base
 
 - [ ] Receive screen shows Privy address, QR, Copy, Base + USDC warning (today: **Coming soon stub**)
 - [ ] Beginner instructions for sending from Coinbase / compatible wallets
-- [ ] Backend detects / confirms inbound USDC to the Privy address (**no chain monitor in repo today**)
-- [ ] Idempotent ledger credit (or verified balance update) once per inbound transfer
 - [ ] Unsupported asset / network messaging
-- [ ] Real Base USDC receipt verified end-to-end
+- [ ] Real Base USDC receipt verified end-to-end (after balance/activity via Privy)
 
-## USDC / balances
+## USDC balance via Privy
 
-- [x] Backend balance buckets (`available`, `goals`, `growth`, `totalDisplay`) readable via API
-- [x] Home shows backend ledger balance (funded + empty states)
-- [ ] Balance updates after **inbound Base USDC** (today credits only from funding-deposit finalization — Coinbase/mock)
+- [x] Home can show a balance number today from **Olimpia ledger** (`user_balances`) — **not** Privy Get Balance
+- [ ] Wire **Privy Get Balance** (`asset=usdc`, `chain=base`) — **planned; not implemented**
+- [ ] Balance updates after inbound Base USDC
 - [ ] Empty Home CTA / copy reflects Receive USDC (today still pushes bank / Add Money)
 - [ ] Pull-to-refresh / re-fetch balance after receipt
 
-## Transaction activity
+## Real wallet transaction activity via Privy
 
-- [x] API activity list + detail routes exist (`GET /api/v1/activity`, `/:id`)
-- [x] Ledger writes a deposit activity row on completed **app deposit** credit (Coinbase/mock onramp)
-- [ ] Activity reflects **actual Base wallet** inbound / outbound USDC (today: app-created deposit rows only — see [V1Architecture.md](./V1Architecture.md))
-- [ ] Mobile Home “Recent activity” loads from API (today is **hardcoded empty state only**)
+- [x] Legacy `GET /api/v1/activity` exists for **app-created deposit** rows only — **not** Privy Get Transactions
+- [ ] Wire **Privy Get Transactions** (`chain=base`, `asset=usdc`) — **planned; not implemented**
+- [ ] Mobile Home “Recent activity” loads real wallet transfers (today: **hardcoded empty state**)
 - [ ] Activity shows Grow deposits / withdrawals when Grow ships
-- [ ] Transaction detail screen (optional if Home list + status is enough for MVP)
 
 ## Grow (yield)
 
 - [x] Home / Choose Yield **entry points** exist in navigation
 - [ ] Choose Yield is functional (today: **Coming soon placeholder**)
-- [ ] Backend Aave / Grow adapter (deposit / withdraw / position) — **does not exist**
-- [ ] Deposit USDC into Grow from Available (explicit user authorization)
-- [ ] Withdraw from Grow back to Available / Privy wallet
-- [ ] Display estimated APY from real rate source (Home currently shows hardcoded `4.2` — must not ship as real)
-- [ ] Display Grow allocated balance from backend (column exists; nothing writes it yet)
+- [ ] Privy Earn / Aave vault enablement + `vault_id` — **does not exist in product**
+- [ ] Deposit USDC into Grow via Privy Earn (explicit user authorization) — **not implemented**
+- [ ] Withdraw from Grow back to Privy wallet via Privy Earn — **not implemented**
+- [ ] Display estimated APY from real vault details (Home currently shows hardcoded `4.2` — must not ship as real)
+- [ ] Display Grow allocated / earnings from Privy position (or equivalent)
 - [ ] Enable `eligibility.growth` when ready
 
 ## Coinbase Headless (post-V1 — preserve only)
@@ -382,17 +382,17 @@ AND the app has:
 
 # Ranked remaining work (shortest path to App Store)
 
-Exact order for unchecked work. Do not reorder unless blocked.
+Exact order for unchecked V1 work. Do not reorder unless blocked.
 
 | Rank | Task | Why this order |
 |------|------|----------------|
-| 1 | Privy embedded wallet reliability (device / recovery) | Foundation for receive + Grow |
-| 2 | Receive USDC UI (address, QR, Base warning, instructions) | Users can send funds |
-| 3 | Detect inbound USDC + update balance | Balance truth after transfer |
-| 4 | Transaction activity for wallet USDC + wire Home to API | Journey “activity reflects transfer” |
-| 5 | Remove hardcoded Home APY / gate Choose Yield until Grow works | Avoid false yield claims |
-| 6 | Grow: backend deposit/withdraw + mobile flow | Completes earn step |
-| 7 | Grow balances + activity types + eligibility.growth | Dashboard truth |
+| 1 | Set up and validate Privy (credentials, config, `privy_wallet_id`) | Unlocks all Privy APIs |
+| 2 | Privy embedded wallet reliability (device / recovery) | Foundation for receive + Grow |
+| 3 | Receive USDC UI (address, QR, Base warning, instructions) | Users can send funds |
+| 4 | USDC balance via Privy Get Balance | Balance truth after transfer |
+| 5 | Real wallet transaction activity via Privy Get Transactions | Journey “activity reflects transfer” |
+| 6 | Grow / yield via Privy Earn (after vault enablement) | Completes earn step |
+| 7 | Withdraw from Grow back to Privy wallet | Completes round-trip |
 | 8 | End-to-end verify with real Base USDC transfers | Proves simplified V1 |
 | 9 | Gate / de-emphasize Coinbase Add Money as post-V1 | Avoid fiat dependency in review |
 | 10 | Staging deploy + TestFlight auth/receive smoke | Proves journey off localhost |
@@ -401,7 +401,7 @@ Exact order for unchecked work. Do not reorder unless blocked.
 | 13 | P1 polish / a11y / security pass on funded path | Production quality |
 | 14 | Full TestFlight walkthrough → submit for review | Launch |
 
-**Explicitly defer (P2 / V1.1+):** Coinbase Headless production, Apple Pay, fiat offramp, P2P send/receive, persisted Savings goals, Android.
+**Explicitly defer (P2 / V1.1+):** Coinbase Headless production, Apple Pay, fiat onramp/offramp, P2P send/receive, persisted Savings goals, Android.
 
 ---
 
@@ -414,6 +414,7 @@ Exact order for unchecked work. Do not reorder unless blocked.
 | 2026-08-07 | **Task 2:** Coinbase Headless E2E implemented (CDP JWT + create order + Verification APIs + Apple Pay WebView + `onramp.transaction.*` webhooks). Ledger still credits only on success / completed. | CDP credentials, US phone verification, public HTTPS webhook URL, production Onramp approval | Rank 3 — sandbox E2E with real Coinbase credentials; then Home activity |
 | 2026-08-07 | **Sandbox E2E verified:** create order, JWT, WebView checkout, sandbox purchase, webhook, single ledger credit, balance refresh, activity row, duplicate webhook ignored. | Production credentials; production webhook URL; Apple device testing | Rank 3 — production Coinbase credentials + HTTPS webhook URL |
 | 2026-08-12 | **V1 scope simplified:** fiat on-ramp / Apple Pay / offramp no longer required for launch. Docs updated; Coinbase code preserved as post-V1. | Receive USDC + Base monitor; activity wiring; Grow | Rank 1 — Privy wallet reliability / Receive USDC |
+| 2026-08-12 | Docs aligned to Privy-native V1 priorities (validate Privy → wallet → Receive → Privy balance/activity → Grow). Smoke test blocked: invalid local Privy creds; null `privy_wallet_id`. | Valid Privy credentials + wallet id persistence | Rank 1 — Set up and validate Privy |
 
 ---
 

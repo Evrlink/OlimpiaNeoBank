@@ -39,10 +39,11 @@ See [`docs/README.md`](docs/README.md) for the full index.
 ## Current V1 stack (approved)
 
 ```text
-User → Privy auth → Privy embedded wallet
+Privy embedded wallet
   → Receive USDC on Base
-  → Balance + transaction activity
-  → Grow → withdraw back to wallet
+  → USDC balance via Privy
+  → Real wallet transaction activity via Privy
+  → Grow → withdraw back to Privy wallet
 ```
 
 | Layer | Choice |
@@ -51,8 +52,9 @@ User → Privy auth → Privy embedded wallet
 | Auth + wallet | Privy embedded wallet |
 | Chain / asset | Base / USDC |
 | Funding (V1) | Inbound USDC on Base |
+| Balance / activity (V1 intent) | Privy Get Balance / Get Transactions (**planned — not wired**) |
 | Backend | Node.js / Express + PostgreSQL |
-| Grow | Aave on Base (intended) |
+| Grow (V1 intent) | Privy Earn / Aave vault (**planned — not wired**) |
 | Marketing | Existing site on Vercel + GA4 |
 
 **Post-V1 (code preserved):** Coinbase Headless Onramp, Apple Pay funding, fiat offramp, virtual card.
@@ -61,12 +63,13 @@ User → Privy auth → Privy embedded wallet
 
 ## Core V1 features
 
-| Feature | Description |
-|---------|-------------|
-| Account creation | Privy email auth + embedded wallet |
-| Receive USDC | Supported USDC on Base into Privy wallet |
-| Balance + transaction activity | Backend-authoritative display |
-| Grow | Optional yield allocation; withdraw back to wallet |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Account creation | Privy email auth + embedded wallet | Partially implemented |
+| Receive USDC | Supported USDC on Base into Privy wallet | Planned (UI stub) |
+| Balance | Privy USDC balance on Base | Planned (ledger display exists today — not Privy) |
+| Transaction activity | Privy wallet transfers | Planned (app-deposit activity API only today) |
+| Grow | Privy Earn deposit / withdraw + earnings | Planned (UI placeholder) |
 
 ## Development
 
@@ -79,7 +82,7 @@ npm run start -w @olimpia/mobile
 
 ## Current status
 
-V1 simplified: no fiat on-ramp required for launch. Immediate priorities — Privy wallet, Receive USDC, balance, wallet transaction activity, Grow deposit/withdraw, real Base USDC verification — see [`docs/MVPLaunchChecklist.md`](docs/MVPLaunchChecklist.md) and [`docs/V1Architecture.md`](docs/V1Architecture.md).
+V1 does **not** use Coinbase Onramp/Offramp. Immediate priorities: validate Privy → embedded wallet → Receive USDC → Privy balance → Privy activity → Grow → withdraw → real Base USDC verification — see [`docs/MVPLaunchChecklist.md`](docs/MVPLaunchChecklist.md) and [`docs/V1Architecture.md`](docs/V1Architecture.md).
 
 ---
 

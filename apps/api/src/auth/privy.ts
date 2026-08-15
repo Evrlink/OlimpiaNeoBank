@@ -67,14 +67,59 @@ export function extractEmbeddedEthereumWallet(
       "address" in account &&
       typeof account.address === "string"
     ) {
+      const rawId =
+        "id" in account && typeof account.id === "string" ? account.id.trim() : "";
+
       return {
-        id: "id" in account && (typeof account.id === "string" || account.id === null)
-          ? account.id
-          : null,
+        id: rawId.length > 0 ? rawId : null,
         address: account.address,
       };
     }
   }
 
   return undefined;
+}
+
+/**
+ * When linked_accounts omit wallet id, resolve it from Privy's wallets API.
+ * Prefer address match; fall back to user_id filter.
+ */
+export async function resolvePrivyWalletId(input: {
+  privyUserId: string;
+  address: string;
+}): Promise<string | null> {
+  const client = getPrivyClient();
+  const normalizedAddress = input.address.trim().toLowerCase();
+
+  try {
+    const byAddress = await client.wallets().list({
+      address: input.address,
+      chain_type: "ethereum",
+    });
+
+    for await (const wallet of byAddress) {
+      if (wallet.address?.trim().toLowerCase() === normalizedAddress) {
+        return wallet.id;
+      }
+    }
+  } catch {
+    // Fall through to user_id lookup.
+  }
+
+  try {
+    const byUser = await client.wallets().list({
+      user_id: input.privyUserId,
+      chain_type: "ethereum",
+    });
+
+    for await (const wallet of byUser) {
+      if (wallet.address?.trim().toLowerCase() === normalizedAddress) {
+        return wallet.id;
+      }
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 }

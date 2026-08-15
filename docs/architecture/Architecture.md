@@ -16,12 +16,11 @@
 **Privy + Base + USDC + Grow is the active V1 architecture.** Fiat on-ramp / off-ramp are **not** required for V1.
 
 ```text
-User
-  → Privy authentication
-  → Privy embedded wallet
-  → Receive USDC on Base (external transfer)
-  → Olimpia balance / transaction activity (backend ledger)
-  → optional Grow (Aave on Base) → withdraw back to wallet
+Privy embedded wallet
+  → Receive USDC on Base
+  → USDC balance via Privy (planned)
+  → Real wallet transaction activity via Privy (planned)
+  → Grow via Privy Earn / Aave vault (planned) → withdraw back to wallet
 ```
 
 | Layer | Active V1 choice |
@@ -30,8 +29,9 @@ User
 | Auth + wallet | Privy embedded wallet |
 | Chain / asset | Base / USDC |
 | Funding (V1) | Receive USDC (inbound on Base) |
+| Balance / activity (intent) | Privy Get Balance / Get Transactions — **not wired** |
 | Backend | Node.js / Express + PostgreSQL |
-| Grow | Aave on Base (intended) |
+| Grow (intent) | Privy Earn / Aave vault — **not wired** |
 | Marketing | Vercel site + GA4 |
 
 **Post-V1 (preserve code):** Coinbase Headless Onramp, Apple Pay funding, fiat offramp, virtual card.  
@@ -93,14 +93,14 @@ Mobile app
     v
 Olimpia backend
     |-- Privy: verify identity and resolve embedded wallet
-    |-- Blockchain deposit monitor: inbound USDC on Base (required for V1 Receive)
-    |-- Ledger service: authoritative balances and transaction activity
-    |-- Aave adapter: Grow deposits/withdrawals (required for V1 Grow)
+    |-- Privy Get Balance / Get Transactions (planned V1 wiring)
+    |-- Privy Earn: Grow deposit/withdraw (planned; requires vault enablement)
+    |-- Ledger / BFF (optional cache; not the V1 wallet truth once Privy is wired)
     |-- Coinbase Headless Onramp: preserved post-V1 path (do not delete)
     `-- Notification service (optional for V1)
 ```
 
-Base events enter the backend, are validated and deduplicated, then update the ledger. Mobile never interprets raw chain/provider statuses or credits deposits itself.
+Privy wallet events and Earn actions update what the user sees for USDC balance, activity, and Grow. Mobile never credits deposits itself. A custom Base chain monitor is **not** the default V1 plan while Privy APIs are the intended path.
 
 ---
 
@@ -153,15 +153,22 @@ V1 funding must produce:
 
 Keep thin abstractions. Do **not** invent multi-provider bank / onramp adapter layers for V1.
 
-### BlockchainDepositMonitor (required for V1)
+### Privy wallet balance + transactions (intended V1 path)
 
-- Monitor Base for inbound transfers of the supported USDC contract to the user’s Privy address.
-- Validate chain, recipient, token contract, amount, and transaction hash.
-- Prevent duplicate processing.
-- Wait for the configured confirmation threshold.
-- Send validated deposits to LedgerService.
+- Query USDC on Base via Privy Get Balance / Get Transactions using stored `privy_wallet_id`.
+- Polling is acceptable for MVP if production webhooks are unavailable.
+- **Status in repo today:** SDK methods exist; **not wired**; live smoke not completed — see [V1Architecture.md](../V1Architecture.md).
 
-**Status in repo today:** not implemented — see [V1Architecture.md](../V1Architecture.md).
+### Privy Earn / Grow (intended V1 path)
+
+- Deposit / withdraw through Privy Earn ethereum endpoints with an enabled Aave (or other) `vault_id`.
+- Requires Privy vault enablement and authorization for user-owned embedded wallets.
+- **Status in repo today:** not implemented.
+
+### BlockchainDepositMonitor (fallback only)
+
+- Only if Privy balance/transactions cannot cover inbound Receive USDC detection.
+- Not the default V1 plan.
 
 ### CoinbaseOnramp (post-V1 — preserve)
 

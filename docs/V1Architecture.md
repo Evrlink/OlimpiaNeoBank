@@ -3,7 +3,8 @@
 **Status:** Canonical for simplified V1  
 **Scope companion:** [product/V1Scope.md](./product/V1Scope.md)  
 **Execution:** [MVPLaunchChecklist.md](./MVPLaunchChecklist.md)  
-**Last verified against repo:** 2026-08-12
+**Last verified against repo:** 2026-08-12  
+**Decision:** [ADR-015](./architecture/ArchitectureDecisionLog.md) — no Coinbase on-ramp/off-ramp for V1; Coinbase Headless code preserved as post-V1.
 
 This document describes the **simplified V1 product** and what the repository actually implements today. Status labels:
 
@@ -12,6 +13,7 @@ This document describes the **simplified V1 product** and what the repository ac
 | **Implemented** | Code path exists and is wired end-to-end for the stated behavior |
 | **Partially implemented** | UI, API, or ledger pieces exist but the full user flow is incomplete |
 | **Planned** | Required for V1; not built yet |
+| **Post-V1** | Intentionally deferred; code may already exist and must be preserved |
 
 ---
 
@@ -37,11 +39,16 @@ V1 does **not** require fiat on-ramp or off-ramp.
 8. User can withdraw from Grow back to the Privy wallet
 
 ```text
-User → Privy auth → Privy embedded wallet
-  → Receive USDC on Base (external transfer)
-  → Balance + transaction activity
-  → Grow (yield) → withdraw back to wallet
+Privy embedded wallet
+  → Receive USDC on Base
+  → See USDC balance (intended: Privy Get Balance)
+  → See real wallet transaction activity (intended: Privy Get Transactions)
+  → Move USDC into Grow (intended: Privy Earn / Aave vault)
+  → Track earnings
+  → Withdraw from Grow back to Privy wallet
 ```
+
+**Intended infrastructure for balance / activity / Grow:** Privy server APIs already present in `@privy-io/node` (`balance.get`, `transactions.get`, `earn().ethereum().deposit|withdraw`). These are **not wired** in Olimpia app code yet. Live smoke validation was blocked (invalid local Privy credentials; local DB wallets missing `privy_wallet_id`). Do not treat Privy-native balance, transactions, or Grow as implemented.
 
 ---
 
@@ -67,7 +74,7 @@ These remain **planned post-V1** features. Existing Coinbase Headless work in th
 | Network | Base |
 | Asset | USDC on Base |
 | Funding (V1) | Inbound USDC transfer to Privy address |
-| Yield | Grow via Aave on Base (intended; see status below) |
+| Yield | Grow via Privy Earn / Aave vault (**planned**; see status below) |
 | Backend | Node.js / Express + PostgreSQL |
 | Mobile | React Native / Expo — iOS first |
 | Marketing | Vercel + GA4 |
@@ -90,34 +97,35 @@ These remain **planned post-V1** features. Existing Coinbase Headless work in th
 | Status | Evidence |
 |--------|----------|
 | **Planned** (UI stub only) | `ReceiveMoneyScreen` is a “Coming soon” placeholder — no address, QR, Copy, or Base network warning. |
-| Still needed | Show authenticated Privy address + QR + Base/USDC warning; beginner instructions for sending from Coinbase / compatible wallets; backend confirmation of inbound transfers (monitor / indexer / RPC — **not present** in `apps/api`). |
-
-There is **no** Base deposit monitor, webhook, or chain-indexer module in the API today.
+| Still needed | Show authenticated Privy address + QR + Base/USDC warning; beginner instructions for sending from Coinbase / compatible wallets; persist non-null `privy_wallet_id`. |
 
 ### 3. USDC balance
 
 | Status | Evidence |
 |--------|----------|
-| **Partially implemented** | Backend ledger buckets in `user_balances` (`available_usd`, `goals_allocated_usd`, `growth_allocated_usd`) via `GET /api/v1/balance` and auth sync / `/me`. Home reads that balance. |
-| Important limitation | Balance is a **backend ledger**, not a live on-chain USDC read of the Privy wallet. Credits today come from completed **funding deposits** (`creditAvailableForCompletedDeposit` on Coinbase/mock onramp success). Inbound Base transfers do **not** update the ledger yet. |
-| Still needed | Detect inbound USDC, credit ledger (or switch display to verified wallet balance), refresh Home after receipt. |
+| **Partially implemented** (ledger only — **not** Privy Get Balance) | Backend ledger buckets in `user_balances` via `GET /api/v1/balance` and auth sync / `/me`. Home reads that ledger balance. |
+| Important limitation | **Not** Privy `wallets().balance.get`. Credits today come from completed **funding deposits** (Coinbase/mock onramp success). Inbound Base transfers do **not** update the displayed balance. |
+| Planned for V1 | Wire **Privy Get Balance** (`asset=usdc`, `chain=base`) after validating wallet IDs + credentials. |
+| Still needed | Valid Privy credentials; store `privy_wallet_id`; call Privy balance API; refresh Home after receipt / on pull-to-refresh. |
 
 ### 4. Transaction activity
 
 | Status | Evidence |
 |--------|----------|
-| **Partially implemented** (API only) | `GET /api/v1/activity` and `GET /api/v1/activity/:id` read the `transactions` table for the authenticated user. |
-| What it reflects today | Rows created when a **deposit** is finalized (type `deposit`, status `completed`) via the funding ledger credit path — i.e. **app-created deposits** (Coinbase onramp / local mock), **not** arbitrary Base wallet transfers. |
-| Mobile | Home “Recent activity” is a **hardcoded empty state**; it does **not** call the activity API. |
-| Still needed for V1 wallet activity | Ingest inbound/outbound USDC wallet events into `transactions` (or equivalent); wire Home (and detail if needed) to `GET /api/v1/activity`; include Grow deposit/withdraw rows when Grow ships. |
+| **Partially implemented** (app-deposit ledger only — **not** Privy Get Transactions) | `GET /api/v1/activity` reads local `transactions` rows from funding-deposit finalization. |
+| What it reflects today | **App-created deposits** (Coinbase onramp / mock), **not** arbitrary Base wallet transfers. |
+| Mobile | Home “Recent activity” is a **hardcoded empty state**; it does **not** call the activity API or Privy. |
+| Planned for V1 | Wire **Privy Get Transactions** (`chain=base`, `asset=usdc`) for real inbound/outbound wallet activity. |
+| Still needed | Validate Privy transactions API against embedded wallets; map `transfer_received` / `transfer_sent` into UI; include Grow movements when Grow ships. |
 
 ### 5. Grow / yield
 
 | Status | Evidence |
 |--------|----------|
-| **Partially implemented** (entry points + schema only) | Navigation to Choose Yield; `ChooseYieldScreen` is an explicit Coming soon placeholder. Balance column `growth_allocated_usd` exists; eligibility `growth` is `false` (`not_available_phase_2`). Home may show hardcoded `4.2` APY when “earning” — **not** a live rate. |
-| Does **not** exist | Aave adapter, deposit/withdraw routes, position sync, real APY source, writes to `growth_allocated_usd`. |
-| Still needed | Backend deposit USDC into Grow (Aave on Base) with explicit user authorization; withdraw Grow → Available / wallet; display real allocated balance + estimated variable APY; Grow activity rows; enable eligibility when ready. |
+| **Partially implemented** (entry points + schema only) | Navigation to Choose Yield; `ChooseYieldScreen` is an explicit Coming soon placeholder. Balance column `growth_allocated_usd` exists; eligibility `growth` is `false`. Home may show hardcoded `4.2` APY when “earning” — **not** a live rate. |
+| Does **not** exist | Privy Earn deposit/withdraw wiring, vault_id config, position/APY reads, custom Aave adapter. |
+| Planned for V1 | Prefer **Privy Earn** with an Aave-backed vault (`vault_id` via Privy enablement) — **not built**. |
+| Still needed | Privy Aave vault enablement + `vault_id`; user-wallet authorization for Earn deposit/withdraw; position + earnings + estimated APY UI; enable eligibility when ready. |
 
 **Terminology:** Product docs use **Grow**. Mobile UI currently says **Growth** / **Choose Yield**. Protocol names (Aave) must stay out of primary UI.
 
@@ -125,27 +133,28 @@ There is **no** Base deposit monitor, webhook, or chain-indexer module in the AP
 
 | Status | Evidence |
 |--------|----------|
-| **Planned** | No API or mobile flow. Blocked on Grow backend. |
+| **Planned** | No API or mobile flow. Intended via Privy Earn withdraw once Grow deposit works. |
 
-### 7. Coinbase Headless Onramp (preserved, post-V1)
+### 7. Coinbase Headless Onramp (**post-V1**, preserved)
 
 | Status | Evidence |
 |--------|----------|
-| **Implemented** (sandbox E2E verified historically) | API: CDP JWT, create order, verification, webhooks (`/webhooks/coinbase`), ledger credit on success. Mobile: Add Money → ToS / verification → Apple Pay WebView. Spec: [integrations/CoinbaseHeadlessIntegration.md](./integrations/CoinbaseHeadlessIntegration.md). |
-| V1 policy | **Not required** for launch. Keep code; treat as post-V1 / V1.1. Prefer gating Add Money / `eligibility.onRamp` rather than deleting modules. |
-| Blocks simpler V1? | **No.** Funding provider is selected via `FUNDING_PROVIDER` (`coinbase` vs `mock`). Missing pieces for simplified V1 are Receive + chain monitor + activity wiring + Grow — not Coinbase itself. Empty Home still CTAs “Add money from your bank,” which is product copy debt for the new scope. |
+| **Implemented** in repo (sandbox E2E verified historically) — **post-V1** | API: CDP JWT, create order, verification, webhooks (`/webhooks/coinbase`), ledger credit on success. Mobile: Add Money → ToS / verification → Apple Pay WebView. Spec: [integrations/CoinbaseHeadlessIntegration.md](./integrations/CoinbaseHeadlessIntegration.md). |
+| V1 policy | **Not a launch dependency.** Do **not** delete. Prefer gating Add Money / `eligibility.onRamp`. |
+| Blocks simpler V1? | **No.** Empty Home still CTAs “Add money from your bank” (copy debt). |
 
 ---
 
 ## Engineering priority order (V1)
 
-1. Privy embedded wallet working reliably  
-2. Receive USDC on Base (address / QR / warnings)  
-3. Detect and display USDC balance (ledger or verified wallet balance after inbound transfer)  
-4. Display actual wallet transaction activity  
-5. Grow / yield flow (deposit)  
-6. Withdraw from Grow back to wallet  
-7. Verify the complete flow with real Base USDC transfers  
+1. Set up and validate Privy (credentials, app config, wallet IDs)  
+2. Privy embedded wallet working reliably  
+3. Receive USDC on Base  
+4. USDC balance via Privy  
+5. Real wallet transaction activity via Privy  
+6. Grow / yield  
+7. Withdraw from Grow back to wallet  
+8. Verify the full flow with real Base USDC  
 
 App Store packaging (icons, EAS, Privacy/Terms URLs) remains required for submission but is parallelizable once the money path above works.
 

@@ -119,11 +119,12 @@ No automatic yield enrollment is in scope.
 
 See [MVPLaunchChecklist.md](../MVPLaunchChecklist.md). Critical blockers for simplified V1:
 
+- Privy credentials + config validated; `privy_wallet_id` persisted
 - Privy embedded wallet reliable on device
-- Receive USDC UI + Base confirmation path
-- Balance updates after real inbound USDC
-- Transaction activity reflects wallet USDC movements
-- Grow deposit + withdraw functional (or clearly gated with no fake APY)
+- Receive USDC UI + Base/USDC safety copy
+- USDC balance via Privy (not Coinbase onramp credits)
+- Transaction activity via Privy
+- Grow deposit + withdraw (or clearly gated with no fake APY)
 - End-to-end verification with real Base USDC transfers
 - App Store packaging: icons, splash, EAS / archive, privacy disclosures, support URL
 - Privacy Policy and Terms live and linked

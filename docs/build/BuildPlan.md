@@ -15,15 +15,16 @@
 **Privy + Base + USDC + Grow is the active V1 architecture.**
 
 ```text
-User → Privy auth → Privy embedded wallet
+Privy embedded wallet
   → Receive USDC on Base
-  → Balance + transaction activity
-  → Grow → withdraw back to wallet
+  → USDC balance via Privy
+  → Real wallet transaction activity via Privy
+  → Grow → withdraw back to Privy wallet
 ```
 
 Prefer [MVPLaunchChecklist.md](../MVPLaunchChecklist.md) for day-to-day task order. This plan summarizes critical path vs deferred work.
 
-**Post-V1 (preserve):** Coinbase Headless Onramp / Apple Pay. Do not delete; gate rather than remove.
+**Post-V1 (preserve):** Coinbase Headless Onramp / Apple Pay / fiat offramp. Do not delete; gate rather than remove.
 
 ---
 
@@ -32,15 +33,13 @@ Prefer [MVPLaunchChecklist.md](../MVPLaunchChecklist.md) for day-to-day task ord
 | Area | Status today |
 |------|----------------|
 | Marketing (`apps/marketing`) | Live pattern: Vercel + waitlist + GA4 |
-| Mobile auth | Privy email OTP, auth sync, session restore — **shipped** |
+| Mobile auth | Privy email OTP, auth sync, session restore — **partial** (device validation pending) |
 | Mobile shell | Home, Savings, Card, Profile tabs — **shipped**; Savings/Card/Send/Receive mostly placeholders |
-| Mobile Add Money | Coinbase Headless path **implemented** (post-V1; preserve) |
+| Mobile Add Money | Coinbase Headless path **implemented** (**post-V1**; preserve) |
 | Mobile Receive | **Coming soon stub** — no address/QR |
-| API auth / me / balance / activity | Present under `apps/api/src/routes/v1/` |
-| API ledger | `apps/api/src/ledger/` — balances + credit on **deposit finalization** |
-| API activity | Reads `transactions` — today only app-created deposit rows |
-| Base deposit monitor | **Not implemented** |
-| Grow / Aave | UI placeholder only; no adapter |
+| API auth / me / ledger balance / activity | Present; balance/activity are **ledger/deposit-based**, not Privy Get Balance / Get Transactions |
+| Privy Get Balance / Get Transactions | SDK methods exist in `@privy-io/node` — **not wired**; live smoke not completed |
+| Grow / Privy Earn | UI placeholder only; no Earn wiring / no vault_id |
 | App Store packaging | `app.json` minimal; **no** `eas.json`, icons, splash |
 
 Details: [V1Architecture.md](../V1Architecture.md).
@@ -51,16 +50,17 @@ Details: [V1Architecture.md](../V1Architecture.md).
 
 ### REQUIRED BEFORE APP STORE SUBMISSION
 
-1. Privy embedded wallet reliable on device  
-2. Receive USDC screen (address, QR, Base warning, instructions)  
-3. Detect inbound USDC + update balance  
-4. Transaction activity reflects wallet USDC + wire Home to API  
-5. Grow deposit + withdraw (or gate Choose Yield and remove fake APY)  
-6. End-to-end verification with **real Base USDC** transfers  
-7. Gate / de-emphasize Coinbase Add Money as post-V1  
-8. iOS App Store packaging: icons, splash, EAS, privacy questionnaire, support + privacy URLs  
-9. Staging / production API with Privy (+ Base monitor credentials as needed)  
-10. Legal pages live (Privacy, Terms) and linked  
+1. Set up and validate Privy  
+2. Privy embedded wallet reliable on device  
+3. Receive USDC screen (address, QR, Base warning, instructions)  
+4. USDC balance via Privy  
+5. Real wallet transaction activity via Privy  
+6. Grow deposit + withdraw (Privy Earn / Aave vault) — or gate Choose Yield and remove fake APY  
+7. End-to-end verification with **real Base USDC** transfers  
+8. Gate / de-emphasize Coinbase Add Money as post-V1  
+9. iOS App Store packaging: icons, splash, EAS, privacy questionnaire, support + privacy URLs  
+10. Staging / production API with Privy  
+11. Legal pages live (Privacy, Terms) and linked  
 
 ### POST-LAUNCH / V1.1+
 
@@ -77,13 +77,14 @@ Details: [V1Architecture.md](../V1Architecture.md).
 
 | Rank | Focus |
 |------|--------|
-| 1 | Privy embedded wallet working reliably |
-| 2 | Receive USDC on Base |
-| 3 | Detect and display USDC balance |
-| 4 | Display actual wallet transaction activity |
-| 5 | Grow / yield flow |
-| 6 | Withdraw from Grow back to wallet |
-| 7 | Verify complete flow with real Base USDC transfers |
+| 1 | Set up and validate Privy |
+| 2 | Privy embedded wallet working reliably |
+| 3 | Receive USDC on Base |
+| 4 | USDC balance via Privy |
+| 5 | Real wallet transaction activity via Privy |
+| 6 | Grow / yield |
+| 7 | Withdraw from Grow back to wallet |
+| 8 | Verify complete flow with real Base USDC transfers |
 
 Do not prioritize Coinbase production credentials for V1 launch.
 
@@ -93,8 +94,8 @@ Do not prioritize Coinbase production credentials for V1 launch.
 
 - Deleting Coinbase Headless modules  
 - Reintroducing Bridge or Dakota  
-- Shipping fiat offramp  
-- Claiming Grow works before Aave deposit/withdraw exist  
+- Shipping fiat onramp/offramp  
+- Claiming Privy balance, transactions, or Grow work before they are wired and verified  
 
 ---
 

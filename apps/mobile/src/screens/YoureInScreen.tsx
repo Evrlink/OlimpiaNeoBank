@@ -6,7 +6,7 @@ import { colors, radius, spacing } from "@/theme/colors";
 
 type YoureInScreenProps = {
   onExplore: () => void;
-  onAddMoney: () => void;
+  onReceive: () => void;
 };
 
 const valueProps = [
@@ -15,11 +15,11 @@ const valueProps = [
   { icon: "shield-checkmark-outline" as const, title: "You're in control" },
 ];
 
-const steps = ["Add money", "Earn yield", "Grow money"] as const;
+const steps = ["Receive USDC", "Earn yield", "Grow money"] as const;
 
 const builtForYou = ["No lockups", "Withdraw anytime", "Higher yields than your bank"];
 
-export function YoureInScreen({ onExplore, onAddMoney }: YoureInScreenProps) {
+export function YoureInScreen({ onExplore, onReceive }: YoureInScreenProps) {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <LinearGradient
@@ -85,11 +85,11 @@ export function YoureInScreen({ onExplore, onAddMoney }: YoureInScreenProps) {
       <View style={styles.footer}>
         <Pressable
           style={styles.primaryButton}
-          onPress={onAddMoney}
+          onPress={onReceive}
           accessibilityRole="button"
-          accessibilityLabel="Start earning"
+          accessibilityLabel="Receive USDC"
         >
-          <Text style={styles.primaryLabel}>Start earning</Text>
+          <Text style={styles.primaryLabel}>Receive USDC</Text>
         </Pressable>
         <Pressable onPress={onExplore} accessibilityRole="button" accessibilityLabel="Explore">
           <Text style={styles.exploreLink}>Explore</Text>

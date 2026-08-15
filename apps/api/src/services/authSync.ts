@@ -3,15 +3,16 @@ import {
   extractEmbeddedEthereumWallet,
   extractPhone,
   fetchPrivyUser,
+  resolvePrivyWalletId,
 } from "../auth/privy.js";
 import { getPool } from "../db/pool.js";
-import { getBalanceSummaryForUser } from "../ledger/index.js";
 import {
   toUserProfile,
   type BalanceSummary,
   type UserProfile,
   type WalletSummary,
 } from "../lib/responses.js";
+import { getHomeBalanceForPrivyWallet } from "./privyBalance.js";
 
 type SyncResult = {
   user: UserProfile;
@@ -32,6 +33,8 @@ type DbUserRow = {
 type DbWalletRow = {
   id: string;
   chain: string;
+  address: string;
+  privy_wallet_id: string | null;
 };
 
 export class AuthSyncError extends Error {
@@ -42,6 +45,15 @@ export class AuthSyncError extends Error {
     super(message);
     this.name = "AuthSyncError";
   }
+}
+
+function toWalletSummary(row: DbWalletRow): WalletSummary {
+  return {
+    id: row.id,
+    chain: row.chain,
+    address: row.address,
+    privyWalletId: row.privy_wallet_id,
+  };
 }
 
 export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncResult> {
@@ -68,9 +80,24 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
   const email = extractEmail(privyUser);
   const phone = extractPhone(privyUser);
   const walletAddress = embeddedWallet.address;
-  const privyWalletId = embeddedWallet.id ?? null;
+  let privyWalletId = embeddedWallet.id;
+
+  if (!privyWalletId) {
+    try {
+      privyWalletId = await resolvePrivyWalletId({
+        privyUserId,
+        address: walletAddress,
+      });
+    } catch {
+      privyWalletId = null;
+    }
+  }
 
   const client = await pool.connect();
+
+  let isNewUser = false;
+  let userRow: DbUserRow;
+  let walletRow: DbWalletRow;
 
   try {
     await client.query("BEGIN");
@@ -79,7 +106,7 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
       "SELECT id FROM users WHERE privy_user_id = $1",
       [privyUserId],
     );
-    const isNewUser = existingUser.rows.length === 0;
+    isNewUser = existingUser.rows.length === 0;
 
     const userResult = await client.query<DbUserRow>(
       `
@@ -93,7 +120,7 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
       [privyUserId, email, phone],
     );
 
-    const userRow = userResult.rows[0];
+    userRow = userResult.rows[0];
 
     const walletResult = await client.query<DbWalletRow>(
       `
@@ -102,7 +129,7 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
         ON CONFLICT (user_id) DO UPDATE SET
           address = EXCLUDED.address,
           privy_wallet_id = COALESCE(EXCLUDED.privy_wallet_id, wallets.privy_wallet_id)
-        RETURNING id, chain
+        RETURNING id, chain, address, privy_wallet_id
       `,
       [userRow.id, walletAddress, privyWalletId],
     );
@@ -116,25 +143,9 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
       [userRow.id],
     );
 
-    const balance = await getBalanceSummaryForUser(userRow.id, client);
-
     await client.query("COMMIT");
 
-    const walletRow = walletResult.rows[0];
-
-    if (!walletRow || !balance) {
-      throw new AuthSyncError("Failed to load wallet or balance after sync.");
-    }
-
-    return {
-      user: toUserProfile(userRow),
-      wallet: {
-        id: walletRow.id,
-        chain: walletRow.chain,
-      },
-      balance,
-      isNewUser,
-    };
+    walletRow = walletResult.rows[0];
   } catch (error) {
     await client.query("ROLLBACK");
 
@@ -146,40 +157,102 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
   } finally {
     client.release();
   }
+
+  if (!walletRow) {
+    throw new AuthSyncError("Failed to load wallet after sync.");
+  }
+
+  if (!walletRow.privy_wallet_id) {
+    throw new AuthSyncError(
+      "Privy wallet id missing after sync.",
+      "PRIVY_UNAVAILABLE",
+    );
+  }
+
+  let balance: BalanceSummary;
+
+  try {
+    balance = await getHomeBalanceForPrivyWallet(walletRow.privy_wallet_id);
+  } catch {
+    throw new AuthSyncError(
+      "Unable to fetch wallet balance from Privy.",
+      "PRIVY_UNAVAILABLE",
+    );
+  }
+
+  return {
+    user: toUserProfile(userRow),
+    wallet: toWalletSummary(walletRow),
+    balance,
+    isNewUser,
+  };
 }
+
+type ProfileQueryRow = DbUserRow & {
+  wallet_id: string | null;
+  chain: string | null;
+  address: string | null;
+  privy_wallet_id: string | null;
+};
 
 export async function getAuthenticatedUserProfile(
   privyUserId: string,
-): Promise<{ user: UserProfile; balance: BalanceSummary } | null> {
+): Promise<{ user: UserProfile; wallet: WalletSummary; balance: BalanceSummary } | null> {
   const pool = getPool();
 
   if (!pool) {
     throw new Error("Database is not configured.");
   }
 
-  const result = await pool.query<DbUserRow>(
+  const result = await pool.query<ProfileQueryRow>(
     `
-      SELECT id, email, phone, display_name, username, created_at
-      FROM users
-      WHERE privy_user_id = $1
+      SELECT
+        u.id,
+        u.email,
+        u.phone,
+        u.display_name,
+        u.username,
+        u.created_at,
+        w.id AS wallet_id,
+        w.chain,
+        w.address,
+        w.privy_wallet_id
+      FROM users u
+      LEFT JOIN wallets w ON w.user_id = u.id
+      WHERE u.privy_user_id = $1
     `,
     [privyUserId],
   );
 
   const row = result.rows[0];
 
-  if (!row) {
+  if (!row || !row.wallet_id || !row.address || !row.chain) {
     return null;
   }
 
-  const balance = await getBalanceSummaryForUser(row.id, pool);
-
-  if (!balance) {
+  if (!row.privy_wallet_id) {
     return null;
+  }
+
+  let balance: BalanceSummary;
+
+  try {
+    balance = await getHomeBalanceForPrivyWallet(row.privy_wallet_id);
+  } catch {
+    throw new AuthSyncError(
+      "Unable to fetch wallet balance from Privy.",
+      "PRIVY_UNAVAILABLE",
+    );
   }
 
   return {
     user: toUserProfile(row),
+    wallet: {
+      id: row.wallet_id,
+      chain: row.chain,
+      address: row.address,
+      privyWalletId: row.privy_wallet_id,
+    },
     balance,
   };
 }
