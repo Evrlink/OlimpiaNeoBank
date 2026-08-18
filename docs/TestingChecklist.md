@@ -1,257 +1,181 @@
-# Olimpia — Testing Checklist (Planning)
+# Olimpia — Testing Checklist
 
-**Status:** Planning document for implementation  
+**Status:** Canonical for current V1 sprint  
 **Audience:** Founder, QA, developers, Cursor agents  
-**Source of truth:** [UserFlows.md](./product/UserFlows.md) · [BuildPlan.md](./build/BuildPlan.md) · [PRD.md](./product/PRD.md)
+**Source of truth:** [UserFlows.md](./product/UserFlows.md) · [BuildPlan.md](./build/BuildPlan.md) · [PRD.md](./product/PRD.md) · [Architecture.md](./architecture/Architecture.md)
+
+---
+
+## Current MVP Architecture
+
+**Privy + Base + USDC + Grow is the active V1 architecture.** Fiat on-ramp is not required for V1.
+
+Test **Receive USDC** (inbound USDC on Base to Privy wallet), balance, transaction activity, and Grow when shipped. Coinbase Headless / Apple Pay Add Money is **post-V1** (preserve; do not treat as launch gate). Do not test Bridge, Dakota, bank withdrawal, or virtual card as V1 paths. Full design: [V1Architecture.md](./V1Architecture.md) · [ADR-015](./architecture/ArchitectureDecisionLog.md).
 
 ---
 
 ## What this file is for
 
-This is a **manual testing checklist** — a step-by-step script to confirm Olimpia works before you share it with users or submit to app stores. You do not need to write automated tests to use this document.
+Manual testing script before TestFlight, public user testing, or App Store submission.
 
-Check each box when the behavior matches **Expected result**. If something fails, note what you saw and the environment (local, staging, or production).
+Check each box when behavior matches **Expected result**. Note environment (local, staging, production).
 
-**Pia AI coach chat is Future only** — not in MVP checklist below. Marketing may show a static Pia preview; that is not live chat.
-
----
-
-## How to use this checklist
-
-1. Pick an **environment**: Local · Staging · Production
-2. Work **top to bottom** within each section
-3. Mark **Pass** or **Fail** (and screenshot if helpful)
-4. Do not test provider production flows until sandbox/staging keys are confirmed
+**Pia AI coach chat is Future only.** Card spending is post-V1.
 
 ---
 
-## MVP features to test (reference)
+## MVP features to test (current architecture)
 
-From approved MVP scope (Pia excluded):
-
-- Onboarding and invisible wallet
-- Dashboard, balance, activity
-- Add Funds (Dakota bank transfer, Privy fiat onramp, external USDC on Base)
-- Withdraw to bank (replacement provider TBD)
-- Send and receive (Olimpia users only)
-- Savings goals
-- Growth account (Aave first)
-- Virtual debit card (Gnosis Pay)
+- Onboarding and Privy embedded wallet
+- Dashboard, balance, transaction activity
+- **Receive USDC** (inbound supported USDC on Base)
+- Grow (Aave) — when shipped
 - Profile and sign out
-- Marketing waitlist
+- Marketing waitlist + GA4 (production)
+
+**Post-V1 (optional regression only):** Add Money via Coinbase Headless / Apple Pay  
+**Not in App Store V1 checklist:** bank withdrawal, virtual card, Bridge, Dakota.
 
 ---
 
 ## 1. Marketing website
 
-**When:** After Phase 1 deploy (Vercel + Supabase)  
-**Reference:** [UserFlows.md](./product/UserFlows.md) marketing flows
-
-### Homepage and content
-
-- [ ] Site loads without errors at production URL **TBD** / local `http://localhost:3000`
-- [ ] Hero section: headline, CTAs, paper background visible (may fade in briefly)
-- [ ] Navigation links scroll to correct sections
-- [ ] “Built on trusted infrastructure” section readable; no visual glitch at hero bottom
-- [ ] FAQ accordion opens; answers are readable text (not image-only)
-- [ ] Footer: Privacy, Terms, support email links work
-- [ ] Page looks acceptable on phone width (responsive)
-
-### Waitlist modal
-
-- [ ] “Download App” opens waitlist modal
-- [ ] Valid email → success message
-- [ ] Same email again → still treated as success (no error for duplicate)
-- [ ] Invalid email → validation error
-- [ ] With Supabase env vars missing → friendly “unavailable” error (local test only)
-
-### SEO basics
-
-- [ ] Page `<title>` and meta description present
+- [ ] Site loads at production URL / local `http://localhost:3000`
+- [ ] Hero, nav, FAQ, footer (Privacy, Terms, support) work
+- [ ] Waitlist accepts valid email; invalid email shows error
+- [ ] GA4 fires on production only (waitlist / CTA events as configured)
 - [ ] `robots.txt` and `sitemap.xml` load
 - [ ] `/privacy` and `/terms` load
 
-### Static Pia preview (marketing only)
+---
 
-- [ ] Pia **preview section** displays static content (if present on site)
-- [ ] No live chat input that calls an AI API on the marketing site
+## 2. API health
 
-**Expected:** Marketing educates and captures waitlist — no wallet, no login, no live Pia.
+- [ ] `GET /health` succeeds on staging
+- [ ] Invalid auth token rejected on protected routes
+- [ ] **No Bridge webhook route is mounted** (`/webhooks/bridge` absent or returns unused)
+- [ ] Production config cannot use `FUNDING_PROVIDER=bridge` or mock funding
 
 ---
 
-## 2. API health (Phase 0+)
-
-**When:** After first API deploy to staging
-
-- [ ] `GET /health` returns success on staging URL **TBD**
-- [ ] API only accepts HTTPS in staging/production
-- [ ] Invalid auth token rejected on protected routes **TBD** when auth exists
-
----
-
-## 3. Mobile — onboarding and profile (Phase 2)
-
-**Reference:** UserFlows onboarding
+## 3. Mobile — onboarding and profile
 
 | Step | Action | Expected result |
 |------|--------|-----------------|
-| 1 | Open app (fresh install) | Welcome screen |
+| 1 | Fresh install | Welcome screen |
 | 2 | Sign up / sign in via Privy | Auth completes; no crypto jargon |
-| 3 | Land on Home or onboarding completion | No wallet address shown |
-| 4 | Open Profile tab | Name/email or placeholder profile fields |
-| 5 | Sign out | Returns to Welcome; session cleared |
-| 6 | View zero-balance Home | “Your account is ready” + Add Funds lead; `$0.00` is secondary; no immediate-yield claim |
+| 3 | Land on Home | No wallet address shown |
+| 4 | Profile tab | Name / email from synced API |
+| 5 | Sign out | Returns to Welcome |
+| 6 | Zero-balance Home | Encouraging setup CTA toward **Receive USDC**; `$0.00` secondary; no immediate-yield claim |
 
-**Platforms:** Repeat on **iOS simulator/device** and **Android emulator/device** — **TBD** minimum OS versions.
+**Platform priority:** iOS device / TestFlight first.
 
 ---
 
-## 4. Dashboard and activity (Phase 3)
+## 4. Dashboard and activity
 
 | Step | Action | Expected result |
 |------|--------|-----------------|
-| 1 | Open Home tab | Balance displays in **dollars** |
-| 2 | View activity list | Transactions in plain language |
-| 3 | Tap one activity item | Detail screen with amount, status, date |
-| 4 | Pull to refresh or reopen app | Data updates without crash |
+| 1 | Open Home | Balance in **dollars** from backend |
+| 2 | Activity list | Plain-language transactions from API (not hardcoded empty state) |
+| 3 | Tap activity item | Detail: amount, status, date (if detail ships) |
+| 4 | Pull to refresh / reopen | No crash; data consistent |
 
 ---
 
-## 5. Add Funds (Phases 4A–4E)
+## 5. Receive USDC (V1 funding)
 
-**Requires:** Staging API plus the relevant Dakota, Privy/onramp, and Base-monitor sandbox/test configuration
+**Requires:** Staging API + Base monitor (or equivalent confirmation) + real or testnet-capable Base USDC path
 
 | Step | Action | Expected result |
 |------|--------|-----------------|
-| 1 | Tap Add Funds | Bank Transfer, Apple Pay or Card, and Transfer USDC appear in that order; no provider-name method labels |
-| 2 | Bank Transfer | Provider-confirmed arrival, $1 fee after approval, total bank withdrawal, and exact account credit shown before Review Transfer |
-| 3 | Complete Dakota sandbox flow | Normalized status completes; ledger credited once |
-| 4 | Apple Pay or Card | Supported provider experience opens with final quote/fee and any KYC; no hidden background WebView |
-| 5 | Complete/cancel/fail provider flow | App returns to the correct normalized state |
-| 6 | Transfer USDC | Address, QR, Copy Address, Coinbase/other-wallet guidance, and prominent Base/USDC warning shown |
-| 7 | Send supported USDC on Base | Backend confirms, creates inbound activity, credits once |
-| 8 | Send unsupported token / duplicate event | No credit; no duplicate transaction |
-| 9 | Return to Home | Balance and activity refreshed |
-| 10 | Cancel/close each method | Clear return path; normal navigation retained unless approved focus mode is under test |
+| 1 | Tap Receive | Address, QR, Copy, Base + unsupported-asset warning |
+| 2 | Send supported USDC on Base to Privy address | Backend confirms; ledger credited **once** |
+| 3 | Return to Home | Balance and transaction activity refreshed |
+| 4 | Unsupported token / duplicate event | No credit; no duplicate |
 
----
-
-## 6. Savings goals (Phase 5)
+### Post-V1 regression (optional): Add Money / Coinbase Headless
 
 | Step | Action | Expected result |
 |------|--------|-----------------|
-| 1 | Open Savings tab | Goals list (empty or existing) |
-| 2 | Create new goal (name, target) | Goal appears with 0% or initial progress |
-| 3 | Allocate money to goal | Available balance decreases; goal progress increases |
-| 4 | Move money out of goal | Available balance increases |
-| 5 | Try to spend more than available | Clear error — no silent failure |
+| 1 | Add Money (if ungated) | Amount → Coinbase Headless experience with quote / fee / KYC as applicable |
+| 2 | Complete sandbox onramp | Status completes; ledger credited once; destination Privy wallet on Base |
+| 3 | Cancel / fail onramp | Safe return; no credit |
 
 ---
 
-## 7. Send and receive (Phase 6)
-
-**MVP:** Olimpia-to-Olimpia users only (both need accounts)
+## 6. Savings goals (before public testing)
 
 | Step | Action | Expected result |
 |------|--------|-----------------|
-| 1 | User A: Send → pick User B | Recipient resolves by handle/email **TBD** |
-| 2 | Enter amount and confirm | Processing → completed |
-| 3 | User B: Home / activity | Incoming transfer visible; balance up |
-| 4 | User A: Receive screen | Share handle/link — **no wallet address** |
-| 5 | Send more than available | Friendly insufficient-funds error |
+| 1 | Open Savings | Goals list or empty create |
+| 2 | Create goal | Appears without fake APY |
+| 3 | Allocate / remove | Available and goal balances stay consistent |
+| 4 | Over-allocate | Clear error |
 
 ---
 
-## 8. Growth account (Phase 8)
-
-**Requires:** Aave integration on Base (sandbox)
+## 7. Send and receive (when shipped)
 
 | Step | Action | Expected result |
 |------|--------|-----------------|
-| 1 | Open Growth from Savings or Home **TBD** entry | Growth summary |
-| 2 | Deposit to growth | Processing → funds in growth |
-| 3 | View estimated earnings | Shown with “variable, not guaranteed” tone |
-| 4 | Withdraw from growth back to available | Balance updates correctly |
-| 5 | UI never says “Aave”, “DeFi”, or “APY optimization” | Brand-aligned copy only |
+| 1 | User A sends to User B | Recipient resolves by approved identifier |
+| 2 | Confirm | Processing → completed |
+| 3 | User B Home / activity | Incoming transfer; balance up |
+| 4 | P2P Receive | Share handle / link — **not** funding Receive USDC |
+| 5 | Overspend | Friendly insufficient-funds error |
 
 ---
 
-## 9. Withdraw and virtual card (Phase 9)
-
-### Withdraw to bank
+## 8. Growth account (when shipped)
 
 | Step | Action | Expected result |
 |------|--------|-----------------|
-| 1 | Start withdraw from Home or Profile | Amount + bank destination |
-| 2 | Confirm | Processing states in plain English |
-| 3 | Complete selected off-ramp sandbox flow | Withdrawal completed; balance down |
-
-### Virtual debit card
-
-| Step | Action | Expected result |
-|------|--------|-----------------|
-| 1 | Open Card tab | Issue card if first visit |
-| 2 | View masked card | Last four digits; no full PAN |
-| 3 | Reveal CVV (if MVP includes) | Requires biometric/PIN **TBD** |
-| 4 | Freeze card | Status frozen; unfreeze works |
-| 5 | If region blocked | Plain-language gate — no provider jargon |
+| 1 | Open Growth / Choose Yield | Summary; explicit authorization required |
+| 2 | Deposit | Funds move from Available |
+| 3 | Estimated earnings | Variable, not guaranteed |
+| 4 | Withdraw to Available | Balances update |
+| 5 | UI | No “Aave” / “DeFi” in user copy |
 
 ---
 
-## 10. Provider and security smoke tests
+## 9. Provider and security smoke tests
 
-Run on **staging** before production.
-
-### Integrations
-
-- [ ] Privy login works on iOS and Android
-- [ ] Dakota webhook signature and normalized deposit status handling pass
-- [ ] Configured fiat-onramp completion/cancellation/failure handling passes
-- [ ] Base monitor rejects wrong token/network/recipient and duplicate events
-- [ ] Selected off-ramp webhook updates withdrawal status **TBD provider**
-- [ ] Gnosis card webhook creates card transaction **TBD**
-- [ ] Resend sends at least one test email **TBD**
-
-### Security (spot checks)
-
-- [ ] No provider secret keys in marketing page source
-- [ ] No provider secret keys in mobile app bundle (only public Privy app id + API URL)
-- [ ] Wallet address and Base/USDC appear only in Transfer USDC safety UI; gas and provider secrets never appear
-- [ ] Webhook endpoint rejects request with wrong/missing signature **TBD**
-- [ ] Replayed webhooks and blockchain events do not duplicate ledger credits
-- [ ] Card/bank details are not stored by Olimpia unless explicitly required and approved
-- [ ] Fee disclosures, limits/velocity controls, audit logs, reconciliation, returned ACH, and chargeback paths are tested as applicable
+- [ ] Privy login works on iOS
+- [ ] Base monitor rejects wrong token / network / recipient and duplicates
+- [ ] Replayed events do not double-credit
+- [ ] No provider secrets in mobile bundle or marketing source
+- [ ] Wallet address only on Receive USDC safety UI
+- [ ] Bridge API keys and webhook secrets absent from staging / production config
+- [ ] Coinbase Headless (post-V1 / optional): completion / cancel / fail handled without credit on fail
 
 ---
 
-## 11. Pre-release gate (Phase 10)
+## 10. App Store submission gate
 
-Before App Store / Google Play submission:
-
-- [ ] Full staging walkthrough: sections 3–9 above all pass
-- [ ] Production marketing site live on domain **TBD**
-- [ ] Production waitlist stores emails in intended Supabase project
-- [ ] Privacy Policy and Terms URLs live and linked
-- [ ] Launch geography limitations documented — [launch-geography.md](./architecture/launch-geography.md) **TBD**
-- [ ] iOS build uploaded to App Store Connect **TBD**
-- [ ] Android build uploaded to Play Console **TBD**
-- [ ] Support email monitored — **TBD**
+- [ ] Sections 1–5 pass on staging / TestFlight
+- [ ] Production marketing live; Privacy + Terms URLs work
+- [ ] Support email monitored
+- [ ] iOS archive uploaded to App Store Connect
+- [ ] App metadata does not claim bank status or guaranteed yield
+- [ ] Launch geography / eligibility documented if restricted — [launch-geography.md](./architecture/launch-geography.md)
 
 ---
 
-## Future — Pia AI coach (not MVP)
+## 11. Before public user testing (additional)
 
-When Pia is approved for a later release, add tests such as:
+- [ ] Savings (§6) pass
+- [ ] Growth (§8) pass if advertised to testers
+- [ ] Send / receive (§7) pass if advertised
+- [ ] Stuck-deposit / support playbook exists
+- [ ] Withdrawal is **not** offered unless a provider is live
 
-- [ ] Pia opens from Home/Profile entry **TBD**
-- [ ] Pia explains product features in plain language
-- [ ] Pia **refuses** investment advice (“what stock should I buy?”)
-- [ ] Persistent disclaimer visible (coach, not advisor)
-- [ ] No Anthropic key in mobile or marketing bundles
-- [ ] Rate limiting prevents abuse **TBD**
+---
 
-Do **not** block MVP release on these items.
+## Future — Pia (not V1)
+
+Do not block App Store or public testing on Pia.
 
 ---
 
@@ -259,18 +183,16 @@ Do **not** block MVP release on these items.
 
 | Topic | Notes |
 |-------|-------|
-| Staging URLs | API and marketing preview |
-| Test user accounts | Pre-seeded users for P2P tests |
-| Dakota / fiat-onramp / off-ramp / Gnosis sandbox test data | Provider-specific |
-| Automated tests | Future — MVP uses this manual checklist |
-| Min iOS / Android versions | Device matrix **TBD** |
-| Biometric gate for CVV reveal | **TBD** |
+| Staging API URL | |
+| Coinbase Headless sandbox accounts | |
+| Base monitor provider / RPC | |
+| Min iOS version | |
+| Test users for P2P | |
 
 ---
 
 ## Related documents
 
-- [UserFlows.md](./product/UserFlows.md) — detailed acceptance criteria per flow
-- [ScreenInventory.md](./product/ScreenInventory.md) — screen-by-screen spec
-- [DeploymentPlan.md](./DeploymentPlan.md) — where to run tests
-- [EnvironmentVariables.md](./EnvironmentVariables.md) — config needed before testing
+- [BuildPlan.md](./build/BuildPlan.md) — Day 1–4 critical path
+- [EnvironmentVariables.md](./EnvironmentVariables.md)
+- [DeploymentPlan.md](./DeploymentPlan.md)

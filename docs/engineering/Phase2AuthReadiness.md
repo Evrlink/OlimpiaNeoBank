@@ -173,7 +173,7 @@ API_BASE_URL=http://localhost:3001
 
 Do **not** block auth implementation on these (later phases):
 
-- `BRIDGE_*`, `GNOSIS_*`, `LIFI_*`, `AAVE_*`, `BASE_RPC_URL`, `RELAYER_*`, `RESEND_*`, `ANTHROPIC_*`
+- Coinbase / funding secrets, `GNOSIS_*`, `LIFI_*`, `AAVE_*`, `BASE_RPC_URL`, `RELAYER_*`, `RESEND_*`, `ANTHROPIC_*` (and any legacy `BRIDGE_*` — remove in Day 1 cleanup; not required for auth)
 
 Marketing Supabase vars remain on `apps/marketing` only.
 
@@ -326,7 +326,7 @@ interface EligibilityFlags {
 **Explicit exclusions from Phase 2 responses**
 
 - Wallet address, chain name, USDC, Privy user id
-- Linked bank accounts (Dakota bank funding and replacement off-ramp responsibilities require provider validation; see [V1Scope.md](../product/V1Scope.md))
+- Linked bank / payment methods are handled inside **Coinbase Headless Onramp** for Add Money; bank withdrawal / off-ramp is deferred (see [V1Scope.md](../product/V1Scope.md))
 - Pia thread or coach data (Future)
 - Notification preferences (defer `PATCH /me` to later MVP phase)
 

@@ -1,8 +1,7 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-import { env } from "../config/env.js";
 import { getPool } from "../db/pool.js";
 import { finalizeDepositStatus } from "./completeDeposit.js";
-import { mapBridgeTransferState } from "./mappers.js";
+import { getOnrampOrder } from "./coinbase/client.js";
+import type { DepositStatus } from "./types.js";
 
 export class WebhookError extends Error {
   constructor(
@@ -14,183 +13,370 @@ export class WebhookError extends Error {
   }
 }
 
-type BridgeWebhookPayload = {
-  event_id?: string;
-  event_category?: string;
-  event_type?: string;
-  event_object_id?: string;
-  event_object_status?: string;
-  event_object?: {
-    id?: string;
-    state?: string;
-    client_reference_id?: string | null;
-  };
+export const COINBASE_ONRAMP_EVENT_TYPES = [
+  "onramp.transaction.created",
+  "onramp.transaction.updated",
+  "onramp.transaction.success",
+  "onramp.transaction.failed",
+] as const;
+
+export type CoinbaseOnrampEventType = (typeof COINBASE_ONRAMP_EVENT_TYPES)[number];
+
+type CoinbaseWebhookPayload = {
+  id?: unknown;
+  type?: unknown;
+  eventType?: unknown;
+  data?: unknown;
+  partnerOrderRef?: unknown;
+  orderId?: unknown;
+  transactionId?: unknown;
+  status?: unknown;
 };
 
-function parseSignatureHeader(header: string | undefined): {
-  timestamp: string;
-  signature: string;
-} | null {
-  if (!header) {
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
   }
 
-  const parts = Object.fromEntries(
-    header.split(",").map((part) => {
-      const [key, ...rest] = part.trim().split("=");
-      return [key, rest.join("=")];
-    }),
+  return value as Record<string, unknown>;
+}
+
+function asString(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+function headerString(
+  headers: Record<string, unknown>,
+  name: string,
+): string | null {
+  const value = headers[name] ?? headers[name.toLowerCase()];
+  if (Array.isArray(value)) {
+    return asString(value[0]);
+  }
+  return asString(value);
+}
+
+function isOnrampEventType(value: string | null): value is CoinbaseOnrampEventType {
+  return (
+    value === "onramp.transaction.created" ||
+    value === "onramp.transaction.updated" ||
+    value === "onramp.transaction.success" ||
+    value === "onramp.transaction.failed"
   );
-
-  if (!parts.t || !parts.v0) {
-    return null;
-  }
-
-  return { timestamp: parts.t, signature: parts.v0 };
 }
 
-export function verifyBridgeWebhookSignature(input: {
-  rawBody: string;
-  signatureHeader: string | undefined;
-}): void {
-  // Local mock / unsigned testing when secret is unset.
-  if (!env.bridgeWebhookSecret.trim()) {
-    if (env.fundingProvider === "mock" || env.nodeEnv !== "production") {
-      return;
+function extractEventType(
+  payload: CoinbaseWebhookPayload,
+  headers: Record<string, unknown>,
+): CoinbaseOnrampEventType | null {
+  const data = asRecord(payload.data);
+  const candidates = [
+    headerString(headers, "x-event-type"),
+    asString(payload.type),
+    asString(payload.eventType),
+    asString(data?.type),
+    asString(data?.eventType),
+  ];
+
+  for (const candidate of candidates) {
+    if (isOnrampEventType(candidate)) {
+      return candidate;
     }
-
-    throw new WebhookError("Webhook secret is not configured.", 500);
   }
 
-  const parsed = parseSignatureHeader(input.signatureHeader);
-
-  if (!parsed) {
-    throw new WebhookError("Missing or invalid webhook signature.", 401);
-  }
-
-  const signedPayload = `${parsed.timestamp}.${input.rawBody}`;
-  const expected = createHmac("sha256", env.bridgeWebhookSecret)
-    .update(signedPayload)
-    .digest("hex");
-
-  const expectedBuf = Buffer.from(expected, "utf8");
-  const actualBuf = Buffer.from(parsed.signature, "utf8");
-
-  if (
-    expectedBuf.length !== actualBuf.length ||
-    !timingSafeEqual(expectedBuf, actualBuf)
-  ) {
-    throw new WebhookError("Invalid webhook signature.", 401);
-  }
+  return null;
 }
 
-async function markWebhookProcessed(
-  eventId: string,
-  payload: BridgeWebhookPayload,
-): Promise<void> {
+function extractEventId(payload: CoinbaseWebhookPayload, headers: Record<string, unknown>): string | null {
+  const data = asRecord(payload.data);
+  return (
+    headerString(headers, "x-event-id") ||
+    asString(payload.id) ||
+    asString(data?.id) ||
+    asString(data?.eventId)
+  );
+}
+
+function extractPartnerOrderRef(payload: CoinbaseWebhookPayload): string | null {
+  const data = asRecord(payload.data);
+  return (
+    asString(payload.partnerOrderRef) ||
+    asString(data?.partnerOrderRef) ||
+    asString(data?.partner_order_ref)
+  );
+}
+
+/** Primary correlation key: Coinbase Headless `orderId` (guest samples may use `transactionId`). */
+function extractOrderId(payload: CoinbaseWebhookPayload): string | null {
+  const data = asRecord(payload.data);
+  return (
+    asString(payload.orderId) ||
+    asString(data?.orderId) ||
+    asString(payload.transactionId) ||
+    asString(data?.transactionId)
+  );
+}
+
+function extractFailureReason(payload: CoinbaseWebhookPayload): string {
+  const data = asRecord(payload.data);
+  return (
+    asString(data?.errorMessage) ||
+    asString(data?.failureReason) ||
+    asString(data?.status) ||
+    "We couldn’t complete this deposit."
+  );
+}
+
+async function claimWebhookEvent(input: {
+  eventId: string;
+  payload: unknown;
+}): Promise<"claimed" | "duplicate" | "retry"> {
   const pool = getPool();
 
   if (!pool) {
     throw new WebhookError("Database is not configured.", 500);
+  }
+
+  try {
+    await pool.query(
+      `
+        INSERT INTO webhook_events (provider, event_id, payload)
+        VALUES ('coinbase', $1, $2::jsonb)
+      `,
+      [input.eventId, JSON.stringify(input.payload)],
+    );
+    return "claimed";
+  } catch (error) {
+    if (error instanceof Error && /webhook_events_provider_event_id_key/i.test(error.message)) {
+      const existing = await pool.query<{ processed_at: Date | null }>(
+        `
+          SELECT processed_at
+          FROM webhook_events
+          WHERE provider = 'coinbase' AND event_id = $1
+        `,
+        [input.eventId],
+      );
+
+      if (existing.rows[0]?.processed_at) {
+        return "duplicate";
+      }
+
+      return "retry";
+    }
+
+    throw error;
+  }
+}
+
+async function markWebhookProcessed(eventId: string): Promise<void> {
+  const pool = getPool();
+
+  if (!pool) {
+    return;
   }
 
   await pool.query(
     `
-      INSERT INTO webhook_events (provider, event_id, payload, processed_at)
-      VALUES ('bridge', $1, $2::jsonb, now())
-      ON CONFLICT (provider, event_id) DO UPDATE
-      SET
-        payload = EXCLUDED.payload,
-        processed_at = now()
-      WHERE webhook_events.processed_at IS NULL
+      UPDATE webhook_events
+      SET processed_at = now()
+      WHERE provider = 'coinbase' AND event_id = $1
     `,
-    [eventId, JSON.stringify(payload)],
+    [eventId],
   );
 }
 
-export async function processBridgeWebhook(payload: BridgeWebhookPayload): Promise<{
-  duplicate: boolean;
-  depositId: string | null;
-}> {
-  const eventId = payload.event_id?.trim();
-
-  if (!eventId) {
-    throw new WebhookError("Missing event_id.");
-  }
-
+async function resolveDepositId(input: {
+  orderId: string | null;
+  partnerOrderRef: string | null;
+}): Promise<string | null> {
   const pool = getPool();
 
   if (!pool) {
     throw new WebhookError("Database is not configured.", 500);
   }
 
-  // Only skip retries after a successful prior processing (processed_at set).
-  const existing = await pool.query<{ processed_at: Date | null }>(
+  if (input.orderId) {
+    const byOrderId = await pool.query<{ id: string }>(
+      `SELECT id FROM deposits WHERE provider_transaction_id = $1`,
+      [input.orderId],
+    );
+    if (byOrderId.rows[0]) {
+      return byOrderId.rows[0].id;
+    }
+  }
+
+  if (input.partnerOrderRef) {
+    const byId = await pool.query<{ id: string }>(
+      `SELECT id FROM deposits WHERE id = $1`,
+      [input.partnerOrderRef],
+    );
+    if (byId.rows[0]) {
+      return byId.rows[0].id;
+    }
+  }
+
+  return null;
+}
+
+function statusForEvent(eventType: CoinbaseOnrampEventType): DepositStatus {
+  switch (eventType) {
+    case "onramp.transaction.success":
+      return "completed";
+    case "onramp.transaction.failed":
+      return "failed";
+    case "onramp.transaction.created":
+    case "onramp.transaction.updated":
+      return "processing";
+  }
+}
+
+export async function handleCoinbaseOnrampWebhook(input: {
+  payload: unknown;
+  headers: Record<string, unknown>;
+}): Promise<{ accepted: true; ignored?: boolean }> {
+  const payload = asRecord(input.payload) as CoinbaseWebhookPayload | null;
+
+  if (!payload) {
+    throw new WebhookError("Invalid Coinbase webhook payload.");
+  }
+
+  const eventType = extractEventType(payload, input.headers);
+
+  if (!eventType) {
+    return { accepted: true, ignored: true };
+  }
+
+  const orderId = extractOrderId(payload);
+
+  const eventId =
+    extractEventId(payload, input.headers) ??
+    `${eventType}:${orderId ?? extractPartnerOrderRef(payload) ?? "unknown"}`;
+
+  const claim = await claimWebhookEvent({
+    eventId,
+    payload,
+  });
+
+  if (claim === "duplicate") {
+    return { accepted: true };
+  }
+
+  const depositId = await resolveDepositId({
+    orderId,
+    partnerOrderRef: extractPartnerOrderRef(payload),
+  });
+
+  if (!depositId) {
+    await markWebhookProcessed(eventId);
+    return { accepted: true, ignored: true };
+  }
+
+  await finalizeDepositStatus({
+    depositId,
+    nextStatus: statusForEvent(eventType),
+    providerTransactionId: orderId,
+    failureReason:
+      eventType === "onramp.transaction.failed" ? extractFailureReason(payload) : null,
+  });
+
+  await markWebhookProcessed(eventId);
+  return { accepted: true };
+}
+
+export async function cancelDepositForUser(input: {
+  privyUserId: string;
+  depositId: string;
+  reason?: string;
+}): Promise<void> {
+  const pool = getPool();
+
+  if (!pool) {
+    throw new WebhookError("Database is not configured.", 500);
+  }
+
+  const result = await pool.query<{ id: string }>(
     `
-      SELECT processed_at
-      FROM webhook_events
-      WHERE provider = 'bridge' AND event_id = $1
+      SELECT d.id
+      FROM deposits d
+      INNER JOIN users u ON u.id = d.user_id
+      WHERE d.id = $1 AND u.privy_user_id = $2
     `,
-    [eventId],
+    [input.depositId, input.privyUserId],
   );
 
-  if (existing.rows[0]?.processed_at) {
-    return { duplicate: true, depositId: null };
+  if (!result.rows[0]) {
+    throw new WebhookError("Deposit not found.", 404);
   }
 
-  const providerRef =
-    payload.event_object?.id?.trim() || payload.event_object_id?.trim() || null;
-  const clientReferenceId = payload.event_object?.client_reference_id?.trim() || null;
-  const bridgeState =
-    payload.event_object?.state?.trim() || payload.event_object_status?.trim();
-  const nextStatus = mapBridgeTransferState(bridgeState);
+  await finalizeDepositStatus({
+    depositId: input.depositId,
+    nextStatus: "failed",
+    failureReason: input.reason ?? "This deposit was cancelled.",
+  });
+}
 
-  if (!nextStatus || (!providerRef && !clientReferenceId)) {
-    // Nothing actionable — record as processed so Bridge does not retry forever.
-    await markWebhookProcessed(eventId, payload);
-    return { duplicate: false, depositId: null };
+export async function reconcileDepositFromCoinbase(input: {
+  privyUserId: string;
+  depositId: string;
+}): Promise<void> {
+  const pool = getPool();
+
+  if (!pool) {
+    throw new WebhookError("Database is not configured.", 500);
   }
 
-  const depositResult = await pool.query<{ id: string }>(
-    clientReferenceId &&
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        clientReferenceId,
-      )
-      ? `
-          SELECT id
-          FROM deposits
-          WHERE ($1::text IS NOT NULL AND bridge_intent_id = $1)
-             OR id = $2::uuid
-          LIMIT 1
-        `
-      : `
-          SELECT id
-          FROM deposits
-          WHERE bridge_intent_id = $1
-          LIMIT 1
-        `,
-    clientReferenceId &&
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        clientReferenceId,
-      )
-      ? [providerRef, clientReferenceId]
-      : [providerRef],
+  const result = await pool.query<{
+    id: string;
+    provider_transaction_id: string | null;
+    status: DepositStatus;
+  }>(
+    `
+      SELECT d.id, d.provider_transaction_id, d.status
+      FROM deposits d
+      INNER JOIN users u ON u.id = d.user_id
+      WHERE d.id = $1 AND u.privy_user_id = $2
+    `,
+    [input.depositId, input.privyUserId],
   );
 
-  const depositId = depositResult.rows[0]?.id ?? null;
+  const row = result.rows[0];
 
-  if (depositId) {
-    // Finalize first. If this throws, processed_at stays unset and Bridge can retry.
+  if (!row) {
+    throw new WebhookError("Deposit not found.", 404);
+  }
+
+  if (row.status === "completed" || row.status === "failed" || !row.provider_transaction_id) {
+    return;
+  }
+
+  const order = await getOnrampOrder(row.provider_transaction_id);
+
+  if (!order?.status) {
+    return;
+  }
+
+  const orderId = asString(order.orderId) ?? row.provider_transaction_id;
+
+  if (order.status === "ONRAMP_ORDER_STATUS_COMPLETED") {
     await finalizeDepositStatus({
-      depositId,
-      nextStatus,
-      bridgeIntentId: providerRef,
-      failureReason:
-        nextStatus === "failed" ? "We couldn’t complete this deposit." : null,
+      depositId: row.id,
+      nextStatus: "completed",
+      providerTransactionId: orderId,
+    });
+    return;
+  }
+
+  if (order.status === "ONRAMP_ORDER_STATUS_FAILED") {
+    await finalizeDepositStatus({
+      depositId: row.id,
+      nextStatus: "failed",
+      providerTransactionId: orderId,
+      failureReason: "We couldn’t complete this deposit.",
     });
   }
-
-  await markWebhookProcessed(eventId, payload);
-
-  return { duplicate: false, depositId };
 }

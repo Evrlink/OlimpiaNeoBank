@@ -2,8 +2,8 @@ import cors from "cors";
 import express from "express";
 import { env } from "./config/env.js";
 import { healthRouter } from "./routes/health.js";
+import { coinbaseWebhookRouter } from "./routes/webhooks/coinbase.js";
 import { v1Router } from "./routes/v1/index.js";
-import { bridgeWebhookRouter } from "./routes/webhooks/bridge.js";
 
 export function createApp() {
   const app = express();
@@ -17,15 +17,10 @@ export function createApp() {
     );
   }
 
-  // Bridge signature verification needs the raw body on this path.
   app.use(
-    "/webhooks/bridge",
-    express.json({
-      verify: (req, _res, buf) => {
-        (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
-      },
-    }),
-    bridgeWebhookRouter,
+    "/webhooks/coinbase",
+    express.raw({ type: "application/json" }),
+    coinbaseWebhookRouter,
   );
 
   app.use(express.json());

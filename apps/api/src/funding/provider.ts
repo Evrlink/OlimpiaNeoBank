@@ -1,16 +1,12 @@
-import { randomUUID } from "node:crypto";
 import { env } from "../config/env.js";
 import { finalizeDepositStatus } from "./completeDeposit.js";
+import { createOnrampOrder } from "./coinbase/client.js";
+import { FundingProviderError } from "./errors.js";
 import type { CreateOnRampInput, CreateOnRampResult } from "./types.js";
 
 const MOCK_SETTLE_MS = 1600;
 
-export class FundingProviderError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "FundingProviderError";
-  }
-}
+export { FundingProviderError };
 
 function scheduleMockSettlement(input: {
   depositId: string;
@@ -20,7 +16,7 @@ function scheduleMockSettlement(input: {
   setTimeout(() => {
     void finalizeDepositStatus({
       depositId: input.depositId,
-      bridgeIntentId: input.providerRef,
+      providerTransactionId: input.providerRef,
       nextStatus: input.forceFail ? "failed" : "completed",
       failureReason: input.forceFail
         ? "We couldn’t complete this deposit."
@@ -52,60 +48,66 @@ async function createMockOnRamp(input: CreateOnRampInput): Promise<CreateOnRampR
   };
 }
 
-async function createBridgeOnRamp(input: CreateOnRampInput): Promise<CreateOnRampResult> {
-  if (!env.bridgeApiKey.trim()) {
-    throw new FundingProviderError("Funding provider is not configured.");
+function requireVerifiedContact(value: string | null | undefined, label: string): string {
+  const trimmed = value?.trim() ?? "";
+
+  if (!trimmed) {
+    throw new FundingProviderError(
+      `A verified ${label} is required before adding money with Coinbase.`,
+    );
   }
 
-  const response = await fetch(`${env.bridgeApiBaseUrl}/transfers`, {
-    method: "POST",
-    headers: {
-      "Api-Key": env.bridgeApiKey,
-      "Content-Type": "application/json",
-      "Idempotency-Key": input.idempotencyKey || randomUUID(),
-    },
-    body: JSON.stringify({
-      amount: input.amountUsd,
-      on_behalf_of: input.userId,
-      source: {
-        payment_rail: input.paymentMethod === "card" ? "card" : "ach_push",
-        currency: "usd",
-      },
-      destination: {
-        payment_rail: "base",
-        currency: "usdc",
-        to_address: input.walletAddress,
-      },
-      client_reference_id: input.depositId,
-    }),
+  return trimmed;
+}
+
+async function createCoinbaseOnRamp(
+  input: CreateOnRampInput,
+): Promise<CreateOnRampResult> {
+  if (!env.coinbaseOnrampApiKey.trim() || !env.coinbaseOnrampApiSecret.trim()) {
+    throw new FundingProviderError(
+      "Coinbase Headless is not configured. Set COINBASE_ONRAMP_API_KEY and COINBASE_ONRAMP_API_SECRET on the API.",
+    );
+  }
+
+  const email = requireVerifiedContact(input.email, "email");
+  const phoneNumber = requireVerifiedContact(input.phone, "US phone number");
+  const agreementAcceptedAt = requireVerifiedContact(
+    input.agreementAcceptedAt,
+    "Coinbase Guest Checkout agreement",
+  );
+  const smsVerificationId = requireVerifiedContact(
+    input.smsVerificationId,
+    "phone verification",
+  );
+  const emailVerificationId = requireVerifiedContact(
+    input.emailVerificationId,
+    "email verification",
+  );
+
+  const order = await createOnrampOrder({
+    depositId: input.depositId,
+    userId: input.userId,
+    amountUsd: input.amountUsd,
+    walletAddress: input.walletAddress,
+    email,
+    phoneNumber,
+    agreementAcceptedAt,
+    smsVerificationId,
+    emailVerificationId,
   });
 
-  if (!response.ok) {
-    throw new FundingProviderError("Unable to start this deposit. Please try again.");
-  }
-
-  const body = (await response.json()) as {
-    id?: string;
-    state?: string;
-    source_deposit_instructions?: { url?: string };
-  };
-
-  if (!body.id) {
-    throw new FundingProviderError("Unable to start this deposit. Please try again.");
-  }
-
   return {
-    providerRef: body.id,
-    hostedUrl: body.source_deposit_instructions?.url,
-    initialStatus: body.state === "awaiting_funds" ? "pending" : "processing",
+    providerRef: order.orderId,
+    hostedUrl: order.paymentLinkUrl,
+    initialStatus: "processing",
   };
 }
 
 export async function createOnRampIntent(
   input: CreateOnRampInput,
 ): Promise<CreateOnRampResult> {
-  if (env.fundingProvider === "bridge") {
-    return createBridgeOnRamp(input);
+  if (env.fundingProvider === "coinbase") {
+    return createCoinbaseOnRamp(input);
   }
 
   return createMockOnRamp(input);

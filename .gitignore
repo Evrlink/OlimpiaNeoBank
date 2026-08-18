@@ -7,9 +7,13 @@ dist
 .nitro
 .tanstack
 .env
-.env.local
+.env.*
+!.env.example
 .DS_Store
 *.log
 *.tsbuildinfo
 .dev.vars
 .wrangler
+apps/mobile/.expo/
+apps/mobile/ios/
+apps/mobile/android/

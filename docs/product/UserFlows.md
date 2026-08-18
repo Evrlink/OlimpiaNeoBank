@@ -6,7 +6,7 @@
 **Source of truth:** [PRD.md](./PRD.md) (v2.0) · [Brand.md](../brand/Brand.md) (approved) · [Architecture.md](../architecture/Architecture.md) (v2.0)
 **Scope:** Experience definition only — no code, no build tasks, no product redesign
 
-**V1 launch (see [V1Scope.md](./V1Scope.md)):** Working **savings goals** and **USDC yield** are V1. **Pia** is visible as a static **Coming soon** card on Profile only — no Ask Pia buttons, no chat, no AI. **Virtual card** is **post-V1**.
+**V1 launch (see [V1Scope.md](./V1Scope.md) · [V1Architecture.md](../V1Architecture.md)):** Active V1 funding is **Receive USDC on Base** into the Privy embedded wallet. Working **Receive USDC**, **real USDC balance**, **real wallet activity**, and **Grow** (deposit + withdraw back to the Privy wallet) are V1 goals. **Coinbase Headless / Apple Pay Add Money** is **post-V1** (code preserved, not mounted in the live app). **Pia** chat and **virtual card** are **post-V1**. Do not treat Add Money as the V1 funding path.
 
 ---
 
@@ -38,10 +38,10 @@
 | 2 | [Registration and onboarding](#2-registration-and-onboarding) | Mobile app |
 | 3 | [Login](#3-login) | Mobile app |
 | 4 | [Dashboard](#4-dashboard) | Mobile app |
-| 5 | [Add money](#5-add-money) | Mobile app |
-| 6 | [Withdraw money](#6-withdraw-money) | Mobile app |
-| 7 | [Send money](#7-send-money) | Mobile app |
-| 8 | [Receive money](#8-receive-money) | Mobile app |
+| 5 | [Add money](#5-add-funds) | Mobile app — **post-V1** Coinbase Headless |
+| 6 | [Withdraw money](#6-withdraw-money) | Mobile app — **post-V1** bank off-ramp |
+| 7 | [Send money](#7-send-money) | Mobile app — **not V1** (P2P) |
+| 8 | [Receive USDC](#8-receive-money) | Mobile app — **V1 funding** |
 | 9 | [Create savings goal](#9-create-savings-goal) | Mobile app |
 | 10 | [Add funds to savings goal](#10-add-funds-to-savings-goal) | Mobile app |
 | 11 | [Remove funds from savings goal](#11-remove-funds-from-savings-goal) | Mobile app |
@@ -297,6 +297,8 @@ Quick actions (Add · Send · Receive) and recent activity sit below this encour
 
 ## 5. Add Funds
 
+> **Post-V1.** Coinbase Headless / Apple Pay Add Money is preserved in the repo and **must not** control the V1 user journey. Active V1 funding is [Receive USDC](#8-receive-money). Do not treat this flow as a launch dependency.
+
 ### Why This Matters
 
 Funding is the moment money becomes **real and usable** — and the starting point for everything she wants to build. A user adds money because she wants to:
@@ -308,9 +310,9 @@ Funding is the moment money becomes **real and usable** — and the starting poi
 
 Adding money is not about "activating a product." It is about **giving future-you more options**. *More choices. More freedom.*
 
-**User goal:** Add funds by bank transfer, Apple Pay/card, or existing USDC on Base.
+**User goal (post-V1 only):** Add funds via **Add Money** (Coinbase Headless). V1 users fund with **Receive USDC**, not this chooser.
 
-**Entry point:** Home → **Add Funds** quick action.
+**Entry point (post-V1):** Home → **Add Funds** quick action. Not mounted in the current V1 tab shell.
 
 **Screens involved:**
 
@@ -322,20 +324,18 @@ Adding money is not about "activating a product." It is about **giving future-yo
 **User actions:**
 
 1. Tap **Add Funds** on Home.
-2. Choose **Bank Transfer**, **Apple Pay or Card**, or **Transfer USDC**.
-3. **Bank Transfer:** enter amount; review connected bank, **Your Olimpia account**, deposit amount, $1 fee (after approval), full bank withdrawal, exact account credit, and provider-confirmed expected arrival; choose **Review Transfer** or **Review & Continue**.
-4. **Apple Pay or Card:** enter/confirm amount; continue to the supported onramp experience; review the provider's final USDC quote and fee; complete any required identity verification.
-5. **Transfer USDC:** open **Receive USDC**; view the authenticated address, QR, Copy Address, and prominent **Base network** label; follow beginner Coinbase instructions or send from another compatible wallet.
-6. Wait through normalized inline states; the backend distinguishes pending/processing and may also return failed, cancelled, or reversed.
-7. See success → updated balance on Home; new activity row.
+2. Choose **Add Money** or **Transfer USDC**.
+3. **Add Money:** enter/confirm amount; continue to Coinbase Headless Onramp; review the provider's final USDC quote and fee; complete any required identity verification. Coinbase delivers USDC to the user's Privy wallet on Base.
+4. **Transfer USDC:** open **Receive USDC**; view the authenticated address, QR, Copy Address, and prominent **Base network** label; follow beginner Coinbase instructions or send from another compatible wallet.
+5. Wait through normalized inline states; the backend distinguishes pending/processing and may also return failed, cancelled, or reversed.
+6. See success → updated balance on Home; new activity row.
 
-**Method chooser hierarchy:** Bank Transfer first; Apple Pay or Card second; Transfer USDC third and readily visible. Bank Transfer is marked Recommended only when confirmed as lowest-cost or most suitable. Provider names never replace these labels.
+**Method chooser hierarchy (post-V1):** If Add Money ships later, keep provider names out of primary labels. V1 does not show this chooser.
 
 **Disclosure rules:**
 
-- Never hardcode the conceptual 1–2 business-day estimate; use confirmed provider data.
-- Apple Pay/card is the speed option, but its fee is not assumed to be $1.
-- Never promise an exact USDC amount before the provider quote or guarantee three-to-five-second wallet arrival.
+- Never hardcode unverified arrival estimates; use confirmed provider / network data.
+- Never promise an exact USDC amount before the Coinbase quote or guarantee instant wallet arrival.
 - Funds become eligible for Growth only after settlement, compliance checks, and required authorization; no automatic earning claim.
 - Keep normal navigation unless user testing validates focus mode. Provider checkout/confirmation always has cancel, close, or return.
 
@@ -362,6 +362,8 @@ Adding money is not about "activating a product." It is about **giving future-yo
 
 ## 6. Withdraw money
 
+> **Deferred — not App Store V1.** No off-ramp provider is selected ([ADR-014](../architecture/ArchitectureDecisionLog.md)). Do not implement this flow for the current sprint. Spec retained for a later release.
+
 ### Why This Matters
 
 Life happens outside any app — rent, bills, emergencies, opportunities. A user withdraws because she needs:
@@ -374,7 +376,7 @@ Withdrawal is an act of **control**, not exit. When it feels straightforward, sh
 
 **User goal:** Move available dollars from Olimpia back to a linked bank account.
 
-**Entry point:** Home or Profile → **Withdraw** (stack/modal flow — Architecture §14).
+**Entry point:** Home or Profile → **Withdraw** (stack/modal flow — Architecture §14 — deferred).
 
 **Screens involved:**
 
@@ -387,7 +389,7 @@ Withdrawal is an act of **control**, not exit. When it feels straightforward, sh
 
 1. Tap **Withdraw**
 2. Enter amount
-3. Select linked bank destination (replacement off-ramp provider TBD)
+3. Select linked bank destination (off-ramp provider TBD when this ships)
 4. Review summary (*$X will be sent to your bank*)
 5. Confirm
 6. Wait: *Preparing your withdrawal* → *Sending money to your bank*
@@ -468,53 +470,55 @@ Sending is about **relationships and everyday life**, not rails or protocols. Wh
 
 ## 8. Receive money
 
+> **V1 funding path.** This is Receive USDC on Base into the Privy embedded wallet — not Olimpia-user P2P receive. P2P receive remains out of V1.
+
 ### Why This Matters
 
-Getting paid should not require chasing, explaining, or apologizing. A user shares her receive details because she wants to:
+Funding should feel like sending dollars she already has — from Coinbase or another wallet — not like opening a bank onramp. A user receives USDC because she wants to:
 
-- Be paid what she is owed — cleanly and without confusion
-- Avoid awkward back-and-forth about how to send money
-- Feel that receiving is as dignified and simple as paying
+- Move money she already owns into Olimpia
+- See a clear address and network so she does not send the wrong asset
+- Watch the balance appear once the transfer arrives
 
-Receive is about **being respected in everyday money exchanges**. When someone can pay her easily, she has one less thing to manage — and more energy for what matters.
+Receive USDC is how V1 becomes **real and usable**. *More choices. More freedom.*
 
-**User goal:** Get paid by sharing how to send money to me.
+**User goal:** Fund Olimpia by sending **USDC on Base** to the Privy wallet address.
 
-**Entry point:** Home → **Receive** quick action.
+**Entry point:** Home → **Receive USDC**, or You’re In → **Receive USDC**.
 
 **Screens involved:**
 
 | Screen | PRD # | Role |
 |--------|-------|------|
-| Receive Money | 6 | Username, shareable link, QR code |
-| Home | 3 | Incoming payment reflected in balance and activity |
+| Receive USDC | 6 | Privy address, QR, copy, Base + USDC instructions |
+| Home | 3 | Real USDC balance and activity after inbound confirmation |
 
 **User actions:**
 
-1. Tap **Receive**
-2. View personal username / handle
-3. Copy shareable link or show QR code
-4. Share via OS share sheet to payer
-5. *(Passive)* Wait for payer to complete Send flow
-6. See incoming activity and balance update when payment completes
+1. Tap **Receive USDC**.
+2. View the authenticated Privy wallet address, QR code, and **Base + USDC** warning.
+3. Copy the address (or scan the QR) from Coinbase or another compatible Base wallet.
+4. Send **USDC on Base only**.
+5. *(Passive)* Wait until Olimpia detects the inbound Base transfer.
+6. Home refreshes the real USDC balance; Recent Activity shows the wallet transaction.
 
 **Success state:**
 
-- Incoming transfer `completed` — *Received*
-- Balance increased; activity shows incoming payment with sender and note
-- Recipient email notification (Resend)
+- Inbound USDC confirmed once
+- Home shows the Privy Base USDC balance
+- Activity shows the actual wallet transfer
 
 **Failure state:**
 
-- Payer send fails → recipient sees no change; no action required on Receive screen
-- If payer abandons send → no partial state on recipient side
+- Unsupported asset or network does not credit the balance
+- Clear warning remains on the Receive screen: transfers on the wrong network or asset may be unrecoverable
 
 **Exit state:**
 
-- Return to **Home** after sharing
-- User continues using app while awaiting payment
+- Back → **Home**
+- User can receive again anytime
 
-**Notes:** Request-money flow is **P1 / Future** — not in this MVP flow.
+**Notes:** Olimpia-user P2P receive and request-money are **not V1**.
 
 ---
 

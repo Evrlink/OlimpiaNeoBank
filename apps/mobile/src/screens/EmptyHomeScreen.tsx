@@ -10,7 +10,6 @@ import { colors, radius, spacing } from "@/theme/colors";
 type EmptyHomeScreenProps = {
   user: AuthSyncUser;
   balance: AuthSyncBalance;
-  onAddMoney: () => void;
   onChooseYield: () => void;
   onSend: () => void;
   onReceive: () => void;
@@ -24,7 +23,6 @@ function parseBalance(value: string): number {
 export function EmptyHomeScreen({
   user,
   balance,
-  onAddMoney,
   onChooseYield,
   onSend,
   onReceive,
@@ -148,15 +146,15 @@ export function EmptyHomeScreen({
 
             <Pressable
               style={styles.addMoneyRow}
-              onPress={onAddMoney}
+              onPress={onReceive}
               accessibilityRole="button"
-              accessibilityLabel="Add money"
+              accessibilityLabel="Receive USDC"
             >
               <View style={styles.addMoneyIconWrap}>
-                <Text style={styles.addMoneyIcon}>+</Text>
+                <Ionicons name="arrow-down-outline" size={18} color={colors.white} />
               </View>
               <View style={styles.addMoneyCopy}>
-                <Text style={styles.addMoneyTitle}>Add money</Text>
+                <Text style={styles.addMoneyTitle}>Receive USDC</Text>
                 <Text style={styles.addMoneySub}>Add more anytime</Text>
               </View>
               <Text style={styles.chevron}>›</Text>
@@ -174,46 +172,49 @@ export function EmptyHomeScreen({
           <>
             <Text style={styles.headline}>You're all set.</Text>
             <Text style={styles.subhead}>
-              Add money from your bank to fund your Olimpia balance.
+              Fund your balance by sending USDC on Base to your Olimpia address.
             </Text>
 
             <Pressable
               style={styles.ctaCard}
-              onPress={onAddMoney}
+              onPress={onReceive}
               accessibilityRole="button"
-              accessibilityLabel="Add money"
+              accessibilityLabel="Receive USDC"
             >
               <View style={styles.ctaIconWrap}>
-                <Text style={styles.ctaIcon}>+</Text>
+                <Ionicons name="arrow-down-outline" size={20} color={colors.raspberry} />
               </View>
               <View style={styles.ctaCopy}>
-                <Text style={styles.ctaLabel}>Add money</Text>
-                <Text style={styles.ctaSub}>From your bank</Text>
+                <Text style={styles.ctaLabel}>Receive USDC</Text>
+                <Text style={styles.ctaSub}>From Coinbase or another wallet</Text>
               </View>
               <Text style={styles.chevron}>›</Text>
             </Pressable>
 
             <Text style={styles.trustLine}>
-              Your balance is shown in dollars and updates after each transfer.
-            </Text>
-            <Text style={styles.trustLineMuted}>
-              Send, savings, and growth — Coming soon.
+              Only send USDC on Base. Your balance updates after the transfer arrives.
             </Text>
             <Text style={styles.balanceLine}>Balance · ${balance.totalDisplayUsd}</Text>
 
             <View style={styles.quickRow}>
-              {[
-                { icon: "arrow-up-outline" as const, label: "Send" },
-                { icon: "arrow-down-outline" as const, label: "Receive" },
-              ].map(({ icon, label }) => (
-                <View key={label} style={styles.quickItem} accessibilityRole="text">
-                  <View style={styles.quickIconWrapDisabled}>
-                    <Ionicons name={icon} size={16} color={colors.inkMuted} />
-                  </View>
-                  <Text style={styles.quickLabelDisabled}>{label}</Text>
-                  <Text style={styles.quickComingSoon}>Coming soon</Text>
+              <View style={styles.quickItem} accessibilityRole="text">
+                <View style={styles.quickIconWrapDisabled}>
+                  <Ionicons name="arrow-up-outline" size={16} color={colors.inkMuted} />
                 </View>
-              ))}
+                <Text style={styles.quickLabelDisabled}>Send</Text>
+                <Text style={styles.quickComingSoon}>Coming soon</Text>
+              </View>
+              <Pressable
+                style={styles.quickItemActive}
+                onPress={onReceive}
+                accessibilityRole="button"
+                accessibilityLabel="Receive"
+              >
+                <View style={styles.quickIconWrap}>
+                  <Ionicons name="arrow-down-outline" size={16} color={colors.raspberry} />
+                </View>
+                <Text style={styles.quickLabel}>Receive</Text>
+              </Pressable>
             </View>
 
             <View style={styles.placeholder}>
@@ -558,6 +559,18 @@ const styles = StyleSheet.create({
     gap: 4,
     opacity: 0.75,
   },
+  quickItemActive: {
+    alignItems: "center",
+    gap: 4,
+  },
+  quickIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(251, 221, 230, 0.7)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   quickIconWrapDisabled: {
     width: 44,
     height: 44,
@@ -565,6 +578,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(232, 225, 218, 0.6)",
     alignItems: "center",
     justifyContent: "center",
+  },
+  quickLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 14,
+    color: colors.ink,
   },
   quickLabelDisabled: {
     fontFamily: "Inter_400Regular",

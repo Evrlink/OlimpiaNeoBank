@@ -1,46 +1,26 @@
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { usePrivy } from "@privy-io/expo";
 import { AuthenticatedTabShell } from "@/components/AuthenticatedTabShell";
 import { useSessionRestore } from "@/hooks/useSessionRestore";
-import { AddMoneyScreen } from "@/screens/AddMoneyScreen";
 import { AuthScreen, type AuthMode } from "@/screens/AuthScreen";
 import { WelcomeScreen } from "@/screens/WelcomeScreen";
 import { YoureInScreen } from "@/screens/YoureInScreen";
-import { getMe } from "@/services/api/me";
 import { colors } from "@/theme/colors";
 
-type AppScreen = "welcome" | "auth" | "youre-in" | "add-money" | "home";
+type AppScreen = "welcome" | "auth" | "youre-in" | "home";
 
 export function AppRouter() {
-  const { getAccessToken } = usePrivy();
   const { isBootstrapping, authSync, setAuthSync, sessionRestored, clearAuthenticatedSession } =
     useSessionRestore();
   const [screen, setScreen] = useState<AppScreen>("welcome");
   const [authMode, setAuthMode] = useState<AuthMode>("signup");
+  const [openReceiveOnHome, setOpenReceiveOnHome] = useState(false);
 
   const handleSignOut = () => {
     clearAuthenticatedSession();
+    setOpenReceiveOnHome(false);
     setScreen("welcome");
-  };
-
-  const refreshBalanceAfterDeposit = async () => {
-    if (!authSync) {
-      return;
-    }
-
-    try {
-      const token = await getAccessToken();
-      if (!token) {
-        return;
-      }
-
-      const me = await getMe(token);
-      setAuthSync({ ...authSync, balance: me.balance });
-    } catch {
-      // Deposit completed server-side; keep navigating home even if refresh fails.
-    }
   };
 
   if (isBootstrapping) {
@@ -92,28 +72,26 @@ export function AppRouter() {
           mode={authMode}
           onSuccess={({ destination, syncResult }) => {
             setAuthSync(syncResult);
+            setOpenReceiveOnHome(false);
             setScreen(destination);
           }}
           onBack={() => setScreen("welcome")}
         />
       ) : screen === "youre-in" ? (
         <YoureInScreen
-          onExplore={() => setScreen("home")}
-          onAddMoney={() => setScreen("add-money")}
-        />
-      ) : screen === "add-money" && authSync ? (
-        <AddMoneyScreen
-          onBack={() => setScreen("youre-in")}
-          onCompleted={() => {
-            void refreshBalanceAfterDeposit().finally(() => {
-              setScreen("home");
-            });
+          onExplore={() => {
+            setOpenReceiveOnHome(false);
+            setScreen("home");
           }}
-          showTabBar={false}
+          onReceive={() => {
+            setOpenReceiveOnHome(true);
+            setScreen("home");
+          }}
         />
       ) : authSync ? (
         <AuthenticatedTabShell
           authSync={authSync}
+          initialHomeOverlay={openReceiveOnHome ? "receive" : null}
           onSignOut={handleSignOut}
           onBalanceDisplayChange={(balance) => {
             setAuthSync({ ...authSync, balance });

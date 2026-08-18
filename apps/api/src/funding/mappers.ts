@@ -15,7 +15,7 @@ export function toDepositRecord(row: DbDepositRow): DepositRecord {
     userId: row.user_id,
     amountUsd: formatUsd(parseUsd(row.amount_usd)),
     status: row.status,
-    bridgeIntentId: row.bridge_intent_id,
+    providerTransactionId: row.provider_transaction_id,
     paymentMethod: row.payment_method,
     idempotencyKey: row.idempotency_key,
     failureReason: row.failure_reason,
@@ -48,32 +48,4 @@ export function toDepositResponse(
 
 export function isTerminalDepositStatus(status: DepositStatus): boolean {
   return status === "completed" || status === "failed";
-}
-
-export function mapBridgeTransferState(state: string | undefined): DepositStatus | null {
-  if (!state) {
-    return null;
-  }
-
-  switch (state) {
-    case "awaiting_funds":
-    case "in_review":
-      return "pending";
-    case "funds_received":
-    case "payment_submitted":
-    case "in_progress":
-      return "processing";
-    case "payment_processed":
-    case "completed":
-      return "completed";
-    case "canceled":
-    case "cancelled":
-    case "error":
-    case "failed":
-    case "returned":
-    case "undeliverable":
-      return "failed";
-    default:
-      return null;
-  }
 }

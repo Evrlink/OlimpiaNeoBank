@@ -4,6 +4,7 @@ import {
   type AuthSyncBalance,
   type AuthSyncResponse,
   type AuthSyncUser,
+  type AuthSyncWallet,
 } from "@/services/api/authSync";
 
 type ApiErrorBody = {
@@ -15,6 +16,7 @@ type ApiErrorBody = {
 
 export type MeResponse = {
   user: AuthSyncUser;
+  wallet: AuthSyncWallet;
   balance: AuthSyncBalance;
 };
 
@@ -26,7 +28,9 @@ const ME_ERROR_CODES = new Set([
   "INTERNAL_ERROR",
 ]);
 
-function parseMeErrorCode(value: string | undefined): "UNAUTHORIZED" | "USER_NOT_FOUND" | "SYNC_FAILED" | "INTERNAL_ERROR" {
+function parseMeErrorCode(
+  value: string | undefined,
+): "UNAUTHORIZED" | "USER_NOT_FOUND" | "SYNC_FAILED" | "INTERNAL_ERROR" {
   if (value && ME_ERROR_CODES.has(value)) {
     return value as "UNAUTHORIZED" | "USER_NOT_FOUND" | "SYNC_FAILED" | "INTERNAL_ERROR";
   }
@@ -43,10 +47,7 @@ export function meResponseToAuthSync(me: MeResponse): AuthSyncResponse {
   return {
     user: me.user,
     balance: me.balance,
-    wallet: {
-      id: "",
-      chain: "",
-    },
+    wallet: me.wallet,
     isNewUser: false,
   };
 }
@@ -110,7 +111,12 @@ export async function getMe(accessToken: string): Promise<MeResponse> {
 
   const successBody = body as MeResponse;
 
-  if (!successBody.user || !successBody.balance) {
+  if (
+    !successBody.user ||
+    !successBody.wallet ||
+    typeof successBody.wallet.address !== "string" ||
+    !successBody.balance
+  ) {
     throw new AuthSyncApiError(
       "INVALID_RESPONSE",
       "Received an unexpected response from the server.",

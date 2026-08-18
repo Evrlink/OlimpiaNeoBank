@@ -1,27 +1,38 @@
 # Mobile App
 
-React Native **Olimpia** app for **iOS and Android**.
+React Native / Expo **Olimpia** app — **iOS first** for App Store submission.
+
+## V1 source of truth
+
+```text
+Privy embedded wallet → Base → USDC → Receive USDC → real balance → real activity → Grow → withdraw back to the Privy wallet
+```
+
+**V1 funding** is inbound **USDC on Base** to the user’s Privy wallet. Fiat onramp, Apple Pay, Dakota, and Bridge are not V1.
 
 ## Current implementation
 
 | Area | Status |
 |------|--------|
 | Welcome, Auth (Privy email OTP), You're in | Shipped |
-| Auth sync (`POST /api/v1/auth/sync`) | Shipped |
-| Session restore on cold start (`GET /api/v1/me`) | Shipped |
+| Auth sync (`POST /api/v1/auth/sync`) | Shipped — wallet address + `privyWalletId`, chain `base` |
+| Session restore (`GET /api/v1/me`) | Shipped |
 | Authenticated 4-tab shell (Home, Savings, Card, Profile) | Shipped |
-| Home — synced user greeting + balance | Shipped |
-| Savings, Card | Placeholder **Coming soon** screens (non-functional) |
-| Profile | Read-only — name, email, balance, account created (from synced API data) |
-| Add money, Send, Receive | **Coming soon** UI (non-functional until V1 funding) |
+| Home — synced user + Privy USDC balance wiring | Shipped (needs live Privy credentials to prove) |
+| **Receive USDC** | Shipped UI — address, QR, copy, Base + USDC warning, Coinbase send steps |
+| Recent activity | Hardcoded empty state — not wired to Privy transactions |
+| Grow / yield | Placeholder (Choose Yield). Fake 4.2% APY is UI-only |
+| Send, Savings, Card | Placeholder / Coming soon |
+| Profile | Read-only synced fields |
+| Add Money / Coinbase Headless | **Post-V1.** Code exists (`AddMoneyScreen`, checkout WebView) and is **not mounted** in the V1 tab shell |
 
-## V1 product scope (founder confirmed)
+## V1 product scope
 
-**V1 requires working features at launch:** Privy email auth, embedded wallet, backend sync, session restore, **Add money** and **Withdraw** via [Bridge.xyz](https://bridge.xyz), **Send** and **Receive**, Home balance, activity history, **savings goals**, and **USDC yield**.
+**App Store V1:** Privy email auth, embedded wallet on Base, **Receive USDC**, real USDC balance, real wallet activity, Grow deposit + withdraw back to the Privy wallet, profile.
 
-**Not in V1:** functional Pia (Profile **Coming soon** preview only), **card spending / virtual card**.
+**Not V1:** Coinbase Headless / Apple Pay Add Money, bank ACH, bank off-ramp, Dakota, Bridge, virtual card, P2P send, functional Pia.
 
-Most V1 features are **not live yet** in the current build — see Build Plan Phases 3–6, 8, and 9 (withdraw). Details: [`docs/product/V1Scope.md`](../../docs/product/V1Scope.md).
+Details: [`docs/product/V1Scope.md`](../../docs/product/V1Scope.md) · [`docs/V1Architecture.md`](../../docs/V1Architecture.md) · [`docs/build/BuildPlan.md`](../../docs/build/BuildPlan.md).
 
 ## Run locally
 
@@ -30,23 +41,10 @@ npm install
 npm run start -w @olimpia/mobile
 ```
 
-Press `i` for iOS simulator or `a` for Android emulator (requires Expo dev build — not Expo Go).
+Press `i` for iOS (Expo dev client — not Expo Go). Copy `.env.example` → `.env.local` for Privy + `EXPO_PUBLIC_API_BASE_URL`.
 
-Copy `apps/mobile/.env.example` → `.env.local` and set Privy + `EXPO_PUBLIC_API_BASE_URL`.
+Pinned for iOS compile: Expo **52.0.49**, React Native **0.76.9**, `react-native-svg@15.8.0`.
 
-## Web preview (marketing repo)
+## Web preview
 
-High-fidelity browser previews (no Expo required):
-
-- `/app-preview/welcome`
-- `/app-preview/home`
-
-```bash
-npm run dev:marketing
-```
-
-## Out of scope (current sprint)
-
-- V1 money loop, savings goals, USDC yield, and activity (Build Phases 3–6, 8, 9 withdraw — not live yet)
-- Virtual card spending (post-V1)
-- Marketing site — see `apps/marketing/`
+Marketing app-preview routes (no Expo required): `/app-preview/welcome`, `/app-preview/home` via `npm run dev:marketing`.

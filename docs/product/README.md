@@ -1,19 +1,20 @@
 # Product Documentation
 
-Product requirements, user flows, screens, navigation, and product scope for **Olimpia**.
+Product requirements, user flows, screens, navigation, and launch scope for **Olimpia**.
 
 ## What belongs here
 
 | Document | Purpose |
 |----------|---------|
-| [`V1Scope.md`](./V1Scope.md) | **Founder-confirmed V1 launch scope** — provider-neutral Add Funds (Dakota bank transfer, Privy fiat onramp, external USDC), withdrawal provider TBD, send/receive, balance, activity, **savings goals**, **USDC yield**, and **Pia Coming soon** preview |
-| [`PRD.md`](./PRD.md) | Product requirements, MVP scope, open questions |
-| [`UserFlows.md`](./UserFlows.md) | End-to-end user flows and acceptance criteria |
-| [`ScreenInventory.md`](./ScreenInventory.md) | Screen-level spec, APIs, and components |
-| [`NavigationMap.md`](./NavigationMap.md) | Navigation structure, journeys, and audit |
+| [`V1Scope.md`](./V1Scope.md) | **Founder-confirmed V1 scope** — Privy embedded wallet, Receive USDC on Base, balance, transaction activity, Grow; Coinbase Headless / offramp / card post-V1 |
+| [`PRD.md`](./PRD.md) | Product requirements |
+| [`UserFlows.md`](./UserFlows.md) | End-to-end flows (may lag simplified V1 in places — prefer PRD / V1Scope / V1Architecture on funding) |
+| [`ScreenInventory.md`](./ScreenInventory.md) | Screen-level spec |
+| [`NavigationMap.md`](./NavigationMap.md) | Navigation structure |
 
 ## Related docs
 
+- Verified implementation status → [`../V1Architecture.md`](../V1Architecture.md)
 - Technical design → [`../architecture/`](../architecture/)
-- Brand and copy → [`../brand/`](../brand/)
-- Implementation phases → [`../build/`](../build/)
+- Brand → [`../brand/`](../brand/)
+- Execution → [`../MVPLaunchChecklist.md`](../MVPLaunchChecklist.md)

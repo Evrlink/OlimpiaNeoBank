@@ -2,7 +2,12 @@ import { getPool } from "../db/pool.js";
 import { creditAvailableForCompletedDeposit } from "../ledger/index.js";
 import { sendDepositCompletedEmail } from "./email.js";
 import { toDepositRecord } from "./mappers.js";
-import type { DbDepositRow, DepositRecord, DepositStatus } from "./types.js";
+import {
+  DEPOSIT_ROW_COLUMNS,
+  type DbDepositRow,
+  type DepositRecord,
+  type DepositStatus,
+} from "./types.js";
 
 export class DepositTransitionError extends Error {
   constructor(message: string) {
@@ -17,18 +22,7 @@ async function loadDepositForUpdate(
 ): Promise<DbDepositRow | null> {
   const result = await client.query<DbDepositRow>(
     `
-      SELECT
-        id,
-        user_id,
-        amount_usd,
-        status,
-        bridge_intent_id,
-        payment_method,
-        idempotency_key,
-        failure_reason,
-        metadata,
-        created_at,
-        updated_at
+      SELECT ${DEPOSIT_ROW_COLUMNS}
       FROM deposits
       WHERE id = $1
       FOR UPDATE
@@ -48,7 +42,7 @@ export async function finalizeDepositStatus(input: {
   depositId: string;
   nextStatus: DepositStatus;
   failureReason?: string | null;
-  bridgeIntentId?: string | null;
+  providerTransactionId?: string | null;
 }): Promise<DepositRecord | null> {
   const pool = getPool();
 
@@ -75,18 +69,16 @@ export async function finalizeDepositStatus(input: {
     }
 
     if (input.nextStatus === "pending" || input.nextStatus === row.status) {
-      if (input.bridgeIntentId && !row.bridge_intent_id) {
+      if (input.providerTransactionId && !row.provider_transaction_id) {
         const updated = await client.query<DbDepositRow>(
           `
             UPDATE deposits
-            SET bridge_intent_id = COALESCE(bridge_intent_id, $2),
+            SET provider_transaction_id = COALESCE(provider_transaction_id, $2),
                 updated_at = now()
             WHERE id = $1
-            RETURNING
-              id, user_id, amount_usd, status, bridge_intent_id, payment_method,
-              idempotency_key, failure_reason, metadata, created_at, updated_at
+            RETURNING ${DEPOSIT_ROW_COLUMNS}
           `,
-          [input.depositId, input.bridgeIntentId],
+          [input.depositId, input.providerTransactionId],
         );
         await client.query("COMMIT");
         return toDepositRecord(updated.rows[0] ?? row);
@@ -101,14 +93,12 @@ export async function finalizeDepositStatus(input: {
         `
           UPDATE deposits
           SET status = 'processing',
-              bridge_intent_id = COALESCE($2, bridge_intent_id),
+              provider_transaction_id = COALESCE($2, provider_transaction_id),
               updated_at = now()
           WHERE id = $1
-          RETURNING
-            id, user_id, amount_usd, status, bridge_intent_id, payment_method,
-            idempotency_key, failure_reason, metadata, created_at, updated_at
+          RETURNING ${DEPOSIT_ROW_COLUMNS}
         `,
-        [input.depositId, input.bridgeIntentId ?? null],
+        [input.depositId, input.providerTransactionId ?? null],
       );
       await client.query("COMMIT");
       return toDepositRecord(updated.rows[0] ?? row);
@@ -120,17 +110,15 @@ export async function finalizeDepositStatus(input: {
           UPDATE deposits
           SET status = 'failed',
               failure_reason = $2,
-              bridge_intent_id = COALESCE($3, bridge_intent_id),
+              provider_transaction_id = COALESCE($3, provider_transaction_id),
               updated_at = now()
           WHERE id = $1
-          RETURNING
-            id, user_id, amount_usd, status, bridge_intent_id, payment_method,
-            idempotency_key, failure_reason, metadata, created_at, updated_at
+          RETURNING ${DEPOSIT_ROW_COLUMNS}
         `,
         [
           input.depositId,
           input.failureReason ?? "We couldn’t complete this deposit.",
-          input.bridgeIntentId ?? null,
+          input.providerTransactionId ?? null,
         ],
       );
       await client.query("COMMIT");
@@ -141,22 +129,20 @@ export async function finalizeDepositStatus(input: {
       userId: row.user_id,
       amountUsd: String(row.amount_usd),
       depositId: row.id,
-      providerRef: input.bridgeIntentId ?? row.bridge_intent_id,
+      providerRef: input.providerTransactionId ?? row.provider_transaction_id,
     });
 
     const updated = await client.query<DbDepositRow>(
       `
         UPDATE deposits
         SET status = 'completed',
-            bridge_intent_id = COALESCE($2, bridge_intent_id),
+            provider_transaction_id = COALESCE($2, provider_transaction_id),
             failure_reason = NULL,
             updated_at = now()
         WHERE id = $1
-        RETURNING
-          id, user_id, amount_usd, status, bridge_intent_id, payment_method,
-          idempotency_key, failure_reason, metadata, created_at, updated_at
+        RETURNING ${DEPOSIT_ROW_COLUMNS}
       `,
-      [input.depositId, input.bridgeIntentId ?? null],
+      [input.depositId, input.providerTransactionId ?? null],
     );
 
     const userResult = await client.query<{ email: string | null }>(

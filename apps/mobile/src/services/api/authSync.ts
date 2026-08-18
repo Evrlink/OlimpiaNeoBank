@@ -12,6 +12,8 @@ export type AuthSyncUser = {
 export type AuthSyncWallet = {
   id: string;
   chain: string;
+  address: string;
+  privyWalletId: string | null;
 };
 
 export type AuthSyncBalance = {
@@ -141,6 +143,7 @@ export async function syncAccount(accessToken: string): Promise<AuthSyncResponse
   if (
     !successBody.user ||
     !successBody.wallet ||
+    typeof successBody.wallet.address !== "string" ||
     !successBody.balance ||
     typeof successBody.isNewUser !== "boolean"
   ) {

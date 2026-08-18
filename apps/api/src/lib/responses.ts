@@ -80,6 +80,8 @@ export function toActivityItem(row: DbTransactionRow): ActivityItem {
 export type WalletSummary = {
   id: string;
   chain: string;
+  address: string;
+  privyWalletId: string | null;
 };
 
 export type EligibilityFlags = {
@@ -111,7 +113,7 @@ export function toUserProfile(row: DbUserRow): UserProfile {
 
 export const phase2Eligibility: EligibilityFlags = {
   card: { available: false, reason: "not_available_phase_2" },
-  onRamp: { available: false, reason: "not_available_phase_2" },
+  onRamp: { available: false, reason: "post_v1" },
   offRamp: { available: false, reason: "not_available_phase_2" },
   growth: { available: false, reason: "not_available_phase_2" },
 };

@@ -17,7 +17,7 @@
 
 **Out of scope for this map:** `llms.txt` (static file) · FAQ (`#faq` section on M1) · Settings (merged into A16) · inline async states (same route).
 
-**V1 launch (see [V1Scope.md](./V1Scope.md)):** Functional **savings goals** and **USDC yield** are V1. **Ask Pia → A15** chat routes and **A14 Card spend** are **post-V1**. At V1, Pia is visible as a static **Coming soon** card on **A16 Profile** only (no chat, no Ask Pia quick actions).
+**V1 launch (see [V1Scope.md](./V1Scope.md) · [V1Architecture.md](../V1Architecture.md)):** **Receive USDC** and **Grow** are V1. **Coinbase Headless Add Money**, **Ask Pia → A15** chat, and **A14 Card spend** are **post-V1**. Prefer V1Scope when this map still routes empty Home to Add Money first.
 
 ---
 
@@ -369,7 +369,7 @@ Money flows return to **tab root or parent** on success — not orphaned success
 | **A3** Pia intro | Card/modal | A2 | A4 / A5 |
 | **CVV reveal** | Inline/modal | A14 | A14 |
 | **Send success** | Inline/modal | A7 | A4 or A9 |
-| **Privy fiat-onramp checkout** | Provider-controlled sheet/browser/modal as supported | A5 | A5 (inline state) |
+| **Coinbase Headless checkout** | Provider-controlled sheet/browser/modal as supported | A5 | A5 (inline state) |
 
 Sheets/modals **do not** appear in tab bar. Dismiss always returns to presenter unless success explicitly navigates (A11 → A12). Every provider checkout and transaction confirmation must provide a clear cancel, close, or return path.
 

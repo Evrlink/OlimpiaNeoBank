@@ -21,7 +21,7 @@
 
 **Settings:** PRD merges settings into **Profile** — there is **no separate Settings screen** in MVP.
 
-**V1 launch scope:** See [V1Scope.md](./V1Scope.md). **Savings goals** and **USDC yield** are **V1 requirements** (not placeholders). **Functional Pia** and **virtual card** are **post-V1**; V1 shows Pia as a static Coming soon preview on Profile only.
+**V1 launch scope:** See [V1Scope.md](./V1Scope.md) · [V1Architecture.md](../V1Architecture.md). **Receive USDC on Base** is the only active V1 funding path. **Grow** is in V1 scope. **Coinbase Headless / Apple Pay Add Money** is **post-V1** (code preserved, not mounted in the live app). **Functional Pia** and **virtual card** are **post-V1**.
 
 **Card management:** Virtual debit card viewing and controls (freeze, CVV reveal) live on the **Card** tab — **post-V1**; not a separate screen.
 
@@ -47,10 +47,10 @@
 | A2 | [Authentication (Privy)](#a2-authentication-privy) | 2 | Yes | Yes |
 | A3 | [Pia Introduction (onboarding moment)](#a3-pia-introduction-onboarding-moment) | — | Yes | No — Pia-free onboarding; preview on Profile only |
 | A4 | [Home Dashboard](#a4-home-dashboard) | 3 | Yes | Yes |
-| A5 | [Add Funds](#a5-add-funds) | 4 | Yes | Yes |
-| A6 | [Withdraw Money](#a6-withdraw-money) | — | Yes | Yes |
-| A7 | [Send Money](#a7-send-money) | 5 | Yes | Yes |
-| A8 | [Receive Money](#a8-receive-money) | 6 | Yes | Yes |
+| A5 | [Add Funds](#a5-add-funds) | 4 | Yes | No — **post-V1** Coinbase Headless |
+| A6 | [Withdraw Money](#a6-withdraw-money) | — | Yes | No — **post-V1** bank off-ramp |
+| A7 | [Send Money](#a7-send-money) | 5 | Yes | No — **not V1** P2P |
+| A8 | [Receive Money](#a8-receive-money) | 6 | Yes | Yes — **V1 funding** (Receive USDC) |
 | A9 | [Transaction Detail](#a9-transaction-detail) | 7 | Yes | Yes |
 | A10 | [Savings Goals (list)](#a10-savings-goals-list) | 8 | Yes | Yes |
 | A11 | [Create Goal (sheet)](#a11-create-goal-sheet) | — | Yes | Yes |
@@ -414,41 +414,32 @@
 | **Screen name** | Add Funds |
 | **PRD #** | 4 |
 | **Type** | Stack / modal |
-| **MVP / Future** | **MVP** |
-| **Purpose** | Choose Bank Transfer, Apple Pay or Card, or Transfer USDC without coupling the screen to a provider |
+| **MVP / Future** | **Post-V1** — Coinbase Headless preserved, not mounted in the V1 tab shell |
+| **Purpose** | Fiat Add Money (Coinbase Headless / Apple Pay) for a later release. **Not** the V1 funding path. |
 | **User flow** | UserFlows §5 |
 
 **Entry point(s):**
 
-- A4 Home — Add Funds
-- A3 onboarding — Add Funds
-- A16 Profile (optional)
+- Not shown on V1 Home. Preserved code: `AddMoneyScreen` / `CoinbaseCheckoutWebView`.
+- Post-V1: A4 Home — Add Funds
 
 **Exit point(s):**
 
 - Success / dismiss → A4 Home
 - Cancel → A4 Home
 
-**Components on screen:**
+**Components on screen (post-V1, preserved):**
 
-- Funding method selector with:
-  - **Bank Transfer** — first; recommended only when confirmed as lower-cost/suitable; provider-confirmed arrival + approved $1 fee
-  - **Apple Pay or Card** — fastest positioning; provider quote/fee and possible identity verification disclosed
-  - **Transfer USDC** — readily visible; send from Coinbase or another compatible wallet using Base
-- Amount/review/confirm where the selected method requires it
-- Provider-controlled Privy fiat-onramp experience for Apple Pay/card; never a hidden background WebView
-- Bank review: connected bank, Your Olimpia account, deposit amount, fee, total bank withdrawal, exact account credit, expected arrival, **Review Transfer**
-- Apple Pay/card: estimated receipt only after quote; final provider fee before confirmation; no repeat one-click promise
-- Receive USDC: authenticated Privy address, QR code, Copy Address, Coinbase guidance, prominent Base network/USDC warning
+- Amount / review / Coinbase Guest Checkout ToS
+- Email / SMS verification
+- Apple Pay WebView (`paymentLink`); never a hidden background WebView
 - **Inline states:** pending · processing · completed · failed · cancelled · reversed
 
-**Navigation:** Keep normal tabs/navigation unless user testing validates a focused presentation. Any provider checkout or confirmation must expose cancel, close, or return.
+**V1 note:** Active funding is **A8 Receive USDC**. Do not treat A5 as a launch dependency. Do not delete this screen.
 
-**Yield rule:** Funding does not automatically start Growth. Funds become eligible only after settlement, compliance checks, and required user authorization.
+**Yield rule:** Funding does not automatically start Growth.
 
-> Conceptual information hierarchy only. Exact copy, spacing, icons, borders, and component styling require later design review.
-
-**Primary user goal:** Choose the right way to add funds based on what the user already has, expected cost, and timing.
+**Primary user goal (post-V1):** Add dollars via Apple Pay / card when fiat onramp ships.
 
 **Success state:** `completed` — *Money added*; balance updated.
 
@@ -462,10 +453,10 @@
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| POST | `/api/v1/funding/deposits` | Start deposit |
+| POST | `/api/v1/funding/deposits` | Start deposit / onramp session (post-V1) |
 | GET | `/api/v1/funding/deposits/:id` | Poll status |
 
-**Providers:** Dakota (replaceable bank adapter) · Privy-configured fiat onramp · Base deposit monitor · Resend.
+**Providers:** Coinbase Headless Onramp (post-V1 only).
 
 ---
 
@@ -475,8 +466,8 @@
 |-------|--------|
 | **Screen name** | Withdraw Money |
 | **Type** | Stack / modal (not a PRD numbered screen) |
-| **MVP / Future** | **MVP** |
-| **Purpose** | Off-ramp available balance to linked bank |
+| **MVP / Future** | **Deferred** — not App Store V1 ([ADR-014](../architecture/ArchitectureDecisionLog.md)); no off-ramp provider selected |
+| **Purpose** | Off-ramp available balance to linked bank (post-V1) |
 | **User flow** | UserFlows §6 |
 
 **Entry point(s):**
@@ -574,45 +565,46 @@
 
 | Field | Detail |
 |-------|--------|
-| **Screen name** | Receive Money |
+| **Screen name** | Receive USDC |
 | **PRD #** | 6 |
 | **Type** | Stack / modal |
-| **MVP / Future** | **MVP** |
-| **Purpose** | Share username, link, QR so others can pay user |
+| **MVP / Future** | **V1 funding** |
+| **Purpose** | Show the Privy wallet address so the user can send **USDC on Base** from Coinbase or another compatible wallet |
 | **User flow** | UserFlows §8 |
 
 **Entry point(s):**
 
-- A4 Home — Receive
+- A4 Home — Receive USDC
+- You’re In — Receive USDC
 
 **Exit point(s):**
 
-- Share sheet → user stays on A8 or returns to A4 Home
-- Dismiss → A4 Home
+- Back → A4 Home
 
 **Components on screen:**
 
-- Username / handle display
-- Shareable link
+- Authenticated Privy address
 - QR code
-- Copy / Share actions
+- Copy Address
+- Prominent **Base** network + **USDC** warning
+- Beginner instructions for sending from Coinbase or another Base wallet
 
-**Primary user goal:** Get paid without chasing people.
+**Primary user goal:** Fund Olimpia by receiving USDC on Base.
 
-**Success state:** User shared receive info; incoming payments appear on A4 activity.
+**Success state:** Inbound USDC is detected; Home shows the real Privy USDC balance and the wallet transaction in Recent Activity. (Inbound detection and activity wiring are still unfinished.)
 
-**Empty state:** N/A.
+**Empty state:** Address unavailable — cannot copy or show QR until wallet sync succeeds.
 
-**Error state:** Link/handle load fail — retry.
+**Error state:** Unsupported asset/network does not credit. Warning copy stays on screen.
 
-**Architecture modules:** `transfers/` · `users/`.
+**Architecture modules:** Privy wallet · `/me` · planned Privy Get Transactions / Base inbound confirmation.
 
 **APIs:**
 
 | Method | Route | Purpose |
 |--------|-------|---------|
-| GET | `/api/v1/receive/link` | Shareable receive info |
-| GET | `/api/v1/me` | Username / handle |
+| GET | `/api/v1/me` | Wallet address + `privyWalletId` |
+| GET | `/api/v1/balance` | Home balance (intended: Privy USDC on Base) |
 
 ---
 
