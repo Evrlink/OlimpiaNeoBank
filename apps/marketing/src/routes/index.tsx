@@ -690,7 +690,6 @@ function PerspectiveSection() {
       </div>
       <div className="lens-copy">
         <SectionScrollReveal className="lens-copy-inner">
-          <p className="lens-eyebrow">Perspective</p>
           <h2 id="perspective-title" className="lens-headline">
             Look beyond traditional banking.
           </h2>
