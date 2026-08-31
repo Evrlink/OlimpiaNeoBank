@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, View } from "react-native";
 import type { TabId } from "@/components/AppTabBar";
 import { TabNavigationProvider } from "@/context/TabNavigationContext";
+import { ActivityScreen } from "@/screens/ActivityScreen";
 import { CardScreen } from "@/screens/CardScreen";
 import { ChooseYieldScreen } from "@/screens/ChooseYieldScreen";
 import { EmptyHomeScreen } from "@/screens/EmptyHomeScreen";
@@ -14,7 +15,7 @@ import { getActivity, type ActivityItem } from "@/services/api/activity";
 import { getBalance } from "@/services/api/balance";
 import type { AuthSyncBalance, AuthSyncResponse } from "@/services/api/authSync";
 
-type HomeOverlay = "choose-yield" | "send" | "receive" | null;
+type HomeOverlay = "choose-yield" | "send" | "receive" | "activity" | null;
 
 type AuthenticatedTabShellProps = {
   authSync: AuthSyncResponse;
@@ -52,7 +53,7 @@ export function AuthenticatedTabShell({
 
       const [balanceResult, activityResult] = await Promise.allSettled([
         getBalance(accessToken),
-        getActivity(accessToken),
+        getActivity(accessToken, { limit: 5 }),
       ]);
 
       if (requestId !== homeRequestId.current) {
@@ -119,6 +120,8 @@ export function AuthenticatedTabShell({
         address={authSync.wallet.address || null}
       />
     );
+  } else if (homeOverlay === "activity") {
+    content = <ActivityScreen onBack={() => setHomeOverlay(null)} />;
   } else {
     content = (
       <>
@@ -132,6 +135,7 @@ export function AuthenticatedTabShell({
             onChooseYield={() => setHomeOverlay("choose-yield")}
             onSend={() => setHomeOverlay("send")}
             onReceive={() => setHomeOverlay("receive")}
+            onSeeAllActivity={() => setHomeOverlay("activity")}
           />
         ) : null}
         {activeTab === "savings" ? <SavingsScreen /> : null}

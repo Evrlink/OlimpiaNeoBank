@@ -3,10 +3,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
+import { ActivityListCard } from "@/components/ActivityListCard";
 import type { ActivityItem } from "@/services/api/activity";
 import type { AuthSyncBalance, AuthSyncUser } from "@/services/api/authSync";
 import { getGreetingName } from "@/utils/auth";
 import { colors, radius, spacing } from "@/theme/colors";
+
+const HOME_ACTIVITY_LIMIT = 5;
 
 type EmptyHomeScreenProps = {
   user: AuthSyncUser;
@@ -17,33 +20,12 @@ type EmptyHomeScreenProps = {
   onChooseYield: () => void;
   onSend: () => void;
   onReceive: () => void;
+  onSeeAllActivity?: () => void;
 };
 
 function parseBalance(value: string): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function activityTitle(type: string): string {
-  if (type === "received") {
-    return "Received";
-  }
-
-  if (type === "sent") {
-    return "Sent";
-  }
-
-  return type;
-}
-
-function formatActivityDate(iso: string): string {
-  const date = new Date(iso);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export function EmptyHomeScreen({
@@ -55,12 +37,14 @@ export function EmptyHomeScreen({
   onChooseYield,
   onSend,
   onReceive,
+  onSeeAllActivity,
 }: EmptyHomeScreenProps) {
   const greetingName = getGreetingName(user);
   const isFunded = parseBalance(balance.totalDisplayUsd) > 0;
   const isEarning = parseBalance(balance.growthAllocatedUsd) > 0;
   const hasAvailable = parseBalance(balance.availableUsd) > 0;
   const estimatedApyPercent = 4.2;
+  const previewActivityItems = activityItems.slice(0, HOME_ACTIVITY_LIMIT);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -202,35 +186,21 @@ export function EmptyHomeScreen({
             </Pressable>
 
             <Text style={styles.activityHeader}>Recent activity</Text>
-            {activityItems.length > 0 ? (
-              <View style={styles.activityListCard}>
-                {activityItems.map((item, index) => {
-                  const dateLabel = formatActivityDate(item.createdAt);
-                  const isSent = item.type === "sent";
-
-                  return (
-                    <View
-                      key={item.id}
-                      style={[styles.activityRow, index > 0 ? styles.activityRowDivider : null]}
-                    >
-                      <View style={styles.activityIconWrap}>
-                        <Ionicons
-                          name={isSent ? "arrow-up-outline" : "arrow-down-outline"}
-                          size={16}
-                          color={colors.raspberry}
-                        />
-                      </View>
-                      <View style={styles.activityCopy}>
-                        <Text style={styles.activityTitle}>{activityTitle(item.type)}</Text>
-                        {dateLabel ? (
-                          <Text style={styles.activityMeta}>{dateLabel}</Text>
-                        ) : null}
-                      </View>
-                      <Text style={styles.activityAmount}>${item.amountUsd}</Text>
-                    </View>
-                  );
-                })}
-              </View>
+            {previewActivityItems.length > 0 ? (
+              <>
+                <ActivityListCard items={previewActivityItems} />
+                {onSeeAllActivity ? (
+                  <Pressable
+                    style={styles.seeAllRow}
+                    onPress={onSeeAllActivity}
+                    accessibilityRole="button"
+                    accessibilityLabel="See all activity"
+                  >
+                    <Text style={styles.seeAllLabel}>See all activity</Text>
+                    <Text style={styles.chevron}>›</Text>
+                  </Pressable>
+                ) : null}
+              </>
             ) : (
               <View style={styles.activityEmptyCard}>
                 <Ionicons name="time-outline" size={20} color={colors.inkMuted} />
@@ -296,37 +266,21 @@ export function EmptyHomeScreen({
               <Text style={styles.placeholderText}>Growth — Coming soon</Text>
             </View>
 
-            {activityItems.length > 0 ? (
+            {previewActivityItems.length > 0 ? (
               <>
                 <Text style={styles.activityHeader}>Recent activity</Text>
-                <View style={styles.activityListCard}>
-                  {activityItems.map((item, index) => {
-                    const dateLabel = formatActivityDate(item.createdAt);
-                    const isSent = item.type === "sent";
-
-                    return (
-                      <View
-                        key={item.id}
-                        style={[styles.activityRow, index > 0 ? styles.activityRowDivider : null]}
-                      >
-                        <View style={styles.activityIconWrap}>
-                          <Ionicons
-                            name={isSent ? "arrow-up-outline" : "arrow-down-outline"}
-                            size={16}
-                            color={colors.raspberry}
-                          />
-                        </View>
-                        <View style={styles.activityCopy}>
-                          <Text style={styles.activityTitle}>{activityTitle(item.type)}</Text>
-                          {dateLabel ? (
-                            <Text style={styles.activityMeta}>{dateLabel}</Text>
-                          ) : null}
-                        </View>
-                        <Text style={styles.activityAmount}>${item.amountUsd}</Text>
-                      </View>
-                    );
-                  })}
-                </View>
+                <ActivityListCard items={previewActivityItems} />
+                {onSeeAllActivity ? (
+                  <Pressable
+                    style={styles.seeAllRow}
+                    onPress={onSeeAllActivity}
+                    accessibilityRole="button"
+                    accessibilityLabel="See all activity"
+                  >
+                    <Text style={styles.seeAllLabel}>See all activity</Text>
+                    <Text style={styles.chevron}>›</Text>
+                  </Pressable>
+                ) : null}
               </>
             ) : (
               <View style={styles.activityEmpty}>
@@ -575,51 +529,18 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: colors.inkMuted,
   },
-  activityListCard: {
-    marginTop: 12,
-    borderRadius: radius.card,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: "rgba(232, 225, 218, 0.4)",
-    overflow: "hidden",
-  },
-  activityRow: {
+  seeAllRow: {
+    marginTop: 8,
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: spacing.card,
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    paddingHorizontal: 4,
   },
-  activityRowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: "rgba(232, 225, 218, 0.4)",
-  },
-  activityIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(251, 221, 230, 0.7)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  activityCopy: {
-    flex: 1,
-  },
-  activityTitle: {
+  seeAllLabel: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 15,
-    color: colors.ink,
-  },
-  activityMeta: {
-    marginTop: 2,
-    fontFamily: "Inter_400Regular",
-    fontSize: 13,
-    color: colors.inkMuted,
-  },
-  activityAmount: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 15,
-    color: colors.ink,
+    fontSize: 14,
+    color: colors.raspberry,
   },
   headline: {
     fontFamily: "Inter_600SemiBold",

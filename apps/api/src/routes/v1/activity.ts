@@ -23,29 +23,31 @@ type DbTransactionRow = {
   created_at: Date;
 };
 
+function parseCursor(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const cursor = value.trim();
+  return cursor.length > 0 ? cursor : undefined;
+}
+
 function parsePagination(query: {
   limit?: unknown;
-  offset?: unknown;
-}): { limit: number; offset: number } | null {
+  cursor?: unknown;
+}): { limit: number; cursor?: string } | null {
   const rawLimit = query.limit;
-  const rawOffset = query.offset;
 
   const limit =
     rawLimit === undefined || rawLimit === ""
       ? DEFAULT_LIMIT
       : Number(rawLimit);
-  const offset =
-    rawOffset === undefined || rawOffset === "" ? 0 : Number(rawOffset);
 
   if (!Number.isInteger(limit) || limit < 1 || limit > MAX_LIMIT) {
     return null;
   }
 
-  if (!Number.isInteger(offset) || offset < 0) {
-    return null;
-  }
-
-  return { limit, offset };
+  return { limit, cursor: parseCursor(query.cursor) };
 }
 
 async function resolveUserId(
@@ -80,7 +82,7 @@ activityRouter.get("/", requireAuth, async (req, res) => {
       res,
       400,
       "VALIDATION_ERROR",
-      "Invalid pagination. Use limit (1–100) and offset (≥ 0).",
+      "Invalid pagination. Use limit (1–100) and an optional cursor.",
     );
     return;
   }
@@ -125,17 +127,17 @@ activityRouter.get("/", requireAuth, async (req, res) => {
       return;
     }
 
-    const { limit, offset } = pagination;
-    const items = await getHomeActivityForPrivyWallet(
+    const { limit, cursor } = pagination;
+    const page = await getHomeActivityForPrivyWallet(
       walletRow.privy_wallet_id,
       limit,
+      cursor,
     );
 
     res.status(200).json({
       limit,
-      offset,
-      total: items.length,
-      items,
+      items: page.items,
+      next_cursor: page.nextCursor,
     });
   } catch {
     sendError(res, 502, "PRIVY_UNAVAILABLE", "Unable to load wallet activity.");

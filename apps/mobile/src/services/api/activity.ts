@@ -21,9 +21,8 @@ export type ActivityItem = {
 
 export type ActivityListResponse = {
   limit: number;
-  offset: number;
-  total: number;
   items: ActivityItem[];
+  nextCursor: string | null;
 };
 
 const ACTIVITY_ERROR_CODES = new Set([
@@ -79,17 +78,42 @@ function isActivityItem(value: unknown): value is ActivityItem {
   );
 }
 
+function parseNextCursor(value: unknown): string | null {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const cursor = value.trim();
+  return cursor.length > 0 ? cursor : null;
+}
+
 function isActivityListResponse(value: unknown): value is ActivityListResponse {
   if (!value || typeof value !== "object") {
     return false;
   }
 
-  const body = value as ActivityListResponse;
+  const body = value as {
+    items?: unknown;
+    next_cursor?: unknown;
+    nextCursor?: unknown;
+    limit?: unknown;
+  };
 
-  return Array.isArray(body.items) && body.items.every(isActivityItem);
+  if (!Array.isArray(body.items) || !body.items.every(isActivityItem)) {
+    return false;
+  }
+
+  return true;
 }
 
-export async function getActivity(accessToken: string): Promise<ActivityListResponse> {
+export async function getActivity(
+  accessToken: string,
+  query?: { limit?: number; cursor?: string },
+): Promise<ActivityListResponse> {
   const token = accessToken.trim();
 
   if (!token) {
@@ -100,10 +124,25 @@ export async function getActivity(accessToken: string): Promise<ActivityListResp
     );
   }
 
+  const params = new URLSearchParams();
+
+  if (query?.limit != null) {
+    params.set("limit", String(query.limit));
+  }
+
+  if (query?.cursor) {
+    params.set("cursor", query.cursor);
+  }
+
+  const queryString = params.toString();
+  const url = queryString
+    ? `${apiBaseUrl}/api/v1/activity?${queryString}`
+    : `${apiBaseUrl}/api/v1/activity`;
+
   let response: Response;
 
   try {
-    response = await fetch(`${apiBaseUrl}/api/v1/activity`, {
+    response = await fetch(url, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -154,5 +193,15 @@ export async function getActivity(accessToken: string): Promise<ActivityListResp
     );
   }
 
-  return body;
+  const raw = body as {
+    limit?: unknown;
+    items: ActivityItem[];
+    next_cursor?: unknown;
+  };
+
+  return {
+    limit: typeof raw.limit === "number" ? raw.limit : query?.limit ?? 20,
+    items: raw.items,
+    nextCursor: parseNextCursor(raw.next_cursor),
+  };
 }

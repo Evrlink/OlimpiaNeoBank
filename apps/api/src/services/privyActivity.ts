@@ -129,19 +129,31 @@ function toHomeActivityItem(tx: PrivyWalletTransaction): ActivityItem | null {
   };
 }
 
-/** V1 Home activity: Privy Base USDC transfers (not the Olimpia ledger). */
+export type PrivyActivityPage = {
+  items: ActivityItem[];
+  nextCursor: string | null;
+};
+
+/** V1 activity: Privy Base USDC transfers (not the Olimpia ledger). */
 export async function getHomeActivityForPrivyWallet(
   privyWalletId: string,
   limit: number,
-): Promise<ActivityItem[]> {
+  cursor?: string,
+): Promise<PrivyActivityPage> {
   const client = getPrivyClient();
   const response = await client.wallets().transactions.get(privyWalletId, {
     chain: "base",
     asset: "usdc",
     limit,
+    ...(cursor ? { cursor } : {}),
   });
 
-  return response.transactions
-    .map((tx) => toHomeActivityItem(tx as PrivyWalletTransaction))
-    .filter((item): item is ActivityItem => item !== null);
+  const nextCursor = response.next_cursor?.trim() || null;
+
+  return {
+    items: response.transactions
+      .map((tx) => toHomeActivityItem(tx as PrivyWalletTransaction))
+      .filter((item): item is ActivityItem => item !== null),
+    nextCursor,
+  };
 }
