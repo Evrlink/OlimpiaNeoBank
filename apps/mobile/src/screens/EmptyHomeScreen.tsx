@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
 import type { AuthSyncBalance, AuthSyncUser } from "@/services/api/authSync";
@@ -10,6 +10,8 @@ import { colors, radius, spacing } from "@/theme/colors";
 type EmptyHomeScreenProps = {
   user: AuthSyncUser;
   balance: AuthSyncBalance;
+  refreshing?: boolean;
+  onRefresh?: () => void | Promise<void>;
   onChooseYield: () => void;
   onSend: () => void;
   onReceive: () => void;
@@ -23,6 +25,8 @@ function parseBalance(value: string): number {
 export function EmptyHomeScreen({
   user,
   balance,
+  refreshing = false,
+  onRefresh,
   onChooseYield,
   onSend,
   onReceive,
@@ -46,6 +50,18 @@ export function EmptyHomeScreen({
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                void onRefresh();
+              }}
+              tintColor={colors.raspberry}
+              colors={[colors.raspberry]}
+            />
+          ) : undefined
+        }
       >
         <View style={styles.headerRow}>
           <View>

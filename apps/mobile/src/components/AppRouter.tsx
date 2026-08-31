@@ -1,11 +1,12 @@
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { AuthenticatedTabShell } from "@/components/AuthenticatedTabShell";
 import { useSessionRestore } from "@/hooks/useSessionRestore";
 import { AuthScreen, type AuthMode } from "@/screens/AuthScreen";
 import { WelcomeScreen } from "@/screens/WelcomeScreen";
 import { YoureInScreen } from "@/screens/YoureInScreen";
+import type { AuthSyncBalance } from "@/services/api/authSync";
 import { colors } from "@/theme/colors";
 
 type AppScreen = "welcome" | "auth" | "youre-in" | "home";
@@ -22,6 +23,10 @@ export function AppRouter() {
     setOpenReceiveOnHome(false);
     setScreen("welcome");
   };
+
+  const handleBalanceDisplayChange = useCallback((balance: AuthSyncBalance) => {
+    setAuthSync((current) => (current ? { ...current, balance } : current));
+  }, [setAuthSync]);
 
   if (isBootstrapping) {
     return (
@@ -45,9 +50,7 @@ export function AppRouter() {
         <AuthenticatedTabShell
           authSync={authSync}
           onSignOut={handleSignOut}
-          onBalanceDisplayChange={(balance) => {
-            setAuthSync({ ...authSync, balance });
-          }}
+          onBalanceDisplayChange={handleBalanceDisplayChange}
         />
       </>
     );
@@ -93,9 +96,7 @@ export function AppRouter() {
           authSync={authSync}
           initialHomeOverlay={openReceiveOnHome ? "receive" : null}
           onSignOut={handleSignOut}
-          onBalanceDisplayChange={(balance) => {
-            setAuthSync({ ...authSync, balance });
-          }}
+          onBalanceDisplayChange={handleBalanceDisplayChange}
         />
       ) : (
         <WelcomeScreen

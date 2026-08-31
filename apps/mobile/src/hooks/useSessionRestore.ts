@@ -1,12 +1,12 @@
 import { usePrivy } from "@privy-io/expo";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import type { AuthSyncResponse } from "@/services/api/authSync";
 import { getMe, meResponseToAuthSync } from "@/services/api/me";
 
 type SessionRestoreState = {
   isBootstrapping: boolean;
   authSync: AuthSyncResponse | null;
-  setAuthSync: (value: AuthSyncResponse | null) => void;
+  setAuthSync: Dispatch<SetStateAction<AuthSyncResponse | null>>;
   sessionRestored: boolean;
   clearAuthenticatedSession: () => void;
 };
