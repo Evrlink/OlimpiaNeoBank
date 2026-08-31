@@ -3,6 +3,7 @@ import { getPool } from "../../db/pool.js";
 import { sendError } from "../../lib/errors.js";
 import { toActivityItem } from "../../lib/responses.js";
 import { requireAuth } from "../../middleware/requireAuth.js";
+import { getHomeActivityForPrivyWallet } from "../../services/privyActivity.js";
 import type { AuthenticatedRequest } from "../../types/express.js";
 
 export const activityRouter = Router();
@@ -85,14 +86,26 @@ activityRouter.get("/", requireAuth, async (req, res) => {
   }
 
   try {
-    const resolved = await resolveUserId(privyUserId);
+    const pool = getPool();
 
-    if ("error" in resolved) {
-      if (resolved.error === "no_pool") {
-        sendError(res, 500, "INTERNAL_ERROR", "Unable to load activity.");
-        return;
-      }
+    if (!pool) {
+      sendError(res, 500, "INTERNAL_ERROR", "Unable to load activity.");
+      return;
+    }
 
+    const walletResult = await pool.query<{ privy_wallet_id: string | null }>(
+      `
+        SELECT w.privy_wallet_id
+        FROM users u
+        JOIN wallets w ON w.user_id = u.id
+        WHERE u.privy_user_id = $1
+      `,
+      [privyUserId],
+    );
+
+    const walletRow = walletResult.rows[0];
+
+    if (!walletRow) {
       sendError(
         res,
         404,
@@ -102,43 +115,30 @@ activityRouter.get("/", requireAuth, async (req, res) => {
       return;
     }
 
-    const pool = getPool();
-
-    if (!pool) {
-      sendError(res, 500, "INTERNAL_ERROR", "Unable to load activity.");
+    if (!walletRow.privy_wallet_id) {
+      sendError(
+        res,
+        502,
+        "PRIVY_UNAVAILABLE",
+        "Privy wallet id is missing. Complete sign-in sync again.",
+      );
       return;
     }
 
     const { limit, offset } = pagination;
-    const { userId } = resolved;
-
-    const [countResult, itemsResult] = await Promise.all([
-      pool.query<{ total: string }>(
-        "SELECT COUNT(*)::text AS total FROM transactions WHERE user_id = $1",
-        [userId],
-      ),
-      pool.query<DbTransactionRow>(
-        `
-          SELECT id, type, amount_usd, status, counterparty_id, created_at
-          FROM transactions
-          WHERE user_id = $1
-          ORDER BY created_at DESC, id DESC
-          LIMIT $2 OFFSET $3
-        `,
-        [userId, limit, offset],
-      ),
-    ]);
-
-    const total = Number(countResult.rows[0]?.total ?? 0);
+    const items = await getHomeActivityForPrivyWallet(
+      walletRow.privy_wallet_id,
+      limit,
+    );
 
     res.status(200).json({
       limit,
       offset,
-      total: Number.isFinite(total) ? total : 0,
-      items: itemsResult.rows.map(toActivityItem),
+      total: items.length,
+      items,
     });
   } catch {
-    sendError(res, 500, "INTERNAL_ERROR", "Unable to load activity.");
+    sendError(res, 502, "PRIVY_UNAVAILABLE", "Unable to load wallet activity.");
   }
 });
 

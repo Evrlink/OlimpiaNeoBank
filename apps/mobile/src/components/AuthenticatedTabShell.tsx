@@ -10,6 +10,7 @@ import { ProfileScreen } from "@/screens/ProfileScreen";
 import { ReceiveMoneyScreen } from "@/screens/ReceiveMoneyScreen";
 import { SavingsScreen } from "@/screens/SavingsScreen";
 import { SendMoneyScreen } from "@/screens/SendMoneyScreen";
+import { getActivity, type ActivityItem } from "@/services/api/activity";
 import { getBalance } from "@/services/api/balance";
 import type { AuthSyncBalance, AuthSyncResponse } from "@/services/api/authSync";
 
@@ -31,15 +32,16 @@ export function AuthenticatedTabShell({
   const { getAccessToken } = usePrivy();
   const [activeTab, setActiveTab] = useState<TabId>("home");
   const [homeOverlay, setHomeOverlay] = useState<HomeOverlay>(initialHomeOverlay);
-  const [refreshingBalance, setRefreshingBalance] = useState(false);
-  const balanceRequestId = useRef(0);
+  const [refreshingHome, setRefreshingHome] = useState(false);
+  const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
+  const homeRequestId = useRef(0);
   const onBalanceDisplayChangeRef = useRef(onBalanceDisplayChange);
   onBalanceDisplayChangeRef.current = onBalanceDisplayChange;
 
   const isHomeVisible = activeTab === "home" && homeOverlay === null;
 
-  const refreshBalance = useCallback(async () => {
-    const requestId = ++balanceRequestId.current;
+  const refreshHome = useCallback(async () => {
+    const requestId = ++homeRequestId.current;
 
     try {
       const accessToken = await getAccessToken();
@@ -48,15 +50,24 @@ export function AuthenticatedTabShell({
         return;
       }
 
-      const balance = await getBalance(accessToken);
+      const [balanceResult, activityResult] = await Promise.allSettled([
+        getBalance(accessToken),
+        getActivity(accessToken),
+      ]);
 
-      if (requestId !== balanceRequestId.current) {
+      if (requestId !== homeRequestId.current) {
         return;
       }
 
-      onBalanceDisplayChangeRef.current?.(balance);
+      if (balanceResult.status === "fulfilled") {
+        onBalanceDisplayChangeRef.current?.(balanceResult.value);
+      }
+
+      if (activityResult.status === "fulfilled") {
+        setActivityItems(activityResult.value.items);
+      }
     } catch {
-      // Keep the last known balance on screen.
+      // Keep the last known Home data on screen.
     }
   }, [getAccessToken]);
 
@@ -65,30 +76,30 @@ export function AuthenticatedTabShell({
       return;
     }
 
-    void refreshBalance();
-  }, [isHomeVisible, refreshBalance]);
+    void refreshHome();
+  }, [isHomeVisible, refreshHome]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextState) => {
       if (nextState === "active" && isHomeVisible) {
-        void refreshBalance();
+        void refreshHome();
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [isHomeVisible, refreshBalance]);
+  }, [isHomeVisible, refreshHome]);
 
   const handlePullToRefresh = useCallback(async () => {
-    setRefreshingBalance(true);
+    setRefreshingHome(true);
 
     try {
-      await refreshBalance();
+      await refreshHome();
     } finally {
-      setRefreshingBalance(false);
+      setRefreshingHome(false);
     }
-  }, [refreshBalance]);
+  }, [refreshHome]);
 
   const handleTabPress = (tab: TabId) => {
     setHomeOverlay(null);
@@ -115,7 +126,8 @@ export function AuthenticatedTabShell({
           <EmptyHomeScreen
             user={authSync.user}
             balance={authSync.balance}
-            refreshing={refreshingBalance}
+            activityItems={activityItems}
+            refreshing={refreshingHome}
             onRefresh={handlePullToRefresh}
             onChooseYield={() => setHomeOverlay("choose-yield")}
             onSend={() => setHomeOverlay("send")}
