@@ -1,4 +1,4 @@
-import { env } from "../config/env.js";
+import { env, isMockFundingAllowed } from "../config/env.js";
 import { finalizeDepositStatus } from "./completeDeposit.js";
 import { createOnrampOrder } from "./coinbase/client.js";
 import { FundingProviderError } from "./errors.js";
@@ -31,6 +31,12 @@ async function createMockOnRamp(input: CreateOnRampInput): Promise<CreateOnRampR
   if (env.nodeEnv === "production") {
     throw new FundingProviderError(
       "Mock funding is not available in production.",
+    );
+  }
+
+  if (!isMockFundingAllowed(env.nodeEnv)) {
+    throw new FundingProviderError(
+      "Mock funding is not available in this environment.",
     );
   }
 
@@ -110,5 +116,9 @@ export async function createOnRampIntent(
     return createCoinbaseOnRamp(input);
   }
 
-  return createMockOnRamp(input);
+  if (env.fundingProvider === "mock") {
+    return createMockOnRamp(input);
+  }
+
+  throw new FundingProviderError("Funding provider is not configured.");
 }

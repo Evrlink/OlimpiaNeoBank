@@ -103,3 +103,33 @@ export function verifyCoinbaseWebhookSignature(input: {
 
   return false;
 }
+
+/**
+ * Header names bound by a v1 Hook0 signature (`h=`).
+ * v0 (`HMAC-SHA256(t.body)`) does not bind headers; when v0 is present the
+ * verifier prefers it, so those headers must not be trusted.
+ */
+export function signedWebhookHeaderNames(
+  signatureHeader: string | undefined,
+): Set<string> {
+  if (!signatureHeader?.trim()) {
+    return new Set();
+  }
+
+  const parts = parseSignatureHeader(signatureHeader);
+
+  if (parts.v0) {
+    return new Set();
+  }
+
+  if (parts.v1 && parts.h) {
+    return new Set(
+      parts.h
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((name) => name.toLowerCase()),
+    );
+  }
+
+  return new Set();
+}

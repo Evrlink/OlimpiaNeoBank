@@ -9,6 +9,7 @@ export type ApiErrorCode =
   | "PROVIDER_ERROR"
   | "SYNC_FAILED"
   | "PRIVY_UNAVAILABLE"
+  | "NOT_AVAILABLE"
   | "INTERNAL_ERROR";
 
 export function sendError(

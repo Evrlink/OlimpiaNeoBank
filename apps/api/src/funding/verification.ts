@@ -1,5 +1,5 @@
 import { getPool } from "../db/pool.js";
-import { env } from "../config/env.js";
+import { env, isMockFundingAllowed } from "../config/env.js";
 import {
   initiateOnrampVerification,
   submitOnrampVerification,
@@ -142,12 +142,23 @@ export async function startFundingVerification(input: {
   }
 
   if (env.fundingProvider === "mock") {
+    if (!isMockFundingAllowed(env.nodeEnv)) {
+      throw new FundingVerificationError(
+        "Mock funding is not available in this environment.",
+        "PROVIDER_ERROR",
+      );
+    }
+
     return {
       verificationId: `mock_${channel}_${user.userId}`,
       otpExpiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
       channel,
       destination,
     };
+  }
+
+  if (env.fundingProvider !== "coinbase") {
+    throw new FundingVerificationError("Funding is not available.", "PROVIDER_ERROR");
   }
 
   try {
@@ -200,6 +211,13 @@ export async function completeFundingVerification(input: {
   }
 
   if (env.fundingProvider === "mock") {
+    if (!isMockFundingAllowed(env.nodeEnv)) {
+      throw new FundingVerificationError(
+        "Mock funding is not available in this environment.",
+        "PROVIDER_ERROR",
+      );
+    }
+
     const channel =
       input.channel === "sms" || input.channel === "email" ? input.channel : undefined;
     const destination =
@@ -226,6 +244,10 @@ export async function completeFundingVerification(input: {
       verificationExpiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
       channel,
     };
+  }
+
+  if (env.fundingProvider !== "coinbase") {
+    throw new FundingVerificationError("Funding is not available.", "PROVIDER_ERROR");
   }
 
   try {

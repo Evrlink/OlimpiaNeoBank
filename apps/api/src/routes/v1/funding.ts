@@ -2,6 +2,7 @@ import { Router } from "express";
 import { env } from "../../config/env.js";
 import { sendError } from "../../lib/errors.js";
 import { requireAuth } from "../../middleware/requireAuth.js";
+import { requireOnRampEligibility } from "../../funding/eligibility.js";
 import {
   createDepositForUser,
   FundingServiceError,
@@ -21,10 +22,13 @@ import type { AuthenticatedRequest } from "../../types/express.js";
 
 export const fundingRouter = Router();
 
+fundingRouter.use(requireAuth);
+fundingRouter.use(requireOnRampEligibility);
+
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-fundingRouter.post("/verifications", requireAuth, async (req, res) => {
+fundingRouter.post("/verifications", async (req, res) => {
   const { privyUserId } = req as AuthenticatedRequest;
 
   try {
@@ -54,7 +58,7 @@ fundingRouter.post("/verifications", requireAuth, async (req, res) => {
   }
 });
 
-fundingRouter.post("/verifications/:id/submit", requireAuth, async (req, res) => {
+fundingRouter.post("/verifications/:id/submit", async (req, res) => {
   const { privyUserId } = req as AuthenticatedRequest;
   const verificationId = req.params.id?.trim() ?? "";
 
@@ -87,7 +91,7 @@ fundingRouter.post("/verifications/:id/submit", requireAuth, async (req, res) =>
   }
 });
 
-fundingRouter.post("/deposits", requireAuth, async (req, res) => {
+fundingRouter.post("/deposits", async (req, res) => {
   const { privyUserId } = req as AuthenticatedRequest;
   const idempotencyKeyHeader = req.header("Idempotency-Key");
 
@@ -119,7 +123,7 @@ fundingRouter.post("/deposits", requireAuth, async (req, res) => {
   }
 });
 
-fundingRouter.get("/deposits/:id", requireAuth, async (req, res) => {
+fundingRouter.get("/deposits/:id", async (req, res) => {
   const { privyUserId } = req as AuthenticatedRequest;
   const depositId = req.params.id?.trim() ?? "";
 
@@ -152,7 +156,7 @@ fundingRouter.get("/deposits/:id", requireAuth, async (req, res) => {
   }
 });
 
-fundingRouter.post("/deposits/:id/cancel", requireAuth, async (req, res) => {
+fundingRouter.post("/deposits/:id/cancel", async (req, res) => {
   const { privyUserId } = req as AuthenticatedRequest;
   const depositId = req.params.id?.trim() ?? "";
 
@@ -184,7 +188,7 @@ fundingRouter.post("/deposits/:id/cancel", requireAuth, async (req, res) => {
   }
 });
 
-fundingRouter.post("/deposits/:id/reconcile", requireAuth, async (req, res) => {
+fundingRouter.post("/deposits/:id/reconcile", async (req, res) => {
   const { privyUserId } = req as AuthenticatedRequest;
   const depositId = req.params.id?.trim() ?? "";
 
