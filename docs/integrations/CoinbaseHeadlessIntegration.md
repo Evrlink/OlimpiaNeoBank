@@ -117,7 +117,7 @@ Subscribe **all four**. Ignore other CDP event types.
 | `onramp.transaction.success` | `completed` | Credit **once** via `finalizeDepositStatus` |
 | `onramp.transaction.failed` | `failed` | No credit |
 
-Routing: prefer documented header **`X-Event-Type`**, then payload `type` / `eventType`.
+Routing: use payload `type` / `eventType`, or `X-Event-Type` / `X-Event-Id` **only** when those headers appear in the v1 signed `h` list. Never trust unsigned webhook headers. Success credits only after Get Order confirms status, destination, and amount.
 
 Correlation (primary → fallback):
 
@@ -158,14 +158,14 @@ Both channels are required before Create Order. Phone must be re-verified at lea
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `FUNDING_PROVIDER` | Yes | `mock` (non-production) or `coinbase`. `bridge` is rejected |
+| `FUNDING_PROVIDER` | Optional | Unset = disabled (no auto-credit). `mock` only in development/test. `coinbase` for Headless. `bridge` is rejected |
 | `COINBASE_ONRAMP_API_KEY` | Coinbase path | CDP Secret API Key ID |
 | `COINBASE_ONRAMP_API_SECRET` | Coinbase path | CDP Secret (PEM EC or base64 Ed25519) |
 | `COINBASE_WEBHOOK_SECRET` | Webhooks | Subscription secret from CDP Portal |
 | `COINBASE_SANDBOX` | Optional | Default `true` outside production. Prefixes `partnerUserRef` with `sandbox-` and appends `useApplePaySandbox=true` |
 | `COINBASE_PROJECT_ID` | Portal / CLI only | **Not loaded by the API.** Required when creating the CDP webhook subscription (`labels.project`) |
 
-Production: `FUNDING_PROVIDER=mock` is forbidden; missing Coinbase keys fail closed (no mock fallback).
+Production and staging: `FUNDING_PROVIDER=mock` is forbidden (boot fails). Missing Coinbase keys fail closed (no mock fallback). Unset `FUNDING_PROVIDER` does not default to mock.
 
 ---
 

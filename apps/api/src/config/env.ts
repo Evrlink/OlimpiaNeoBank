@@ -37,10 +37,25 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   return fallback;
 }
 
-export type FundingProviderName = "mock" | "coinbase";
+export type FundingProviderName = "none" | "mock" | "coinbase";
 
-function resolveFundingProvider(): FundingProviderName {
-  const explicit = process.env.FUNDING_PROVIDER?.trim().toLowerCase();
+/** Explicit non-production envs where FUNDING_PROVIDER=mock may run. Staging is not included. */
+export const MOCK_FUNDING_ALLOWED_ENVS = ["development", "test"] as const;
+
+export function isMockFundingAllowed(nodeEnv: string): boolean {
+  const normalized = nodeEnv.trim().toLowerCase();
+  if (!normalized || normalized === "production") {
+    return false;
+  }
+
+  return (MOCK_FUNDING_ALLOWED_ENVS as readonly string[]).includes(normalized);
+}
+
+export function resolveFundingProvider(
+  explicitProvider = process.env.FUNDING_PROVIDER,
+  nodeEnv = process.env.NODE_ENV ?? "development",
+): FundingProviderName {
+  const explicit = explicitProvider?.trim().toLowerCase();
 
   if (explicit === "bridge") {
     throw new Error(
@@ -53,7 +68,17 @@ function resolveFundingProvider(): FundingProviderName {
     return "coinbase";
   }
 
-  return "mock";
+  if (explicit === "mock") {
+    if (!isMockFundingAllowed(nodeEnv)) {
+      throw new Error(
+        "FUNDING_PROVIDER=mock is only allowed in development or test. Staging and production must unset it or use coinbase.",
+      );
+    }
+    return "mock";
+  }
+
+  // Unset / unknown: do not default to auto-crediting mock.
+  return "none";
 }
 
 function resolveCoinbaseSandbox(nodeEnv: string): boolean {

@@ -14,9 +14,14 @@ export type CoinbaseOnrampOrder = {
   orderId?: string;
   status?: CoinbaseOnrampOrderStatus;
   partnerUserRef?: string;
-  destinationAddress?: string;
+  destinationAddress?: string | { address?: string };
   destinationNetwork?: string;
   purchaseCurrency?: string;
+  paymentCurrency?: string;
+  paymentAmount?: string;
+  paymentSubtotal?: string;
+  paymentTotal?: string;
+  purchaseAmount?: string;
   paymentMethod?: string;
   txHash?: string;
 };

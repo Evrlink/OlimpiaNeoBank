@@ -52,7 +52,7 @@
 
 | Variable | Purpose |
 |----------|---------|
-| `FUNDING_PROVIDER` | Unset or `mock` for V1. `coinbase` opts into post-V1 Headless. `bridge` is **rejected**. |
+| `FUNDING_PROVIDER` | Unset disables auto-credit mock. `mock` only in development/test. `coinbase` opts into post-V1 Headless. `bridge` is **rejected**. |
 | `COINBASE_ONRAMP_API_KEY` | CDP Secret API Key ID — server only — **post-V1** |
 | `COINBASE_ONRAMP_API_SECRET` | CDP Secret API Key secret (PEM EC or base64 Ed25519) — **secret**, **post-V1** |
 | `COINBASE_WEBHOOK_SECRET` | CDP webhook subscription secret (`X-Hook0-Signature`) — **secret**, **post-V1** |

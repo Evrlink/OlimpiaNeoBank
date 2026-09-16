@@ -1,6 +1,12 @@
 import { getPool } from "../db/pool.js";
 import { finalizeDepositStatus } from "./completeDeposit.js";
 import { getOnrampOrder } from "./coinbase/client.js";
+import { signedWebhookHeaderNames } from "./coinbase/signature.js";
+import { formatUsd, parseUsd } from "./mappers.js";
+import {
+  confirmOrderBeforeLedgerCredit,
+  type OrderCreditDecision,
+} from "./orderVerification.js";
 import type { DepositStatus } from "./types.js";
 
 export class WebhookError extends Error {
@@ -70,13 +76,21 @@ function isOnrampEventType(value: string | null): value is CoinbaseOnrampEventTy
   );
 }
 
+function signatureHeaderFrom(headers: Record<string, unknown>): string | undefined {
+  return headerString(headers, "x-hook0-signature") ?? undefined;
+}
+
 function extractEventType(
   payload: CoinbaseWebhookPayload,
   headers: Record<string, unknown>,
+  signedHeaders: Set<string>,
 ): CoinbaseOnrampEventType | null {
   const data = asRecord(payload.data);
+  const signedEventType = signedHeaders.has("x-event-type")
+    ? headerString(headers, "x-event-type")
+    : null;
   const candidates = [
-    headerString(headers, "x-event-type"),
+    signedEventType,
     asString(payload.type),
     asString(payload.eventType),
     asString(data?.type),
@@ -92,14 +106,41 @@ function extractEventType(
   return null;
 }
 
-function extractEventId(payload: CoinbaseWebhookPayload, headers: Record<string, unknown>): string | null {
+function extractEventId(
+  payload: CoinbaseWebhookPayload,
+  headers: Record<string, unknown>,
+  signedHeaders: Set<string>,
+): string | null {
   const data = asRecord(payload.data);
+  const signedEventId = signedHeaders.has("x-event-id")
+    ? headerString(headers, "x-event-id")
+    : null;
   return (
-    headerString(headers, "x-event-id") ||
+    signedEventId ||
     asString(payload.id) ||
     asString(data?.id) ||
     asString(data?.eventId)
   );
+}
+
+/** Event type/id from the signed body, or from headers listed in the v1 `h` set. */
+export function resolveSignedOnrampEvent(
+  payload: unknown,
+  headers: Record<string, unknown>,
+): {
+  eventType: CoinbaseOnrampEventType | null;
+  eventId: string | null;
+} {
+  const record = asRecord(payload) as CoinbaseWebhookPayload | null;
+  if (!record) {
+    return { eventType: null, eventId: null };
+  }
+
+  const signedHeaders = signedWebhookHeaderNames(signatureHeaderFrom(headers));
+  return {
+    eventType: extractEventType(record, headers, signedHeaders),
+    eventId: extractEventId(record, headers, signedHeaders),
+  };
 }
 
 function extractPartnerOrderRef(payload: CoinbaseWebhookPayload): string | null {
@@ -223,6 +264,74 @@ async function resolveDepositId(input: {
   return null;
 }
 
+async function loadDepositSettlementContext(depositId: string): Promise<{
+  amountUsd: string;
+  walletAddress: string;
+  providerTransactionId: string | null;
+} | null> {
+  const pool = getPool();
+
+  if (!pool) {
+    throw new WebhookError("Database is not configured.", 500);
+  }
+
+  const result = await pool.query<{
+    amount_usd: string;
+    address: string;
+    provider_transaction_id: string | null;
+  }>(
+    `
+      SELECT d.amount_usd, d.provider_transaction_id, w.address
+      FROM deposits d
+      INNER JOIN wallets w ON w.user_id = d.user_id
+      WHERE d.id = $1
+    `,
+    [depositId],
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    return null;
+  }
+
+  return {
+    amountUsd: formatUsd(parseUsd(row.amount_usd)),
+    walletAddress: row.address,
+    providerTransactionId: row.provider_transaction_id,
+  };
+}
+
+async function applyOrderDecision(input: {
+  depositId: string;
+  fallbackOrderId: string | null;
+  decision: OrderCreditDecision;
+}): Promise<"applied" | "ignored"> {
+  if (input.decision.decision === "retry") {
+    throw new WebhookError(input.decision.reason, 500);
+  }
+
+  if (input.decision.decision === "credit") {
+    await finalizeDepositStatus({
+      depositId: input.depositId,
+      nextStatus: "completed",
+      providerTransactionId: input.decision.orderId || input.fallbackOrderId,
+    });
+    return "applied";
+  }
+
+  if (input.decision.decision === "fail") {
+    await finalizeDepositStatus({
+      depositId: input.depositId,
+      nextStatus: "failed",
+      providerTransactionId: input.decision.orderId || input.fallbackOrderId,
+      failureReason: input.decision.reason,
+    });
+    return "applied";
+  }
+
+  return "ignored";
+}
+
 function statusForEvent(eventType: CoinbaseOnrampEventType): DepositStatus {
   switch (eventType) {
     case "onramp.transaction.success":
@@ -235,9 +344,16 @@ function statusForEvent(eventType: CoinbaseOnrampEventType): DepositStatus {
   }
 }
 
+export function shouldFetchOrderBeforeCredit(
+  eventType: CoinbaseOnrampEventType,
+): boolean {
+  return statusForEvent(eventType) === "completed";
+}
+
 export async function handleCoinbaseOnrampWebhook(input: {
   payload: unknown;
   headers: Record<string, unknown>;
+  fetchOrder?: typeof getOnrampOrder;
 }): Promise<{ accepted: true; ignored?: boolean }> {
   const payload = asRecord(input.payload) as CoinbaseWebhookPayload | null;
 
@@ -245,7 +361,8 @@ export async function handleCoinbaseOnrampWebhook(input: {
     throw new WebhookError("Invalid Coinbase webhook payload.");
   }
 
-  const eventType = extractEventType(payload, input.headers);
+  const signedEvent = resolveSignedOnrampEvent(payload, input.headers);
+  const eventType = signedEvent.eventType;
 
   if (!eventType) {
     return { accepted: true, ignored: true };
@@ -254,7 +371,7 @@ export async function handleCoinbaseOnrampWebhook(input: {
   const orderId = extractOrderId(payload);
 
   const eventId =
-    extractEventId(payload, input.headers) ??
+    signedEvent.eventId ??
     `${eventType}:${orderId ?? extractPartnerOrderRef(payload) ?? "unknown"}`;
 
   const claim = await claimWebhookEvent({
@@ -276,9 +393,41 @@ export async function handleCoinbaseOnrampWebhook(input: {
     return { accepted: true, ignored: true };
   }
 
+  const nextStatus = statusForEvent(eventType);
+
+  if (nextStatus === "completed") {
+    const context = await loadDepositSettlementContext(depositId);
+    const lookupOrderId = orderId ?? context?.providerTransactionId ?? null;
+
+    if (!context || !lookupOrderId) {
+      throw new WebhookError(
+        "Coinbase order must be fetched before crediting a deposit.",
+        500,
+      );
+    }
+
+    const decision = await confirmOrderBeforeLedgerCredit(
+      {
+        orderId: lookupOrderId,
+        depositAmountUsd: context.amountUsd,
+        destinationAddress: context.walletAddress,
+      },
+      input.fetchOrder ?? getOnrampOrder,
+    );
+
+    const applied = await applyOrderDecision({
+      depositId,
+      fallbackOrderId: lookupOrderId,
+      decision,
+    });
+
+    await markWebhookProcessed(eventId);
+    return applied === "ignored" ? { accepted: true, ignored: true } : { accepted: true };
+  }
+
   await finalizeDepositStatus({
     depositId,
-    nextStatus: statusForEvent(eventType),
+    nextStatus,
     providerTransactionId: orderId,
     failureReason:
       eventType === "onramp.transaction.failed" ? extractFailureReason(payload) : null,
@@ -354,29 +503,25 @@ export async function reconcileDepositFromCoinbase(input: {
     return;
   }
 
-  const order = await getOnrampOrder(row.provider_transaction_id);
+  const context = await loadDepositSettlementContext(row.id);
 
-  if (!order?.status) {
+  if (!context) {
     return;
   }
 
-  const orderId = asString(order.orderId) ?? row.provider_transaction_id;
+  const decision = await confirmOrderBeforeLedgerCredit({
+    orderId: row.provider_transaction_id,
+    depositAmountUsd: context.amountUsd,
+    destinationAddress: context.walletAddress,
+  });
 
-  if (order.status === "ONRAMP_ORDER_STATUS_COMPLETED") {
-    await finalizeDepositStatus({
-      depositId: row.id,
-      nextStatus: "completed",
-      providerTransactionId: orderId,
-    });
+  if (decision.decision === "retry") {
     return;
   }
 
-  if (order.status === "ONRAMP_ORDER_STATUS_FAILED") {
-    await finalizeDepositStatus({
-      depositId: row.id,
-      nextStatus: "failed",
-      providerTransactionId: orderId,
-      failureReason: "We couldn’t complete this deposit.",
-    });
-  }
+  await applyOrderDecision({
+    depositId: row.id,
+    fallbackOrderId: row.provider_transaction_id,
+    decision,
+  });
 }
