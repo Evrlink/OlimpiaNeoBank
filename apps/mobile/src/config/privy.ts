@@ -1,4 +1,4 @@
-import { base } from "viem/chains";
+import { base, baseSepolia } from "viem/chains";
 
 function requireEnv(name: string, value: string | undefined): string {
   if (!value?.trim()) {
@@ -17,7 +17,7 @@ export const privyAppId = requireEnv(
 
 export const privyClientId = process.env.EXPO_PUBLIC_PRIVY_CLIENT_ID?.trim() || undefined;
 
-export const privySupportedChains = [base] as const;
+export const privySupportedChains = [base, baseSepolia] as const;
 
 export const privyConfig = {
   embedded: {

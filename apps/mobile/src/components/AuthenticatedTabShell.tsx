@@ -144,6 +144,7 @@ export function AuthenticatedTabShell({
           <ProfileScreen
             user={authSync.user}
             balance={authSync.balance}
+            embeddedWalletAddress={authSync.wallet.address}
             onSignOut={onSignOut}
           />
         ) : null}

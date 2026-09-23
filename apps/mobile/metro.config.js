@@ -60,12 +60,17 @@ const resolveRequestWithPackageExports = (context, moduleName, platform) => {
   }
 
   // Required for React Native 0.78 or older (Olimpia uses 0.76)
-  if (moduleName.startsWith("@privy-io/")) {
+  if (moduleName.startsWith("@privy-io/") || moduleName.startsWith("permissionless")) {
     const ctx = {
       ...context,
       unstable_enablePackageExports: true,
     };
     return ctx.resolveRequest(ctx, moduleName, platform);
+  }
+
+  // Expo 52 Metro cannot resolve ox's package-export ".js" specifiers.
+  if (moduleName.endsWith(".js") && context.originModulePath.includes("node_modules/ox/")) {
+    return context.resolveRequest(context, moduleName.replace(/\.js$/, ""), platform);
   }
 
   return context.resolveRequest(context, moduleName, platform);

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
+import { SepoliaSponsorshipProofScreen } from "@/screens/SepoliaSponsorshipProofScreen";
 import type { AuthSyncBalance, AuthSyncUser } from "@/services/api/authSync";
 import { colors, radius, spacing } from "@/theme/colors";
 import { getGreetingName } from "@/utils/auth";
@@ -11,6 +12,7 @@ import { getGreetingName } from "@/utils/auth";
 type ProfileScreenProps = {
   user: AuthSyncUser;
   balance: AuthSyncBalance;
+  embeddedWalletAddress: string;
   onSignOut: () => void;
 };
 
@@ -28,10 +30,16 @@ function formatAccountDate(value: string): string {
   });
 }
 
-export function ProfileScreen({ user, balance, onSignOut }: ProfileScreenProps) {
+export function ProfileScreen({
+  user,
+  balance,
+  embeddedWalletAddress,
+  onSignOut,
+}: ProfileScreenProps) {
   const { logout } = usePrivy();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
+  const [proofOpen, setProofOpen] = useState(false);
   const greetingName = getGreetingName(user);
   const email = user.email?.trim();
   const createdAt = user.createdAt?.trim();
@@ -53,6 +61,15 @@ export function ProfileScreen({ user, balance, onSignOut }: ProfileScreenProps) 
       setIsSigningOut(false);
     }
   };
+
+  if (__DEV__ && proofOpen) {
+    return (
+      <SepoliaSponsorshipProofScreen
+        embeddedWalletAddress={embeddedWalletAddress}
+        onBack={() => setProofOpen(false)}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -92,6 +109,17 @@ export function ProfileScreen({ user, balance, onSignOut }: ProfileScreenProps) 
             <ProfileField label="Account created" value={formatAccountDate(createdAt)} />
           ) : null}
         </View>
+
+        {__DEV__ ? (
+          <Pressable
+            style={styles.proofButton}
+            onPress={() => setProofOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Open Base Sepolia sponsorship proof"
+          >
+            <Text style={styles.proofLabel}>Base Sepolia sponsorship proof</Text>
+          </Pressable>
+        ) : null}
 
         <Pressable
           style={[styles.signOutButton, isSigningOut ? styles.signOutButtonDisabled : null]}
@@ -218,6 +246,22 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 16,
     lineHeight: 24,
+    color: colors.ink,
+  },
+  proofButton: {
+    marginTop: spacing.block,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.card,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: "rgba(232, 225, 218, 0.6)",
+    backgroundColor: colors.card,
+    alignItems: "center",
+  },
+  proofLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    lineHeight: 22,
     color: colors.ink,
   },
   signOutButton: {
