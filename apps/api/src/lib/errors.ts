@@ -10,6 +10,7 @@ export type ApiErrorCode =
   | "SYNC_FAILED"
   | "PRIVY_UNAVAILABLE"
   | "NOT_AVAILABLE"
+  | "AUTHORIZATION_NOT_FOUND"
   | "INTERNAL_ERROR";
 
 export function sendError(

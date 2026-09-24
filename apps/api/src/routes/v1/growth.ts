@@ -3,6 +3,10 @@ import { getPool } from "../../db/pool.js";
 import { sendError } from "../../lib/errors.js";
 import { requireAuth } from "../../middleware/requireAuth.js";
 import {
+  createDefaultGrowthAuthorizationService,
+  GrowthAuthorizationError,
+} from "../../services/privyGrowthAuthorization.js";
+import {
   getGrowthForPrivyWallet,
   GrowthConfigurationError,
   type GrowthSummary,
@@ -14,10 +18,15 @@ type WalletLookup = {
   privyWalletId: string | null;
 };
 
+type GrowthAuthorizationService = ReturnType<
+  typeof createDefaultGrowthAuthorizationService
+>;
+
 type GrowthRouterDependencies = {
   auth: RequestHandler;
   lookupWallet: (privyUserId: string) => Promise<WalletLookup>;
   getGrowth: (privyWalletId: string) => Promise<GrowthSummary>;
+  authorization: GrowthAuthorizationService;
 };
 
 async function lookupCurrentUserWallet(
@@ -44,12 +53,23 @@ async function lookupCurrentUserWallet(
     : { userExists: false, privyWalletId: null };
 }
 
+function sendAuthorizationError(res: Parameters<typeof sendError>[0], error: unknown) {
+  if (error instanceof GrowthAuthorizationError) {
+    sendError(res, error.status, error.code, error.message);
+    return;
+  }
+
+  sendError(res, 502, "PRIVY_UNAVAILABLE", "Unable to prepare this authorization.");
+}
+
 export function createGrowthRouter(
   dependencies: Partial<GrowthRouterDependencies> = {},
 ): Router {
   const auth = dependencies.auth ?? requireAuth;
   const lookupWallet = dependencies.lookupWallet ?? lookupCurrentUserWallet;
   const getGrowth = dependencies.getGrowth ?? getGrowthForPrivyWallet;
+  const authorization =
+    dependencies.authorization ?? createDefaultGrowthAuthorizationService();
   const router = Router();
 
   router.get("/", auth, async (req, res) => {
@@ -87,6 +107,41 @@ export function createGrowthRouter(
       }
 
       sendError(res, 502, "PRIVY_UNAVAILABLE", "Unable to load growth.");
+    }
+  });
+
+  router.post("/deposit-authorizations", auth, async (req, res) => {
+    const { privyUserId } = req as AuthenticatedRequest;
+
+    try {
+      const prepared = await authorization.prepareDepositAuthorization({
+        privyUserId,
+        amountUsdc: req.body?.amountUsdc,
+      });
+      res.status(201).json(prepared);
+    } catch (error) {
+      sendAuthorizationError(res, error);
+    }
+  });
+
+  router.post("/deposit-authorizations/:id/confirm", auth, async (req, res) => {
+    const { privyUserId } = req as AuthenticatedRequest;
+    const authorizationId = req.params.id?.trim() ?? "";
+
+    if (!authorizationId) {
+      sendError(res, 404, "AUTHORIZATION_NOT_FOUND", "Authorization not found.");
+      return;
+    }
+
+    try {
+      const confirmed = await authorization.confirmDepositAuthorization({
+        privyUserId,
+        authorizationId,
+        signature: req.body?.signature,
+      });
+      res.status(200).json(confirmed);
+    } catch (error) {
+      sendAuthorizationError(res, error);
     }
   });
 

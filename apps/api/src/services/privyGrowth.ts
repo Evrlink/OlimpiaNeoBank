@@ -112,16 +112,51 @@ function parseVaultPosition(value: unknown): VaultPosition {
   };
 }
 
-function requireExpectedVault(details: VaultDetails, position: VaultPosition): void {
+function requireExpectedVaultDetails(details: VaultDetails): void {
   if (
     details.provider.toLowerCase() !== REQUIRED_PROVIDER ||
     details.caip2 !== REQUIRED_CAIP2 ||
-    details.asset.symbol.toLowerCase() !== REQUIRED_ASSET ||
+    details.asset.symbol.toLowerCase() !== REQUIRED_ASSET
+  ) {
+    throw new InvalidGrowthVaultError();
+  }
+}
+
+function requireExpectedVault(details: VaultDetails, position: VaultPosition): void {
+  requireExpectedVaultDetails(details);
+
+  if (
     position.asset.symbol.toLowerCase() !== REQUIRED_ASSET ||
     position.asset.decimals !== details.asset.decimals
   ) {
     throw new InvalidGrowthVaultError();
   }
+}
+
+export type RequiredAaveBaseUsdcVault = {
+  decimals: number;
+};
+
+/** Fail closed unless the configured vault is Aave + Base Mainnet + USDC. */
+export async function getRequiredAaveBaseUsdcVault(
+  fetchImpl: Fetch = fetch,
+): Promise<RequiredAaveBaseUsdcVault> {
+  requirePrivyConfig();
+
+  const vaultId = env.privyEarnAaveBaseUsdcVaultId.trim();
+  if (!vaultId) {
+    throw new GrowthConfigurationError();
+  }
+
+  const details = parseVaultDetails(
+    await getPrivyJson(
+      `/earn/ethereum/vaults/${encodeURIComponent(vaultId)}`,
+      fetchImpl,
+    ),
+  );
+  requireExpectedVaultDetails(details);
+
+  return { decimals: details.asset.decimals };
 }
 
 function formatRawAmount(rawAmount: bigint, decimals: number): string {

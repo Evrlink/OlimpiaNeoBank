@@ -161,8 +161,10 @@ export function AuthenticatedTabShell({
     content = (
       <ChooseYieldScreen
         growth={growth}
+        availableUsd={authSync.balance.availableUsd}
         loading={growthLoading}
         error={growthError}
+        getAccessToken={getAccessToken}
         onRetry={refreshGrowth}
         onBack={() => setHomeOverlay(null)}
       />

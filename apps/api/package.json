@@ -9,7 +9,7 @@
     "build": "tsc",
     "migrate": "tsx src/db/migrate.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test test/webhookSecurity.test.ts test/fundingProvider.test.ts test/eligibility.test.ts test/growth.test.ts"
+    "test": "tsx --test test/webhookSecurity.test.ts test/fundingProvider.test.ts test/eligibility.test.ts test/growth.test.ts test/growthAuthorization.test.ts"
   },
   "dependencies": {
     "@privy-io/node": "^0.24.0",
