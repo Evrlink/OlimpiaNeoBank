@@ -14,6 +14,7 @@ import { SendMoneyScreen } from "@/screens/SendMoneyScreen";
 import { getActivity, type ActivityItem } from "@/services/api/activity";
 import { getBalance } from "@/services/api/balance";
 import type { AuthSyncBalance, AuthSyncResponse } from "@/services/api/authSync";
+import { getGrowth, type GrowthSummary } from "@/services/api/growth";
 
 type HomeOverlay = "choose-yield" | "send" | "receive" | "activity" | null;
 
@@ -35,11 +36,45 @@ export function AuthenticatedTabShell({
   const [homeOverlay, setHomeOverlay] = useState<HomeOverlay>(initialHomeOverlay);
   const [refreshingHome, setRefreshingHome] = useState(false);
   const [activityItems, setActivityItems] = useState<ActivityItem[]>([]);
+  const [growth, setGrowth] = useState<GrowthSummary | null>(null);
+  const [growthLoading, setGrowthLoading] = useState(true);
+  const [growthError, setGrowthError] = useState<string | null>(null);
   const homeRequestId = useRef(0);
+  const growthRequestId = useRef(0);
   const onBalanceDisplayChangeRef = useRef(onBalanceDisplayChange);
   onBalanceDisplayChangeRef.current = onBalanceDisplayChange;
 
   const isHomeVisible = activeTab === "home" && homeOverlay === null;
+
+  const refreshGrowth = useCallback(
+    async (providedAccessToken?: string) => {
+      const requestId = ++growthRequestId.current;
+      setGrowthLoading(true);
+      setGrowthError(null);
+
+      try {
+        const accessToken = providedAccessToken ?? (await getAccessToken());
+        const nextGrowth = await getGrowth(accessToken ?? "");
+
+        if (requestId === growthRequestId.current) {
+          setGrowth(nextGrowth);
+        }
+      } catch (error) {
+        if (requestId === growthRequestId.current) {
+          setGrowthError(
+            error instanceof Error
+              ? error.message
+              : "Unable to load Growth. Please try again.",
+          );
+        }
+      } finally {
+        if (requestId === growthRequestId.current) {
+          setGrowthLoading(false);
+        }
+      }
+    },
+    [getAccessToken],
+  );
 
   const refreshHome = useCallback(async () => {
     const requestId = ++homeRequestId.current;
@@ -54,6 +89,7 @@ export function AuthenticatedTabShell({
       const [balanceResult, activityResult] = await Promise.allSettled([
         getBalance(accessToken),
         getActivity(accessToken, { limit: 5 }),
+        refreshGrowth(accessToken),
       ]);
 
       if (requestId !== homeRequestId.current) {
@@ -70,7 +106,7 @@ export function AuthenticatedTabShell({
     } catch {
       // Keep the last known Home data on screen.
     }
-  }, [getAccessToken]);
+  }, [getAccessToken, refreshGrowth]);
 
   useEffect(() => {
     if (!isHomeVisible) {
@@ -81,16 +117,28 @@ export function AuthenticatedTabShell({
   }, [isHomeVisible, refreshHome]);
 
   useEffect(() => {
+    if (homeOverlay === "choose-yield") {
+      void refreshGrowth();
+    }
+  }, [homeOverlay, refreshGrowth]);
+
+  useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextState) => {
-      if (nextState === "active" && isHomeVisible) {
+      if (nextState !== "active") {
+        return;
+      }
+
+      if (isHomeVisible) {
         void refreshHome();
+      } else if (homeOverlay === "choose-yield") {
+        void refreshGrowth();
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [isHomeVisible, refreshHome]);
+  }, [homeOverlay, isHomeVisible, refreshGrowth, refreshHome]);
 
   const handlePullToRefresh = useCallback(async () => {
     setRefreshingHome(true);
@@ -110,7 +158,15 @@ export function AuthenticatedTabShell({
   let content = null;
 
   if (homeOverlay === "choose-yield") {
-    content = <ChooseYieldScreen onBack={() => setHomeOverlay(null)} />;
+    content = (
+      <ChooseYieldScreen
+        growth={growth}
+        loading={growthLoading}
+        error={growthError}
+        onRetry={refreshGrowth}
+        onBack={() => setHomeOverlay(null)}
+      />
+    );
   } else if (homeOverlay === "send") {
     content = <SendMoneyScreen onBack={() => setHomeOverlay(null)} />;
   } else if (homeOverlay === "receive") {
@@ -129,6 +185,7 @@ export function AuthenticatedTabShell({
           <EmptyHomeScreen
             user={authSync.user}
             balance={authSync.balance}
+            growth={growth}
             activityItems={activityItems}
             refreshing={refreshingHome}
             onRefresh={handlePullToRefresh}

@@ -1,6 +1,5 @@
 /**
- * Savings tab — named goals earning yield (APY). No target dates.
- * Add USDC to a goal; show principal earning + earned yield.
+ * Savings tab — local named goals with no target dates.
  */
 import { useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,13 +23,9 @@ type SavingsGoal = {
   id: string;
   title: string;
   principalUsd: number;
-  earnedUsd: number;
-  apyPercent: number;
 };
 
 type ScreenMode = "list" | "add" | "create";
-
-const DEFAULT_APY = 4.2;
 
 const INITIAL_GOALS: SavingsGoal[] = [];
 
@@ -58,11 +53,10 @@ export function SavingsScreen() {
   const goalCardWidth = Math.max(windowWidth - spacing.screenX * 2 - 20, 280);
   const goalStride = goalCardWidth + 12;
 
-  const totals = useMemo(() => {
-    const principal = goals.reduce((sum, goal) => sum + goal.principalUsd, 0);
-    const earned = goals.reduce((sum, goal) => sum + goal.earnedUsd, 0);
-    return { principal, earned, apy: DEFAULT_APY };
-  }, [goals]);
+  const totalPrincipal = useMemo(
+    () => goals.reduce((sum, goal) => sum + goal.principalUsd, 0),
+    [goals],
+  );
 
   const onGoalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const next = Math.round(event.nativeEvent.contentOffset.x / goalStride);
@@ -93,8 +87,6 @@ export function SavingsScreen() {
       id,
       title,
       principalUsd: amount > 0 ? amount : 0,
-      earnedUsd: 0,
-      apyPercent: DEFAULT_APY,
     };
     setGoals((current) => [...current, next]);
     setSelectedGoalId(id);
@@ -150,21 +142,11 @@ export function SavingsScreen() {
         bounces
       >
         <Text style={styles.title}>Savings</Text>
-        <Text style={styles.subtitle}>Your goals earn yield in USDC. Add anytime.</Text>
+        <Text style={styles.subtitle}>Organize your USDC into goals. Add anytime.</Text>
 
         <View style={styles.summaryCard}>
           <Text style={styles.muted}>Amount</Text>
-          <Text style={styles.heroAmount}>${formatUsd(totals.principal)}</Text>
-          <View style={styles.summaryRow}>
-            <View>
-              <Text style={styles.apyLabel}>APY</Text>
-              <Text style={styles.summaryValue}>{totals.apy}%</Text>
-            </View>
-            <View style={styles.alignEnd}>
-              <Text style={styles.mutedSmall}>You’ve earned</Text>
-              <Text style={styles.earnedValue}>${formatUsd(totals.earned)}</Text>
-            </View>
-          </View>
+          <Text style={styles.heroAmount}>${formatUsd(totalPrincipal)}</Text>
         </View>
 
         <Pressable
@@ -209,16 +191,6 @@ export function SavingsScreen() {
               <View style={styles.goalHeader}>
                 <Text style={styles.goalTitle}>{goal.title}</Text>
                 <Text style={styles.goalAmount}>${formatUsd(goal.principalUsd)}</Text>
-              </View>
-              <View style={styles.goalMeta}>
-                <View>
-                  <Text style={styles.mutedSmall}>APY</Text>
-                  <Text style={styles.metaValue}>{goal.apyPercent}%</Text>
-                </View>
-                <View style={styles.alignEnd}>
-                  <Text style={styles.mutedSmall}>You’ve earned</Text>
-                  <Text style={styles.earnedValue}>${formatUsd(goal.earnedUsd)}</Text>
-                </View>
               </View>
               <Pressable
                 style={styles.goalAddButton}
@@ -326,7 +298,7 @@ function AddToSavingsView({
 
         <Text style={styles.title}>Add to savings</Text>
         <Text style={styles.subtitle}>
-          Move USDC from your available balance into a goal. It starts earning the current APY.
+          Organize USDC from your available balance into a goal.
         </Text>
 
         <View style={styles.fieldCard}>
@@ -358,9 +330,7 @@ function AddToSavingsView({
             >
               <View>
                 <Text style={styles.goalTitle}>{goal.title}</Text>
-                <Text style={styles.mutedSmall}>
-                  ${formatUsd(goal.principalUsd)} earning · {goal.apyPercent}% APY
-                </Text>
+                <Text style={styles.mutedSmall}>${formatUsd(goal.principalUsd)}</Text>
               </View>
               {selectedGoal ? <Text style={styles.selectedTag}>Selected</Text> : null}
             </Pressable>
@@ -373,9 +343,7 @@ function AddToSavingsView({
             <Text style={styles.cardHeadline}>
               {selected.title} · ${formatUsd(afterPrincipal)}
             </Text>
-            <Text style={styles.body}>
-              Continues earning at {DEFAULT_APY}% APY. Yield is variable and not guaranteed.
-            </Text>
+            <Text style={styles.body}>Your updated goal amount after this add.</Text>
           </View>
         ) : null}
 
@@ -476,7 +444,7 @@ function CreateGoalView({
         >
           <Text style={styles.primaryLabel}>Create goal</Text>
         </Pressable>
-        <Text style={styles.hint}>You can add yield later from Home when you’re ready.</Text>
+        <Text style={styles.hint}>You can add more to this goal anytime.</Text>
       </ScrollView>
       <AppTabBar active="savings" />
     </SafeAreaView>
@@ -615,34 +583,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     color: colors.ink,
   },
-  summaryRow: {
-    marginTop: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-  },
-  apyLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 11,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-    color: colors.raspberry,
-  },
-  summaryValue: {
-    marginTop: 4,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    color: colors.ink,
-  },
-  earnedValue: {
-    marginTop: 4,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: colors.raspberry,
-  },
-  alignEnd: {
-    alignItems: "flex-end",
-  },
   primaryButton: {
     marginTop: 16,
     height: 48,
@@ -698,20 +638,6 @@ const styles = StyleSheet.create({
   goalAmount: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 22,
-    color: colors.ink,
-  },
-  goalMeta: {
-    marginTop: 16,
-    paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  metaValue: {
-    marginTop: 2,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
     color: colors.ink,
   },
   goalAddButton: {

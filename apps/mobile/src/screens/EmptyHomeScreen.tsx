@@ -6,6 +6,7 @@ import { AppTabBar } from "@/components/AppTabBar";
 import { ActivityListCard } from "@/components/ActivityListCard";
 import type { ActivityItem } from "@/services/api/activity";
 import type { AuthSyncBalance, AuthSyncUser } from "@/services/api/authSync";
+import type { GrowthSummary } from "@/services/api/growth";
 import { getGreetingName } from "@/utils/auth";
 import { colors, radius, spacing } from "@/theme/colors";
 
@@ -14,6 +15,7 @@ const HOME_ACTIVITY_LIMIT = 5;
 type EmptyHomeScreenProps = {
   user: AuthSyncUser;
   balance: AuthSyncBalance;
+  growth?: GrowthSummary | null;
   activityItems?: ActivityItem[];
   refreshing?: boolean;
   onRefresh?: () => void | Promise<void>;
@@ -31,6 +33,7 @@ function parseBalance(value: string): number {
 export function EmptyHomeScreen({
   user,
   balance,
+  growth = null,
   activityItems = [],
   refreshing = false,
   onRefresh,
@@ -40,10 +43,13 @@ export function EmptyHomeScreen({
   onSeeAllActivity,
 }: EmptyHomeScreenProps) {
   const greetingName = getGreetingName(user);
-  const isFunded = parseBalance(balance.totalDisplayUsd) > 0;
-  const isEarning = parseBalance(balance.growthAllocatedUsd) > 0;
+  const growBalance = growth ? parseBalance(growth.currentRedeemableUsdc) : 0;
+  const isFunded =
+    parseBalance(balance.availableUsd) > 0 ||
+    parseBalance(balance.goalsAllocatedUsd) > 0 ||
+    growBalance > 0;
+  const isEarning = growBalance > 0;
   const hasAvailable = parseBalance(balance.availableUsd) > 0;
-  const estimatedApyPercent = 4.2;
   const previewActivityItems = activityItems.slice(0, HOME_ACTIVITY_LIMIT);
 
   return (
@@ -130,12 +136,14 @@ export function EmptyHomeScreen({
                   <Text style={styles.earningStatus}>Earning</Text>
                 </View>
               ) : null}
-              <Text style={styles.balanceSecondaryLabel}>Earning yield</Text>
+              <Text style={styles.balanceSecondaryLabel}>Grow balance</Text>
               <Text style={styles.balanceSecondaryAmount}>
-                ${balance.growthAllocatedUsd}
+                {growth ? `$${growth.currentRedeemableUsdc}` : "Unavailable"}
               </Text>
-              {isEarning ? (
-                <Text style={styles.earningMeta}>Est. {estimatedApyPercent}% APY</Text>
+              {isEarning && growth ? (
+                <Text style={styles.earningMeta}>
+                  Est. {growth.liveApyPercent}% APY · Variable
+                </Text>
               ) : null}
             </View>
 

@@ -1,19 +1,37 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
+import type { GrowthSummary } from "@/services/api/growth";
 import { colors, radius, spacing } from "@/theme/colors";
 
 type ChooseYieldScreenProps = {
+  growth: GrowthSummary | null;
+  loading: boolean;
+  error: string | null;
+  onRetry: () => void | Promise<void>;
   onBack: () => void;
 };
 
-/**
- * Placeholder destination for Growth → Choose Yield.
- * Yield selection flow is not built yet.
- */
-export function ChooseYieldScreen({ onBack }: ChooseYieldScreenProps) {
+function formatUsdc(value: string): string {
+  return value.startsWith("-") ? `-$${value.slice(1)}` : `$${value}`;
+}
+
+export function ChooseYieldScreen({
+  growth,
+  loading,
+  error,
+  onRetry,
+  onBack,
+}: ChooseYieldScreenProps) {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <LinearGradient
@@ -40,17 +58,55 @@ export function ChooseYieldScreen({ onBack }: ChooseYieldScreenProps) {
           <Text style={styles.eyebrow}>Growth</Text>
           <Text style={styles.title}>Choose Yield</Text>
           <Text style={styles.subtitle}>
-            Yield options will appear here soon. For now, this is a placeholder for the
-            selection flow.
+            See your current Grow balance, earned yield, and estimated variable rate.
           </Text>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Coming next</Text>
-            <Text style={styles.cardBody}>
-              You’ll be able to choose how your available balance earns yield — calmly, in
-              dollars, with clear expectations.
-            </Text>
-          </View>
+          {loading && !growth ? (
+            <View style={styles.statusCard}>
+              <ActivityIndicator color={colors.raspberry} />
+              <Text style={styles.statusText}>Loading your Growth details…</Text>
+            </View>
+          ) : null}
+
+          {growth ? (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Grow balance</Text>
+              <Text style={styles.balanceValue}>
+                {formatUsdc(growth.currentRedeemableUsdc)}
+              </Text>
+
+              <View style={styles.divider} />
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Earned yield</Text>
+                <Text style={styles.detailValue}>{formatUsdc(growth.earnedYieldUsdc)}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Estimated APY</Text>
+                <Text style={styles.detailValue}>{growth.liveApyPercent}%</Text>
+              </View>
+              <Text style={styles.cardBody}>
+                APY is variable and can change. Values reflect the latest available data.
+              </Text>
+              {loading ? <Text style={styles.refreshingText}>Refreshing…</Text> : null}
+            </View>
+          ) : null}
+
+          {error ? (
+            <View style={styles.errorCard}>
+              <Text style={styles.errorText}>{error}</Text>
+              <Pressable
+                style={styles.retryButton}
+                onPress={() => {
+                  void onRetry();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Retry loading Growth"
+              >
+                <Text style={styles.retryLabel}>Try again</Text>
+              </Pressable>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
 
@@ -132,14 +188,93 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
+    fontSize: 14,
+    color: colors.inkMuted,
+  },
+  balanceValue: {
+    marginTop: 8,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 34,
+    lineHeight: 40,
+    letterSpacing: -0.5,
+    color: colors.ink,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 18,
+    backgroundColor: colors.border,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+    marginBottom: 12,
+  },
+  detailLabel: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    color: colors.inkMuted,
+  },
+  detailValue: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 15,
     color: colors.ink,
   },
   cardBody: {
-    marginTop: 8,
+    marginTop: 4,
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.inkMuted,
+  },
+  statusCard: {
+    marginTop: 24,
+    minHeight: 120,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: "rgba(232, 225, 218, 0.4)",
+    backgroundColor: colors.card,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
+  statusText: {
     fontFamily: "Inter_400Regular",
     fontSize: 14,
-    lineHeight: 22,
     color: colors.inkMuted,
+  },
+  refreshingText: {
+    marginTop: 10,
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
+    color: colors.inkMuted,
+  },
+  errorCard: {
+    marginTop: 12,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: "rgba(229, 75, 122, 0.25)",
+    backgroundColor: "rgba(252, 238, 242, 0.6)",
+    padding: spacing.card,
+  },
+  errorText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.ink,
+  },
+  retryButton: {
+    alignSelf: "flex-start",
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    backgroundColor: colors.raspberry,
+  },
+  retryLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    color: colors.white,
   },
 });
