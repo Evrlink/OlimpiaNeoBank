@@ -2,6 +2,7 @@ import {
   extractEmail,
   extractEmbeddedEthereumWallet,
   extractPhone,
+  extractSmartWalletIdentity,
   fetchPrivyUser,
   resolvePrivyWalletId,
 } from "../auth/privy.js";
@@ -80,6 +81,7 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
   const email = extractEmail(privyUser);
   const phone = extractPhone(privyUser);
   const walletAddress = embeddedWallet.address;
+  const smartWallet = extractSmartWalletIdentity(privyUser, walletAddress);
   let privyWalletId = embeddedWallet.id;
 
   if (!privyWalletId) {
@@ -124,14 +126,32 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
 
     const walletResult = await client.query<DbWalletRow>(
       `
-        INSERT INTO wallets (user_id, address, chain, privy_wallet_id)
-        VALUES ($1, $2, 'base', $3)
+        INSERT INTO wallets (
+          user_id,
+          address,
+          chain,
+          privy_wallet_id,
+          smart_wallet_address,
+          smart_wallet_type
+        )
+        VALUES ($1, $2, 'base', $3, $4, $5)
         ON CONFLICT (user_id) DO UPDATE SET
           address = EXCLUDED.address,
-          privy_wallet_id = COALESCE(EXCLUDED.privy_wallet_id, wallets.privy_wallet_id)
+          privy_wallet_id = COALESCE(EXCLUDED.privy_wallet_id, wallets.privy_wallet_id),
+          smart_wallet_address = COALESCE(
+            EXCLUDED.smart_wallet_address,
+            wallets.smart_wallet_address
+          ),
+          smart_wallet_type = COALESCE(EXCLUDED.smart_wallet_type, wallets.smart_wallet_type)
         RETURNING id, chain, address, privy_wallet_id
       `,
-      [userRow.id, walletAddress, privyWalletId],
+      [
+        userRow.id,
+        walletAddress,
+        privyWalletId,
+        smartWallet?.address ?? null,
+        smartWallet?.type ?? null,
+      ],
     );
 
     await client.query(

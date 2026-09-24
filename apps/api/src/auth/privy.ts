@@ -51,6 +51,101 @@ export function extractPhone(user: User): string | null {
   return null;
 }
 
+export type SmartWalletIdentity = {
+  address: string;
+  type: string;
+};
+
+const SMART_WALLET_TYPES = new Set([
+  "smart_wallet",
+  "coinbase_smart_wallet",
+  "safe",
+  "kernel",
+  "light_account",
+  "biconomy",
+  "thirdweb",
+]);
+
+const ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function readAddress(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const address = value.trim();
+  return ADDRESS_PATTERN.test(address) ? address : null;
+}
+
+function readSmartWalletType(account: Record<string, unknown>): string | null {
+  const candidates = [account.smart_wallet_type, account.type];
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== "string") {
+      continue;
+    }
+
+    const normalized = candidate.trim().toLowerCase();
+    if (SMART_WALLET_TYPES.has(normalized) && normalized !== "smart_wallet") {
+      return normalized;
+    }
+  }
+
+  if (account.type === "smart_wallet") {
+    return "smart_wallet";
+  }
+
+  return null;
+}
+
+/**
+ * Read a Privy-linked smart wallet without treating it as the embedded EOA.
+ * Returns null when missing, malformed, or equal to the EOA money address.
+ */
+export function extractSmartWalletIdentity(
+  user: { linked_accounts: readonly unknown[] },
+  embeddedAddress: string,
+): SmartWalletIdentity | null {
+  const embedded = embeddedAddress.trim().toLowerCase();
+
+  for (const account of user.linked_accounts) {
+    if (!isRecord(account) || typeof account.type !== "string") {
+      continue;
+    }
+
+    const accountType = account.type.trim().toLowerCase();
+    if (!SMART_WALLET_TYPES.has(accountType) && accountType !== "smart_wallet") {
+      continue;
+    }
+
+    if (accountType === "wallet") {
+      continue;
+    }
+
+    const address = readAddress(account.address);
+    if (!address) {
+      continue;
+    }
+
+    if (address.toLowerCase() === embedded) {
+      continue;
+    }
+
+    const type = readSmartWalletType(account);
+    if (!type) {
+      continue;
+    }
+
+    return { address, type };
+  }
+
+  return null;
+}
+
 export function extractEmbeddedEthereumWallet(
   user: User,
 ): EmbeddedEthereumWalletAccount | undefined {
