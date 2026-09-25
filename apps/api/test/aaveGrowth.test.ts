@@ -373,7 +373,11 @@ test("receipt verification is read-only and requires the Aave transfer pair", as
           logs: [
             {
               address: BASE_USDC,
-              topics: [TRANSFER_TOPIC, padTopic(SMART), padTopic(AAVE_V3_BASE_POOL)],
+              topics: [
+                TRANSFER_TOPIC,
+                padTopic(SMART),
+                padTopic(AAVE_V3_BASE_USDC_A_TOKEN),
+              ],
               data: `0x${(1_500_000n).toString(16).padStart(64, "0")}`,
             },
             {
@@ -402,6 +406,45 @@ test("receipt verification is read-only and requires the Aave transfer pair", as
   );
   assert.equal((calls[0] as { method?: string }).method, "eth_getTransactionReceipt");
   assert.equal(JSON.stringify(calls).includes("eth_send"), false);
+
+  await assert.rejects(
+    () =>
+      verifyAaveDepositReceipt(
+        {
+          transactionHash: TX_HASH,
+          smartWalletAddress: SMART,
+          rawAmount: 1_500_000n,
+        },
+        async () =>
+          new Response(
+            JSON.stringify({
+              result: {
+                status: "0x1",
+                logs: [
+                  {
+                    address: BASE_USDC,
+                    topics: [TRANSFER_TOPIC, padTopic(SMART), padTopic(AAVE_V3_BASE_POOL)],
+                    data: `0x${(1_500_000n).toString(16).padStart(64, "0")}`,
+                  },
+                  {
+                    address: AAVE_V3_BASE_USDC_A_TOKEN,
+                    topics: [
+                      TRANSFER_TOPIC,
+                      padTopic("0x0000000000000000000000000000000000000000"),
+                      padTopic(SMART),
+                    ],
+                    data: `0x${(1_500_000n).toString(16).padStart(64, "0")}`,
+                  },
+                ],
+              },
+            }),
+            { status: 200, headers: { "content-type": "application/json" } },
+          ),
+      ),
+    (error: unknown) =>
+      error instanceof AaveDepositPlanError &&
+      error.message === "This deposit receipt does not match the prepared amount.",
+  );
 
   await assert.rejects(
     () =>

@@ -1,9 +1,5 @@
 import { env } from "../config/env.js";
-import {
-  AAVE_V3_BASE_POOL,
-  AAVE_V3_BASE_USDC_A_TOKEN,
-  BASE_USDC,
-} from "./aaveAddresses.js";
+import { AAVE_V3_BASE_USDC_A_TOKEN, BASE_USDC } from "./aaveAddresses.js";
 import { AaveDepositPlanError } from "./aaveDepositPlan.js";
 
 const DEFAULT_BASE_RPC_URL = "https://mainnet.base.org";
@@ -76,13 +72,13 @@ function parseLogAmount(value: unknown): bigint | null {
   return BigInt(value);
 }
 
-function hasUsdcTransferToPool(
+function hasUsdcTransferToAToken(
   logs: ReceiptLog[],
   smartWalletAddress: string,
   rawAmount: bigint,
 ): boolean {
   const fromTopic = padTopicAddress(smartWalletAddress);
-  const toTopic = padTopicAddress(AAVE_V3_BASE_POOL);
+  const toTopic = padTopicAddress(AAVE_V3_BASE_USDC_A_TOKEN);
 
   return logs.some((log) => {
     const address = normalizeAddress(log.address);
@@ -172,7 +168,7 @@ export async function verifyAaveDepositReceipt(
 
   const logs = Array.isArray(body.result.logs) ? body.result.logs : [];
   if (
-    !hasUsdcTransferToPool(logs, input.smartWalletAddress, input.rawAmount) ||
+    !hasUsdcTransferToAToken(logs, input.smartWalletAddress, input.rawAmount) ||
     !hasAusdcCredit(logs, input.smartWalletAddress)
   ) {
     throw new AaveDepositPlanError(
