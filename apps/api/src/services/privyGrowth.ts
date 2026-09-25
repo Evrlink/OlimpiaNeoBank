@@ -137,10 +137,15 @@ export type RequiredAaveBaseUsdcVault = {
   decimals: number;
 };
 
+export type AaveBaseUsdcVaultMetadata = RequiredAaveBaseUsdcVault & {
+  liveApyPercent: string;
+  availableLiquidityUsd: string;
+};
+
 /** Fail closed unless the configured vault is Aave + Base Mainnet + USDC. */
-export async function getRequiredAaveBaseUsdcVault(
+export async function getAaveBaseUsdcVaultMetadata(
   fetchImpl: Fetch = fetch,
-): Promise<RequiredAaveBaseUsdcVault> {
+): Promise<AaveBaseUsdcVaultMetadata> {
   requirePrivyConfig();
 
   const vaultId = env.privyEarnAaveBaseUsdcVaultId.trim();
@@ -156,7 +161,18 @@ export async function getRequiredAaveBaseUsdcVault(
   );
   requireExpectedVaultDetails(details);
 
-  return { decimals: details.asset.decimals };
+  return {
+    decimals: details.asset.decimals,
+    liveApyPercent: (details.user_apy / 100).toFixed(2),
+    availableLiquidityUsd: details.available_liquidity_usd.toFixed(2),
+  };
+}
+
+export async function getRequiredAaveBaseUsdcVault(
+  fetchImpl: Fetch = fetch,
+): Promise<RequiredAaveBaseUsdcVault> {
+  const metadata = await getAaveBaseUsdcVaultMetadata(fetchImpl);
+  return { decimals: metadata.decimals };
 }
 
 function formatRawAmount(rawAmount: bigint, decimals: number): string {

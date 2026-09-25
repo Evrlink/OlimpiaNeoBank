@@ -257,6 +257,17 @@ export function createGrowthAuthorizationService(
     }
 
     if (
+      account.moneyAddressMode === "smart_wallet" &&
+      account.smartWalletAddress?.trim()
+    ) {
+      throw new GrowthAuthorizationError(
+        409,
+        "VALIDATION_ERROR",
+        "Smart Wallet Grow uses a different deposit path.",
+      );
+    }
+
+    if (
       !account.privyWalletId ||
       !account.walletAddress ||
       account.chain?.toLowerCase() !== "base"

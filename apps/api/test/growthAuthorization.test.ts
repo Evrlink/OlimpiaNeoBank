@@ -54,6 +54,8 @@ function createTestService(overrides: {
       privyWalletId: "wallet-current-user",
       walletAddress: "0x1111111111111111111111111111111111111111",
       chain: "base",
+      smartWalletAddress: null,
+      moneyAddressMode: "eoa",
     }),
     verifyOwnership:
       overrides.verifyOwnership ??
@@ -403,6 +405,95 @@ test("authorization endpoints require authentication", async () => {
   }
 });
 
+test("smart_wallet users cannot use the Privy Earn authorization path", async () => {
+  configureTestPrivy();
+
+  try {
+    const service = createGrowthAuthorizationService({
+      lookupAccount: async () => ({
+        userExists: true,
+        userId: "11111111-1111-1111-1111-111111111111",
+        privyWalletId: "wallet-current-user",
+        walletAddress: "0x1111111111111111111111111111111111111111",
+        chain: "base",
+        smartWalletAddress: "0x545803dDb0eE8eB96A531628cB8d3E0306d7e4CA",
+        moneyAddressMode: "smart_wallet",
+      }),
+      verifyOwnership: async () => {
+        throw new Error("ownership should not run");
+      },
+      getVault: async () => ({ decimals: 6 }),
+      getAvailableRawUsdc: async () => 2_000_000n,
+      store: createMemoryGrowthAuthorizationStore(),
+      now: () => new Date("2026-09-23T17:00:00.000Z"),
+      createId: () => "22222222-2222-2222-2222-222222222222",
+      createIdempotencyKey: () => "33333333-3333-3333-3333-333333333333",
+    });
+
+    await assert.rejects(
+      () =>
+        service.prepareDepositAuthorization({
+          privyUserId: "did:privy:current-user",
+          amountUsdc: "1.00",
+        }),
+      (error: unknown) =>
+        error instanceof GrowthAuthorizationError &&
+        error.status === 409 &&
+        error.code === "VALIDATION_ERROR",
+    );
+  } finally {
+    restorePrivyConfig();
+  }
+});
+
+test("eoa users cannot prepare a smart wallet deposit", async () => {
+  const app = express();
+  app.use(express.json());
+  app.use(
+    "/growth",
+    createGrowthRouter({
+      auth: (req, _res, next) => {
+        (
+          req as express.Request & { privyUserId?: string }
+        ).privyUserId = "did:privy:current-user";
+        next();
+      },
+      lookupWallet: async () => ({
+        userExists: true,
+        privyWalletId: "wallet-current-user",
+        moneyAddressMode: "eoa",
+        smartWalletAddress: null,
+      }),
+      getGrowth: async () => {
+        throw new Error("GET growth should not run.");
+      },
+    }),
+  );
+
+  const server = createServer(app);
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  assert.ok(address && typeof address === "object");
+
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/prepare`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ amountUsdc: "1.00" }),
+      },
+    );
+    const body = (await response.json()) as { error?: { code?: string } };
+    assert.equal(response.status, 409);
+    assert.equal(body.error?.code, "VALIDATION_ERROR");
+  } finally {
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => (error ? reject(error) : resolve()));
+    });
+  }
+});
+
 test("authorization source never calls deposit execution", async () => {
   const apiRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const files = [
@@ -410,6 +501,10 @@ test("authorization source never calls deposit execution", async () => {
     "src/services/growthAuthorizationStore.ts",
     "src/services/growthAuthorizationAccount.ts",
     "src/routes/v1/growth.ts",
+    "src/services/aaveDepositPlan.ts",
+    "src/services/walletGrowth.ts",
+    "src/services/aaveGrowth.ts",
+    "src/services/privyGrowth.ts",
   ];
 
   for (const file of files) {
@@ -418,5 +513,7 @@ test("authorization source never calls deposit execution", async () => {
     assert.doesNotMatch(source, /wallets\(\)\.earn/);
     assert.doesNotMatch(source, /\._withdraw\s*\(/);
     assert.doesNotMatch(source, /\/earn\/ethereum\/withdraw/);
+    assert.doesNotMatch(source, /sendTransaction/);
+    assert.doesNotMatch(source, /paymaster/i);
   }
 });

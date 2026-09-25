@@ -77,11 +77,14 @@ export function toActivityItem(row: DbTransactionRow): ActivityItem {
   };
 }
 
+export type MoneyAddressMode = "eoa" | "smart_wallet";
+
 export type WalletSummary = {
   id: string;
   chain: string;
   address: string;
   privyWalletId: string | null;
+  moneyAddressMode: MoneyAddressMode;
 };
 
 export type EligibilityFlags = {

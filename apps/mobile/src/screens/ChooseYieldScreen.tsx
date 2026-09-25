@@ -19,6 +19,7 @@ import {
   GrowthAuthorizationApiError,
   payloadHexToBytes,
   prepareGrowthAuthorization,
+  prepareSmartWalletDeposit,
   type GrowthSummary,
   type PreparedGrowthAuthorization,
 } from "@/services/api/growth";
@@ -31,6 +32,7 @@ type AuthorizationStep = "enter" | "review" | "success";
 type ChooseYieldScreenProps = {
   growth: GrowthSummary | null;
   availableUsd: string;
+  moneyAddressMode?: "eoa" | "smart_wallet" | null;
   loading: boolean;
   error: string | null;
   getAccessToken: () => Promise<string | null>;
@@ -71,12 +73,14 @@ function isAuthorizationExpired(expiresAt: string, now = Date.now()): boolean {
 export function ChooseYieldScreen({
   growth,
   availableUsd,
+  moneyAddressMode = "eoa",
   loading,
   error,
   getAccessToken,
   onRetry,
   onBack,
 }: ChooseYieldScreenProps) {
+  const isSmartWalletGrow = moneyAddressMode === "smart_wallet";
   const { generateAuthorizationSignature } = useAuthorizationSignature();
   const preparedRef = useRef<PreparedGrowthAuthorization | null>(null);
   const successScale = useRef(new Animated.Value(0.72)).current;
@@ -193,6 +197,16 @@ export function ChooseYieldScreen({
 
     try {
       const accessToken = await getAccessToken();
+
+      if (isSmartWalletGrow) {
+        const plan = await prepareSmartWalletDeposit(accessToken ?? "", amountUsdc);
+        preparedRef.current = null;
+        setReviewedAmount(plan.amountUsdc);
+        setExpiresAt(null);
+        setStep("review");
+        return;
+      }
+
       const prepared = await prepareGrowthAuthorization(accessToken ?? "", amountUsdc);
 
       if (isAuthorizationExpired(prepared.expiresAt)) {
@@ -220,6 +234,7 @@ export function ChooseYieldScreen({
     hasAvailable,
     isAuthorizing,
     isPreparing,
+    isSmartWalletGrow,
     resetToEnter,
   ]);
 
@@ -286,7 +301,9 @@ export function ChooseYieldScreen({
   const title = step === "review" ? "Review amount" : "Choose Yield";
   const subtitle =
     step === "review"
-      ? "Confirm the exact USDC amount. This only authorizes the request. No money will move yet."
+      ? isSmartWalletGrow
+        ? "This prepares the deposit. Money will not move yet."
+        : "Confirm the exact USDC amount. This only authorizes the request. No money will move yet."
       : "See your current Grow balance, earned yield, and estimated variable rate.";
 
   return (
@@ -363,7 +380,9 @@ export function ChooseYieldScreen({
 
           {step === "enter" ? (
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Amount to authorize</Text>
+              <Text style={styles.cardTitle}>
+                {isSmartWalletGrow ? "Amount to prepare" : "Amount to authorize"}
+              </Text>
               <Text style={styles.availableText}>{remainingLabel}</Text>
               <View style={styles.inputRow}>
                 <Text style={styles.currency}>$</Text>
@@ -404,30 +423,34 @@ export function ChooseYieldScreen({
               <Text style={styles.cardTitle}>Exact amount</Text>
               <Text style={styles.balanceValue}>{formatUsdc(reviewedAmount)}</Text>
               <Text style={styles.cardBody}>
-                Authorize this exact amount for Grow. Nothing will move until a later step.
+                {isSmartWalletGrow
+                  ? "The deposit is prepared. Execution is not enabled yet, so no money will move."
+                  : "Authorize this exact amount for Grow. Nothing will move until a later step."}
               </Text>
               {expiresAt ? (
                 <Text style={styles.refreshingText}>
                   This authorization expires at {new Date(expiresAt).toLocaleTimeString()}.
                 </Text>
               ) : null}
-              <Pressable
-                style={[styles.primaryButton, isAuthorizing ? styles.primaryButtonDisabled : null]}
-                onPress={() => {
-                  void handleAuthorize();
-                }}
-                disabled={isAuthorizing}
-                accessibilityRole="button"
-                accessibilityLabel={`Authorize ${formatUsdc(reviewedAmount)}`}
-              >
-                {isAuthorizing ? (
-                  <ActivityIndicator color={colors.white} />
-                ) : (
-                  <Text style={styles.primaryButtonLabel}>
-                    Authorize {formatUsdc(reviewedAmount)}
-                  </Text>
-                )}
-              </Pressable>
+              {isSmartWalletGrow ? null : (
+                <Pressable
+                  style={[styles.primaryButton, isAuthorizing ? styles.primaryButtonDisabled : null]}
+                  onPress={() => {
+                    void handleAuthorize();
+                  }}
+                  disabled={isAuthorizing}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Authorize ${formatUsdc(reviewedAmount)}`}
+                >
+                  {isAuthorizing ? (
+                    <ActivityIndicator color={colors.white} />
+                  ) : (
+                    <Text style={styles.primaryButtonLabel}>
+                      Authorize {formatUsdc(reviewedAmount)}
+                    </Text>
+                  )}
+                </Pressable>
+              )}
             </View>
           ) : null}
 

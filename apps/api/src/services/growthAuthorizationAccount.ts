@@ -6,6 +6,8 @@ export type GrowthAuthorizationAccount = {
   privyWalletId: string | null;
   walletAddress: string | null;
   chain: string | null;
+  smartWalletAddress: string | null;
+  moneyAddressMode: string | null;
 };
 
 export async function lookupAuthorizationAccount(
@@ -21,13 +23,17 @@ export async function lookupAuthorizationAccount(
     privy_wallet_id: string | null;
     address: string | null;
     chain: string | null;
+    smart_wallet_address: string | null;
+    money_address_mode: string | null;
   }>(
     `
       SELECT
         u.id AS user_id,
         w.privy_wallet_id,
         w.address,
-        w.chain
+        w.chain,
+        w.smart_wallet_address,
+        w.money_address_mode
       FROM users u
       LEFT JOIN wallets w ON w.user_id = u.id
       WHERE u.privy_user_id = $1
@@ -43,6 +49,8 @@ export async function lookupAuthorizationAccount(
       privyWalletId: null,
       walletAddress: null,
       chain: null,
+      smartWalletAddress: null,
+      moneyAddressMode: null,
     };
   }
 
@@ -52,5 +60,7 @@ export async function lookupAuthorizationAccount(
     privyWalletId: row.privy_wallet_id,
     walletAddress: row.address,
     chain: row.chain,
+    smartWalletAddress: row.smart_wallet_address,
+    moneyAddressMode: row.money_address_mode,
   };
 }

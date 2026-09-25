@@ -34,10 +34,10 @@ export function toHomeBalanceSummaryFromUsdcRaw(raw: bigint): BalanceSummary {
 }
 
 /** Read-only USDC balanceOf on Base. No transactions. */
-export async function getUsdcBalanceUsdOnBase(
+export async function getUsdcRawOnBase(
   address: string,
   fetchImpl: Fetch = fetch,
-): Promise<BalanceSummary> {
+): Promise<bigint> {
   const wallet = address.trim();
   if (!ADDRESS_PATTERN.test(wallet)) {
     throw new Error("Invalid wallet address.");
@@ -66,5 +66,12 @@ export async function getUsdcBalanceUsdOnBase(
   }
 
   const body = (await response.json()) as { result?: unknown };
-  return toHomeBalanceSummaryFromUsdcRaw(parseHexUint(body.result));
+  return parseHexUint(body.result);
+}
+
+export async function getUsdcBalanceUsdOnBase(
+  address: string,
+  fetchImpl: Fetch = fetch,
+): Promise<BalanceSummary> {
+  return toHomeBalanceSummaryFromUsdcRaw(await getUsdcRawOnBase(address, fetchImpl));
 }

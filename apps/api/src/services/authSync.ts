@@ -64,6 +64,8 @@ function toWalletSummary(row: DbWalletRow): WalletSummary {
       smartWalletAddress: row.smart_wallet_address,
     }),
     privyWalletId: row.privy_wallet_id,
+    moneyAddressMode:
+      row.money_address_mode === "smart_wallet" ? "smart_wallet" : "eoa",
   };
 }
 
@@ -306,6 +308,8 @@ export async function getAuthenticatedUserProfile(
         smartWalletAddress: row.smart_wallet_address,
       }),
       privyWalletId: row.privy_wallet_id,
+      moneyAddressMode:
+        row.money_address_mode === "smart_wallet" ? "smart_wallet" : "eoa",
     },
     balance,
   };

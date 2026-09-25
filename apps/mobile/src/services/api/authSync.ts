@@ -14,6 +14,7 @@ export type AuthSyncWallet = {
   chain: string;
   address: string;
   privyWalletId: string | null;
+  moneyAddressMode?: "eoa" | "smart_wallet";
 };
 
 export type AuthSyncBalance = {

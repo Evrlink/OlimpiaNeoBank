@@ -38,6 +38,20 @@ export type ConfirmedGrowthAuthorization = {
   expiresAt: string;
 };
 
+export type PreparedAaveDepositCall = {
+  to: string;
+  data: string;
+  value: "0x0";
+};
+
+export type PreparedAaveDepositPlan = {
+  chain: "base";
+  chainId: 8453;
+  smartWalletAddress: string;
+  amountUsdc: string;
+  calls: PreparedAaveDepositCall[];
+};
+
 export type GrowthAuthorizationErrorCode =
   | AuthSyncErrorCode
   | "VALIDATION_ERROR"
@@ -411,6 +425,90 @@ export async function confirmGrowthAuthorization(
   }
 
   if (!isConfirmedGrowthAuthorization(body)) {
+    throw new GrowthAuthorizationApiError(
+      "INVALID_RESPONSE",
+      "Received an unexpected response from the server.",
+      response.status,
+    );
+  }
+
+  return body;
+}
+
+function isPreparedAaveDepositPlan(value: unknown): value is PreparedAaveDepositPlan {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const plan = value as PreparedAaveDepositPlan;
+  return (
+    plan.chain === "base" &&
+    plan.chainId === 8453 &&
+    typeof plan.smartWalletAddress === "string" &&
+    typeof plan.amountUsdc === "string" &&
+    Array.isArray(plan.calls) &&
+    plan.calls.length === 2 &&
+    plan.calls.every(
+      (call) =>
+        typeof call.to === "string" &&
+        typeof call.data === "string" &&
+        call.value === "0x0",
+    )
+  );
+}
+
+/** 3C.2: fetch approve+supply calldata only. Does not send a transaction. */
+export async function prepareSmartWalletDeposit(
+  accessToken: string,
+  amountUsdc: string,
+): Promise<PreparedAaveDepositPlan> {
+  const token = requireAccessToken(accessToken, true);
+  let response: Response;
+
+  try {
+    response = await fetch(
+      `${apiBaseUrl}/api/v1/growth/smart-wallet-deposits/prepare`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ amountUsdc }),
+      },
+    );
+  } catch {
+    throw new GrowthAuthorizationApiError(
+      "NETWORK_ERROR",
+      "Unable to reach the server. Check your connection and try again.",
+      0,
+    );
+  }
+
+  let body: unknown = null;
+
+  try {
+    body = await response.json();
+  } catch {
+    throw new GrowthAuthorizationApiError(
+      response.ok ? "INVALID_RESPONSE" : "INTERNAL_ERROR",
+      response.ok
+        ? "Received an unexpected response from the server."
+        : "We couldn’t prepare this deposit.",
+      response.status,
+    );
+  }
+
+  if (!response.ok) {
+    const errorBody = body as ApiErrorBody;
+    throw new GrowthAuthorizationApiError(
+      parseAuthorizationErrorCode(errorBody.error?.code),
+      getSafeErrorMessage(errorBody, "We couldn’t prepare this deposit."),
+      response.status,
+    );
+  }
+
+  if (!isPreparedAaveDepositPlan(body)) {
     throw new GrowthAuthorizationApiError(
       "INVALID_RESPONSE",
       "Received an unexpected response from the server.",

@@ -162,6 +162,7 @@ export function AuthenticatedTabShell({
       <ChooseYieldScreen
         growth={growth}
         availableUsd={authSync.balance.availableUsd}
+        moneyAddressMode={authSync.wallet.moneyAddressMode ?? "eoa"}
         loading={growthLoading}
         error={growthError}
         getAccessToken={getAccessToken}
