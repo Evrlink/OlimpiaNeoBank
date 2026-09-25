@@ -13,7 +13,11 @@ import {
   type UserProfile,
   type WalletSummary,
 } from "../lib/responses.js";
-import { getHomeBalanceForPrivyWallet } from "./privyBalance.js";
+import {
+  resolveInsertMoneyAddressMode,
+  toPublicMoneyAddress,
+} from "./moneyAddress.js";
+import { getHomeBalanceForWallet } from "./walletBalance.js";
 
 type SyncResult = {
   user: UserProfile;
@@ -36,6 +40,8 @@ type DbWalletRow = {
   chain: string;
   address: string;
   privy_wallet_id: string | null;
+  smart_wallet_address: string | null;
+  money_address_mode: string | null;
 };
 
 export class AuthSyncError extends Error {
@@ -52,7 +58,11 @@ function toWalletSummary(row: DbWalletRow): WalletSummary {
   return {
     id: row.id,
     chain: row.chain,
-    address: row.address,
+    address: toPublicMoneyAddress({
+      moneyAddressMode: row.money_address_mode,
+      eoaAddress: row.address,
+      smartWalletAddress: row.smart_wallet_address,
+    }),
     privyWalletId: row.privy_wallet_id,
   };
 }
@@ -132,9 +142,10 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
           chain,
           privy_wallet_id,
           smart_wallet_address,
-          smart_wallet_type
+          smart_wallet_type,
+          money_address_mode
         )
-        VALUES ($1, $2, 'base', $3, $4, $5)
+        VALUES ($1, $2, 'base', $3, $4, $5, $6)
         ON CONFLICT (user_id) DO UPDATE SET
           address = EXCLUDED.address,
           privy_wallet_id = COALESCE(EXCLUDED.privy_wallet_id, wallets.privy_wallet_id),
@@ -143,7 +154,13 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
             wallets.smart_wallet_address
           ),
           smart_wallet_type = COALESCE(EXCLUDED.smart_wallet_type, wallets.smart_wallet_type)
-        RETURNING id, chain, address, privy_wallet_id
+        RETURNING
+          id,
+          chain,
+          address,
+          privy_wallet_id,
+          smart_wallet_address,
+          money_address_mode
       `,
       [
         userRow.id,
@@ -151,6 +168,7 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
         privyWalletId,
         smartWallet?.address ?? null,
         smartWallet?.type ?? null,
+        resolveInsertMoneyAddressMode(isNewUser, Boolean(smartWallet)),
       ],
     );
 
@@ -192,7 +210,11 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
   let balance: BalanceSummary;
 
   try {
-    balance = await getHomeBalanceForPrivyWallet(walletRow.privy_wallet_id);
+    balance = await getHomeBalanceForWallet({
+      moneyAddressMode: walletRow.money_address_mode,
+      privyWalletId: walletRow.privy_wallet_id,
+      smartWalletAddress: walletRow.smart_wallet_address,
+    });
   } catch {
     throw new AuthSyncError(
       "Unable to fetch wallet balance from Privy.",
@@ -213,6 +235,8 @@ type ProfileQueryRow = DbUserRow & {
   chain: string | null;
   address: string | null;
   privy_wallet_id: string | null;
+  smart_wallet_address: string | null;
+  money_address_mode: string | null;
 };
 
 export async function getAuthenticatedUserProfile(
@@ -236,7 +260,9 @@ export async function getAuthenticatedUserProfile(
         w.id AS wallet_id,
         w.chain,
         w.address,
-        w.privy_wallet_id
+        w.privy_wallet_id,
+        w.smart_wallet_address,
+        w.money_address_mode
       FROM users u
       LEFT JOIN wallets w ON w.user_id = u.id
       WHERE u.privy_user_id = $1
@@ -257,7 +283,11 @@ export async function getAuthenticatedUserProfile(
   let balance: BalanceSummary;
 
   try {
-    balance = await getHomeBalanceForPrivyWallet(row.privy_wallet_id);
+    balance = await getHomeBalanceForWallet({
+      moneyAddressMode: row.money_address_mode,
+      privyWalletId: row.privy_wallet_id,
+      smartWalletAddress: row.smart_wallet_address,
+    });
   } catch {
     throw new AuthSyncError(
       "Unable to fetch wallet balance from Privy.",
@@ -270,7 +300,11 @@ export async function getAuthenticatedUserProfile(
     wallet: {
       id: row.wallet_id,
       chain: row.chain,
-      address: row.address,
+      address: toPublicMoneyAddress({
+        moneyAddressMode: row.money_address_mode,
+        eoaAddress: row.address,
+        smartWalletAddress: row.smart_wallet_address,
+      }),
       privyWalletId: row.privy_wallet_id,
     },
     balance,

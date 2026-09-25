@@ -100,6 +100,7 @@ export const env = {
   privyAppSecret: process.env.PRIVY_APP_SECRET ?? "",
   privyEarnAaveBaseUsdcVaultId:
     process.env.PRIVY_EARN_AAVE_BASE_USDC_VAULT_ID ?? "",
+  baseRpcUrl: process.env.BASE_RPC_URL ?? "",
   corsOrigins: parseCorsOrigins(process.env.CORS_ORIGINS),
   fundingProvider: resolveFundingProvider(),
   coinbaseOnrampApiKey: process.env.COINBASE_ONRAMP_API_KEY ?? "",

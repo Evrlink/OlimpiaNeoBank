@@ -1,21 +1,34 @@
 import type { User } from "@privy-io/api-types";
 import { AuthSyncApiError, type AuthSyncUser } from "@/services/api/authSync";
 
-type LinkedAccount = User["linked_accounts"][number];
-
 export function hasEmbeddedEthereumWallet(user: User): boolean {
-  return user.linked_accounts.some((account: LinkedAccount) => {
+  return Boolean(getEmbeddedEthereumAddress(user));
+}
+
+export function getEmbeddedEthereumAddress(user: User | null | undefined): string | null {
+  if (!user) {
+    return null;
+  }
+
+  for (const account of user.linked_accounts) {
     if (account.type !== "wallet") {
-      return false;
+      continue;
     }
 
-    return (
+    if (
       "chain_type" in account &&
       account.chain_type === "ethereum" &&
       "wallet_client_type" in account &&
-      account.wallet_client_type === "privy"
-    );
-  });
+      account.wallet_client_type === "privy" &&
+      "address" in account &&
+      typeof account.address === "string" &&
+      account.address.trim()
+    ) {
+      return account.address.trim();
+    }
+  }
+
+  return null;
 }
 
 export function getAuthErrorMessage(error: unknown): string {

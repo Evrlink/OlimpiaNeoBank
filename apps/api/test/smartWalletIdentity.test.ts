@@ -98,17 +98,12 @@ test("returns null when no smart wallet is linked", () => {
   assert.equal(identity, null);
 });
 
-test("auth sync still returns only the EOA on the public wallet summary", async () => {
+test("auth sync never flips money_address_mode on existing wallet rows", async () => {
   const apiRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const source = await readFile(path.join(apiRoot, "src/services/authSync.ts"), "utf8");
 
   assert.match(source, /extractSmartWalletIdentity/);
-  assert.match(source, /smart_wallet_address/);
-  assert.match(
-    source,
-    /RETURNING id, chain, address, privy_wallet_id/,
-  );
-  assert.doesNotMatch(source, /smartWalletAddress:/);
-  assert.doesNotMatch(source, /moneyAddressMode:/);
+  assert.match(source, /resolveInsertMoneyAddressMode/);
+  assert.match(source, /toPublicMoneyAddress/);
   assert.doesNotMatch(source, /money_address_mode = EXCLUDED/);
 });

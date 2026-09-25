@@ -1,13 +1,15 @@
 import { useEmbeddedEthereumWallet, useLoginWithEmail, usePrivy } from "@privy-io/expo";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AuthMode, AuthSuccessPayload } from "@/screens/AuthScreen";
 import { syncAccount } from "@/services/api/authSync";
 import {
   getAuthErrorMessage,
+  getEmbeddedEthereumAddress,
   getSyncErrorMessage,
   hasEmbeddedEthereumWallet,
   isValidEmail,
 } from "@/utils/auth";
+import { waitForLinkedSmartWallet } from "@/utils/smartWallet";
 
 export type AuthFlowStep = "email" | "otp" | "loading";
 
@@ -39,7 +41,9 @@ export function useEmailAuthFlow(
   const [inlineError, setInlineError] = useState<string | null>(null);
   const [resendSeconds, setResendSeconds] = useState(0);
 
-  const { getAccessToken } = usePrivy();
+  const { getAccessToken, user } = usePrivy();
+  const userRef = useRef(user);
+  userRef.current = user;
   const { sendCode, loginWithCode, state } = useLoginWithEmail({
     onError: (error) => {
       setInlineError(getAuthErrorMessage(error));
@@ -118,6 +122,18 @@ export function useEmailAuthFlow(
 
       if (!hasEmbeddedEthereumWallet(user)) {
         await create();
+      }
+
+      const embeddedAddress =
+        getEmbeddedEthereumAddress(userRef.current) ??
+        getEmbeddedEthereumAddress(user) ??
+        "";
+      if (embeddedAddress) {
+        await waitForLinkedSmartWallet({
+          getLinkedAccounts: () =>
+            userRef.current?.linked_accounts ?? user.linked_accounts,
+          embeddedAddress,
+        });
       }
 
       const accessToken = await getAccessToken();

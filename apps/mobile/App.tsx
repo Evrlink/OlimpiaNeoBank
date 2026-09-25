@@ -10,6 +10,7 @@ import {
   useFonts as useInterFonts,
 } from "@expo-google-fonts/inter";
 import { PrivyProvider } from "@privy-io/expo";
+import { SmartWalletsProvider } from "@privy-io/expo/smart-wallets";
 import { ActivityIndicator, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppRouter } from "@/components/AppRouter";
@@ -47,9 +48,11 @@ export default function App() {
       supportedChains={[...privySupportedChains]}
       config={privyConfig}
     >
-      <SafeAreaProvider>
-        <AppRouter />
-      </SafeAreaProvider>
+      <SmartWalletsProvider>
+        <SafeAreaProvider>
+          <AppRouter />
+        </SafeAreaProvider>
+      </SmartWalletsProvider>
     </PrivyProvider>
   );
 }

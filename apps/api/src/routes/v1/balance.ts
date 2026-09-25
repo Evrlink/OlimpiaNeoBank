@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getPool } from "../../db/pool.js";
 import { sendError } from "../../lib/errors.js";
 import { requireAuth } from "../../middleware/requireAuth.js";
-import { getHomeBalanceForPrivyWallet } from "../../services/privyBalance.js";
+import { getHomeBalanceForWallet } from "../../services/walletBalance.js";
 import type { AuthenticatedRequest } from "../../types/express.js";
 
 export const balanceRouter = Router();
@@ -18,9 +18,13 @@ balanceRouter.get("/", requireAuth, async (req, res) => {
       return;
     }
 
-    const walletResult = await pool.query<{ privy_wallet_id: string | null }>(
+    const walletResult = await pool.query<{
+      privy_wallet_id: string | null;
+      smart_wallet_address: string | null;
+      money_address_mode: string | null;
+    }>(
       `
-        SELECT w.privy_wallet_id
+        SELECT w.privy_wallet_id, w.smart_wallet_address, w.money_address_mode
         FROM users u
         JOIN wallets w ON w.user_id = u.id
         WHERE u.privy_user_id = $1
@@ -50,7 +54,11 @@ balanceRouter.get("/", requireAuth, async (req, res) => {
       return;
     }
 
-    const balance = await getHomeBalanceForPrivyWallet(walletRow.privy_wallet_id);
+    const balance = await getHomeBalanceForWallet({
+      moneyAddressMode: walletRow.money_address_mode,
+      privyWalletId: walletRow.privy_wallet_id,
+      smartWalletAddress: walletRow.smart_wallet_address,
+    });
     res.status(200).json(balance);
   } catch {
     sendError(res, 502, "PRIVY_UNAVAILABLE", "Unable to load wallet balance.");
