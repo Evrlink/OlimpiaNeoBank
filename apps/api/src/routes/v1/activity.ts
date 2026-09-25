@@ -3,7 +3,8 @@ import { getPool } from "../../db/pool.js";
 import { sendError } from "../../lib/errors.js";
 import { toActivityItem } from "../../lib/responses.js";
 import { requireAuth } from "../../middleware/requireAuth.js";
-import { getHomeActivityForPrivyWallet } from "../../services/privyActivity.js";
+import { getHomeActivityForWallet } from "../../services/walletActivity.js";
+import { InvalidUsdcActivityCursorError } from "../../services/usdcActivity.js";
 import type { AuthenticatedRequest } from "../../types/express.js";
 
 export const activityRouter = Router();
@@ -95,9 +96,13 @@ activityRouter.get("/", requireAuth, async (req, res) => {
       return;
     }
 
-    const walletResult = await pool.query<{ privy_wallet_id: string | null }>(
+    const walletResult = await pool.query<{
+      privy_wallet_id: string | null;
+      smart_wallet_address: string | null;
+      money_address_mode: string | null;
+    }>(
       `
-        SELECT w.privy_wallet_id
+        SELECT w.privy_wallet_id, w.smart_wallet_address, w.money_address_mode
         FROM users u
         JOIN wallets w ON w.user_id = u.id
         WHERE u.privy_user_id = $1
@@ -117,7 +122,11 @@ activityRouter.get("/", requireAuth, async (req, res) => {
       return;
     }
 
-    if (!walletRow.privy_wallet_id) {
+    const usesSmartWallet =
+      walletRow.money_address_mode === "smart_wallet" &&
+      Boolean(walletRow.smart_wallet_address?.trim());
+
+    if (!usesSmartWallet && !walletRow.privy_wallet_id) {
       sendError(
         res,
         502,
@@ -128,18 +137,30 @@ activityRouter.get("/", requireAuth, async (req, res) => {
     }
 
     const { limit, cursor } = pagination;
-    const page = await getHomeActivityForPrivyWallet(
-      walletRow.privy_wallet_id,
+    const page = await getHomeActivityForWallet({
+      moneyAddressMode: walletRow.money_address_mode,
+      privyWalletId: walletRow.privy_wallet_id ?? "",
+      smartWalletAddress: walletRow.smart_wallet_address,
       limit,
       cursor,
-    );
+    });
 
     res.status(200).json({
       limit,
       items: page.items,
       next_cursor: page.nextCursor,
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof InvalidUsdcActivityCursorError) {
+      sendError(
+        res,
+        400,
+        "VALIDATION_ERROR",
+        "Invalid pagination. Use limit (1–100) and an optional cursor.",
+      );
+      return;
+    }
+
     sendError(res, 502, "PRIVY_UNAVAILABLE", "Unable to load wallet activity.");
   }
 });

@@ -51,13 +51,16 @@ test("public money address is the smart wallet only when mode is smart_wallet", 
   );
 });
 
-test("activity and growth sources stay on the EOA path", async () => {
+test("activity dispatches by money address; growth stays on the EOA path", async () => {
   const apiRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const activity = await readFile(path.join(apiRoot, "src/routes/v1/activity.ts"), "utf8");
   const growth = await readFile(path.join(apiRoot, "src/routes/v1/growth.ts"), "utf8");
 
-  assert.doesNotMatch(activity, /money_address_mode/);
-  assert.doesNotMatch(activity, /smart_wallet_address/);
+  assert.match(activity, /money_address_mode/);
+  assert.match(activity, /smart_wallet_address/);
+  assert.match(activity, /getHomeActivityForWallet/);
+  assert.doesNotMatch(activity, /getHomeActivityForPrivyWallet/);
   assert.doesNotMatch(growth, /money_address_mode/);
   assert.doesNotMatch(growth, /getHomeBalanceForWallet/);
+  assert.doesNotMatch(growth, /getHomeActivityForWallet/);
 });
