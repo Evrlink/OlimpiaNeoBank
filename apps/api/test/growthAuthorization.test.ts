@@ -502,6 +502,8 @@ test("authorization source never calls deposit execution", async () => {
     "src/services/growthAuthorizationAccount.ts",
     "src/routes/v1/growth.ts",
     "src/services/aaveDepositPlan.ts",
+    "src/services/aaveDepositExecution.ts",
+    "src/services/aaveDepositStore.ts",
     "src/services/walletGrowth.ts",
     "src/services/aaveGrowth.ts",
     "src/services/privyGrowth.ts",

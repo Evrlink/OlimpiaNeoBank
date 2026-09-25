@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useAuthorizationSignature } from "@privy-io/expo";
+import { useAuthorizationSignature, usePrivy } from "@privy-io/expo";
+import { useSmartWallets } from "@privy-io/expo/smart-wallets";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -14,16 +15,23 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
+import { BASE_CHAIN_ID } from "@/services/aaveAddresses";
+import { AavePlanGuardError, assertExecutableAavePlan } from "@/services/aavePlanGuard";
 import {
   confirmGrowthAuthorization,
+  confirmSmartWalletDeposit,
+  failSmartWalletDeposit,
   GrowthAuthorizationApiError,
   payloadHexToBytes,
   prepareGrowthAuthorization,
   prepareSmartWalletDeposit,
+  submitSmartWalletDeposit,
   type GrowthSummary,
+  type PreparedAaveDepositPlan,
   type PreparedGrowthAuthorization,
 } from "@/services/api/growth";
 import { colors, radius, spacing } from "@/theme/colors";
+import { getEmbeddedEthereumAddress } from "@/utils/auth";
 
 const AMOUNT_PATTERN = /^(?:0|[1-9]\d*)(?:\.\d{1,6})?$/;
 
@@ -33,11 +41,13 @@ type ChooseYieldScreenProps = {
   growth: GrowthSummary | null;
   availableUsd: string;
   moneyAddressMode?: "eoa" | "smart_wallet" | null;
+  smartWalletAddress?: string | null;
   loading: boolean;
   error: string | null;
   getAccessToken: () => Promise<string | null>;
   onRetry: () => void | Promise<void>;
   onBack: () => void;
+  onSmartWalletDepositSuccess?: () => void | Promise<void>;
 };
 
 function formatUsdc(value: string): string {
@@ -74,15 +84,20 @@ export function ChooseYieldScreen({
   growth,
   availableUsd,
   moneyAddressMode = "eoa",
+  smartWalletAddress = null,
   loading,
   error,
   getAccessToken,
   onRetry,
   onBack,
+  onSmartWalletDepositSuccess,
 }: ChooseYieldScreenProps) {
   const isSmartWalletGrow = moneyAddressMode === "smart_wallet";
   const { generateAuthorizationSignature } = useAuthorizationSignature();
+  const { getClientForChain } = useSmartWallets();
+  const { user } = usePrivy();
   const preparedRef = useRef<PreparedGrowthAuthorization | null>(null);
+  const smartWalletPlanRef = useRef<PreparedAaveDepositPlan | null>(null);
   const successScale = useRef(new Animated.Value(0.72)).current;
   const successOpacity = useRef(new Animated.Value(0)).current;
   const [step, setStep] = useState<AuthorizationStep>("enter");
@@ -93,12 +108,16 @@ export function ChooseYieldScreen({
   const [actionError, setActionError] = useState<string | null>(null);
   const [isPreparing, setIsPreparing] = useState(false);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [successKind, setSuccessKind] = useState<"authorized" | "deposited">("authorized");
+  const [executionEnabled, setExecutionEnabled] = useState(false);
 
   const availableAmount = parseUsdc(availableUsd);
   const hasAvailable = Number.isFinite(availableAmount) && availableAmount > 0;
   const normalizedAmount = normalizeAmountText(amountText);
   const canContinue =
     !isPreparing &&
+    !isExecuting &&
     hasAvailable &&
     AMOUNT_PATTERN.test(normalizedAmount) &&
     parseUsdc(normalizedAmount) > 0;
@@ -113,9 +132,12 @@ export function ChooseYieldScreen({
 
   const resetToEnter = useCallback((message?: string) => {
     preparedRef.current = null;
+    smartWalletPlanRef.current = null;
     setReviewedAmount(null);
     setExpiresAt(null);
     setAuthorizedAmount(null);
+    setSuccessKind("authorized");
+    setExecutionEnabled(false);
     setStep("enter");
     setActionError(message ?? null);
   }, []);
@@ -157,7 +179,7 @@ export function ChooseYieldScreen({
   }, [authorizedAmount, returnToGrow, step, successOpacity, successScale]);
 
   const handleBack = useCallback(() => {
-    if (isPreparing || isAuthorizing) {
+    if (isPreparing || isAuthorizing || isExecuting) {
       return;
     }
 
@@ -172,10 +194,10 @@ export function ChooseYieldScreen({
     }
 
     onBack();
-  }, [isAuthorizing, isPreparing, onBack, resetToEnter, returnToGrow, step]);
+  }, [isAuthorizing, isExecuting, isPreparing, onBack, resetToEnter, returnToGrow, step]);
 
   const handleContinue = useCallback(async () => {
-    if (isPreparing || isAuthorizing) {
+    if (isPreparing || isAuthorizing || isExecuting) {
       return;
     }
 
@@ -201,6 +223,8 @@ export function ChooseYieldScreen({
       if (isSmartWalletGrow) {
         const plan = await prepareSmartWalletDeposit(accessToken ?? "", amountUsdc);
         preparedRef.current = null;
+        smartWalletPlanRef.current = plan;
+        setExecutionEnabled(plan.executionEnabled);
         setReviewedAmount(plan.amountUsdc);
         setExpiresAt(null);
         setStep("review");
@@ -233,15 +257,102 @@ export function ChooseYieldScreen({
     getAccessToken,
     hasAvailable,
     isAuthorizing,
+    isExecuting,
     isPreparing,
     isSmartWalletGrow,
     resetToEnter,
   ]);
 
+  const handleStartEarning = useCallback(async () => {
+    if (!isSmartWalletGrow || isPreparing || isAuthorizing || isExecuting) {
+      return;
+    }
+
+    const reviewed = reviewedAmount;
+    if (!reviewed) {
+      return;
+    }
+
+    setIsExecuting(true);
+    setActionError(null);
+
+    try {
+      const accessToken = await getAccessToken();
+      const plan = await prepareSmartWalletDeposit(accessToken ?? "", reviewed);
+      smartWalletPlanRef.current = plan;
+      setExecutionEnabled(plan.executionEnabled);
+
+      if (!plan.executionEnabled) {
+        setActionError("Smart Wallet deposits are not enabled.");
+        return;
+      }
+
+      const client = await getClientForChain({ chainId: BASE_CHAIN_ID });
+      const executable = assertExecutableAavePlan({
+        plan,
+        expectedSmartWalletAddress: smartWalletAddress ?? plan.smartWalletAddress,
+        embeddedEoaAddress: getEmbeddedEthereumAddress(user),
+        clientChainId: client.chain?.id ?? null,
+        clientSmartWalletAddress: client.account?.address ?? null,
+      });
+
+      await submitSmartWalletDeposit(accessToken ?? "", plan.id);
+
+      let hash: string | null = null;
+      try {
+        hash = await client.sendTransaction({ calls: executable.calls });
+      } catch (sendError) {
+        await failSmartWalletDeposit(accessToken ?? "", plan.id).catch(() => undefined);
+        throw sendError;
+      }
+
+      if (!hash) {
+        await failSmartWalletDeposit(accessToken ?? "", plan.id).catch(() => undefined);
+        setActionError("We couldn’t start earning. Please try again.");
+        return;
+      }
+
+      const confirmed = await confirmSmartWalletDeposit(
+        accessToken ?? "",
+        plan.id,
+        hash,
+      );
+      smartWalletPlanRef.current = null;
+      setSuccessKind("deposited");
+      setAuthorizedAmount(confirmed.amountUsdc);
+      setStep("success");
+      await onSmartWalletDepositSuccess?.();
+    } catch (executeError) {
+      if (executeError instanceof AavePlanGuardError) {
+        setActionError(executeError.message);
+        return;
+      }
+
+      setActionError(
+        executeError instanceof Error
+          ? executeError.message
+          : "We couldn’t start earning. Please try again.",
+      );
+    } finally {
+      setIsExecuting(false);
+    }
+  }, [
+    getAccessToken,
+    getClientForChain,
+    isAuthorizing,
+    isExecuting,
+    isPreparing,
+    isSmartWalletGrow,
+    onSmartWalletDepositSuccess,
+    reviewedAmount,
+    smartWalletAddress,
+    user,
+  ]);
+
   const handleAuthorize = useCallback(async () => {
     const prepared = preparedRef.current;
 
-    if (!prepared || isPreparing || isAuthorizing) {
+    if (!prepared || isPreparing || isAuthorizing || isExecuting) {
       return;
     }
 
@@ -296,13 +407,22 @@ export function ChooseYieldScreen({
     } finally {
       setIsAuthorizing(false);
     }
-  }, [generateAuthorizationSignature, getAccessToken, isAuthorizing, isPreparing, resetToEnter]);
+  }, [
+    generateAuthorizationSignature,
+    getAccessToken,
+    isAuthorizing,
+    isExecuting,
+    isPreparing,
+    resetToEnter,
+  ]);
 
   const title = step === "review" ? "Review amount" : "Choose Yield";
   const subtitle =
     step === "review"
       ? isSmartWalletGrow
-        ? "This prepares the deposit. Money will not move yet."
+        ? executionEnabled
+          ? "This moves the exact amount to Grow. The rate is variable and can change."
+          : "This prepares the deposit. Money will not move yet."
         : "Confirm the exact USDC amount. This only authorizes the request. No money will move yet."
       : "See your current Grow balance, earned yield, and estimated variable rate.";
 
@@ -329,7 +449,7 @@ export function ChooseYieldScreen({
               style={styles.backButton}
               onPress={handleBack}
               accessibilityLabel="Back"
-              disabled={isPreparing || isAuthorizing}
+              disabled={isPreparing || isAuthorizing || isExecuting}
             >
               <Ionicons name="arrow-back" size={20} color={colors.ink} />
             </Pressable>
@@ -424,13 +544,34 @@ export function ChooseYieldScreen({
               <Text style={styles.balanceValue}>{formatUsdc(reviewedAmount)}</Text>
               <Text style={styles.cardBody}>
                 {isSmartWalletGrow
-                  ? "The deposit is prepared. Execution is not enabled yet, so no money will move."
+                  ? executionEnabled
+                    ? "Start earning this exact amount. Money will move when you confirm."
+                    : "The deposit is prepared. Execution is not enabled yet, so no money will move."
                   : "Authorize this exact amount for Grow. Nothing will move until a later step."}
               </Text>
               {expiresAt ? (
                 <Text style={styles.refreshingText}>
                   This authorization expires at {new Date(expiresAt).toLocaleTimeString()}.
                 </Text>
+              ) : null}
+              {isSmartWalletGrow && executionEnabled ? (
+                <Pressable
+                  style={[styles.primaryButton, isExecuting ? styles.primaryButtonDisabled : null]}
+                  onPress={() => {
+                    void handleStartEarning();
+                  }}
+                  disabled={isExecuting}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Start earning ${formatUsdc(reviewedAmount)}`}
+                >
+                  {isExecuting ? (
+                    <ActivityIndicator color={colors.white} />
+                  ) : (
+                    <Text style={styles.primaryButtonLabel}>
+                      Start earning {formatUsdc(reviewedAmount)}
+                    </Text>
+                  )}
+                </Pressable>
               ) : null}
               {isSmartWalletGrow ? null : (
                 <Pressable
@@ -472,10 +613,14 @@ export function ChooseYieldScreen({
                 </View>
               </Animated.View>
               <Animated.View style={[styles.successCopy, { opacity: successOpacity }]}>
-                <Text style={styles.successHeadline}>Authorized!</Text>
+                <Text style={styles.successHeadline}>
+                  {successKind === "deposited" ? "You're earning" : "Authorized!"}
+                </Text>
                 <Text style={styles.successAmount}>{formatUsdcCurrency(authorizedAmount)}</Text>
                 <Text style={styles.successBody}>
-                  Your authorization is ready. No money has moved yet.
+                  {successKind === "deposited"
+                    ? "This amount is now in Grow. The rate is variable and can change."
+                    : "Your authorization is ready. No money has moved yet."}
                 </Text>
               </Animated.View>
             </View>

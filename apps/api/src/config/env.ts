@@ -109,6 +109,11 @@ export const env = {
   coinbaseSandbox: resolveCoinbaseSandbox(nodeEnv),
   resendApiKey: process.env.RESEND_API_KEY ?? "",
   resendFromEmail: process.env.RESEND_FROM_EMAIL ?? "",
+  /** 3C.3 kill switch. Default off. Never enable in this change. */
+  aaveSmartWalletDepositsEnabled: parseBoolean(
+    process.env.AAVE_SMART_WALLET_DEPOSITS_ENABLED,
+    false,
+  ),
 };
 
 export function requirePrivyConfig(): void {

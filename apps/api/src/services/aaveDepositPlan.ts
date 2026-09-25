@@ -9,11 +9,14 @@ const AMOUNT_PATTERN = /^(?:0|[1-9]\d*)(?:\.\d{1,6})?$/;
 const APPROVE_SELECTOR = "095ea7b3";
 const SUPPLY_SELECTOR = "617ba037";
 
+const UINT256_MAX = (1n << 256n) - 1n;
+
 export class AaveDepositPlanError extends Error {
   readonly status: number;
   readonly code:
     | "VALIDATION_ERROR"
     | "USER_NOT_FOUND"
+    | "DEPOSIT_NOT_FOUND"
     | "PRIVY_UNAVAILABLE"
     | "INTERNAL_ERROR";
 
@@ -41,6 +44,11 @@ export type PreparedAaveDepositPlan = {
   smartWalletAddress: string;
   amountUsdc: string;
   calls: [AaveDepositCall, AaveDepositCall];
+};
+
+export type PreparedAaveDepositResponse = PreparedAaveDepositPlan & {
+  id: string;
+  executionEnabled: boolean;
 };
 
 function padUint(value: bigint): string {
@@ -138,6 +146,214 @@ export function buildAaveDepositPlan(input: {
       { to: BASE_USDC, data: approveData, value: "0x0" },
       { to: AAVE_V3_BASE_POOL, data: supplyData, value: "0x0" },
     ],
+  };
+}
+
+function readHexWord(data: string, wordIndex: number): string {
+  const start = 10 + wordIndex * 64;
+  return data.slice(start, start + 64);
+}
+
+function wordToAddress(word: string): string {
+  return `0x${word.slice(24).toLowerCase()}`;
+}
+
+function wordToUint(word: string): bigint {
+  if (!/^[0-9a-fA-F]{64}$/.test(word)) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit plan is invalid.",
+    );
+  }
+
+  return BigInt(`0x${word}`);
+}
+
+function normalizeAddress(address: string): string {
+  return address.trim().toLowerCase();
+}
+
+/** Decode and refuse anything that is not exact-amount approve + supply. Does not send. */
+export function assertExecutableAaveDepositPlan(
+  plan: PreparedAaveDepositPlan,
+  expectedSmartWalletAddress: string,
+): bigint {
+  const expectedWallet = normalizeAddress(expectedSmartWalletAddress);
+  if (!ADDRESS_PATTERN.test(expectedSmartWalletAddress.trim())) {
+    throw new AaveDepositPlanError(
+      500,
+      "INTERNAL_ERROR",
+      "Smart wallet address is invalid.",
+    );
+  }
+
+  if (plan.chain !== "base" || plan.chainId !== BASE_CHAIN_ID) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit must be on Base.",
+    );
+  }
+
+  if (normalizeAddress(plan.smartWalletAddress) !== expectedWallet) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit is not for your Smart Wallet.",
+    );
+  }
+
+  if (!Array.isArray(plan.calls) || plan.calls.length !== 2) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit must be one approve and one supply.",
+    );
+  }
+
+  const [approve, supply] = plan.calls;
+  if (!approve || !supply) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit must be one approve and one supply.",
+    );
+  }
+
+  if (approve.value !== "0x0" || supply.value !== "0x0") {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit cannot send ETH.",
+    );
+  }
+
+  if (normalizeAddress(approve.to) !== normalizeAddress(BASE_USDC)) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit plan is invalid.",
+    );
+  }
+
+  if (normalizeAddress(supply.to) !== normalizeAddress(AAVE_V3_BASE_POOL)) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit plan is invalid.",
+    );
+  }
+
+  if (
+    !approve.data.startsWith(`0x${APPROVE_SELECTOR}`) ||
+    approve.data.length !== 138
+  ) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit plan is invalid.",
+    );
+  }
+
+  if (
+    !supply.data.startsWith(`0x${SUPPLY_SELECTOR}`) ||
+    supply.data.length !== 266
+  ) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit plan is invalid.",
+    );
+  }
+
+  const approveSpender = wordToAddress(readHexWord(approve.data, 0));
+  const approveAmount = wordToUint(readHexWord(approve.data, 1));
+  const supplyAsset = wordToAddress(readHexWord(supply.data, 0));
+  const supplyAmount = wordToUint(readHexWord(supply.data, 1));
+  const onBehalfOf = wordToAddress(readHexWord(supply.data, 2));
+  const referral = wordToUint(readHexWord(supply.data, 3));
+
+  if (approveSpender !== normalizeAddress(AAVE_V3_BASE_POOL)) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit plan is invalid.",
+    );
+  }
+
+  if (supplyAsset !== normalizeAddress(BASE_USDC)) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit plan is invalid.",
+    );
+  }
+
+  if (onBehalfOf !== expectedWallet) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit must credit your Smart Wallet.",
+    );
+  }
+
+  if (referral !== 0n) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit plan is invalid.",
+    );
+  }
+
+  if (approveAmount !== supplyAmount || approveAmount <= 0n) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit amount is invalid.",
+    );
+  }
+
+  if (approveAmount === UINT256_MAX || approveAmount > parseUsdcAmountToRaw(plan.amountUsdc, 6)) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit can only approve the exact amount.",
+    );
+  }
+
+  if (approveAmount !== parseUsdcAmountToRaw(plan.amountUsdc, 6)) {
+    throw new AaveDepositPlanError(
+      400,
+      "VALIDATION_ERROR",
+      "This deposit amount is invalid.",
+    );
+  }
+
+  return approveAmount;
+}
+
+export function toPlanFromStoredCalls(
+  input: {
+    smartWalletAddress: string;
+    amountUsdc: string;
+    calls: AaveDepositCall[];
+  },
+): PreparedAaveDepositPlan {
+  if (input.calls.length !== 2 || !input.calls[0] || !input.calls[1]) {
+    throw new AaveDepositPlanError(
+      500,
+      "INTERNAL_ERROR",
+      "Unable to prepare this deposit.",
+    );
+  }
+
+  return {
+    chain: "base",
+    chainId: BASE_CHAIN_ID,
+    smartWalletAddress: input.smartWalletAddress,
+    amountUsdc: input.amountUsdc,
+    calls: [input.calls[0], input.calls[1]],
   };
 }
 

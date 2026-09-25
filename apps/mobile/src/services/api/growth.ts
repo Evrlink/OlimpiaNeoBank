@@ -45,11 +45,20 @@ export type PreparedAaveDepositCall = {
 };
 
 export type PreparedAaveDepositPlan = {
+  id: string;
   chain: "base";
   chainId: 8453;
   smartWalletAddress: string;
   amountUsdc: string;
   calls: PreparedAaveDepositCall[];
+  executionEnabled: boolean;
+};
+
+export type ConfirmedAaveDeposit = {
+  id: string;
+  status: "confirmed";
+  amountUsdc: string;
+  transactionHash: string;
 };
 
 export type GrowthAuthorizationErrorCode =
@@ -442,10 +451,13 @@ function isPreparedAaveDepositPlan(value: unknown): value is PreparedAaveDeposit
 
   const plan = value as PreparedAaveDepositPlan;
   return (
+    typeof plan.id === "string" &&
+    plan.id.length > 0 &&
     plan.chain === "base" &&
     plan.chainId === 8453 &&
     typeof plan.smartWalletAddress === "string" &&
     typeof plan.amountUsdc === "string" &&
+    typeof plan.executionEnabled === "boolean" &&
     Array.isArray(plan.calls) &&
     plan.calls.length === 2 &&
     plan.calls.every(
@@ -454,6 +466,20 @@ function isPreparedAaveDepositPlan(value: unknown): value is PreparedAaveDeposit
         typeof call.data === "string" &&
         call.value === "0x0",
     )
+  );
+}
+
+function isConfirmedAaveDeposit(value: unknown): value is ConfirmedAaveDeposit {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const deposit = value as ConfirmedAaveDeposit;
+  return (
+    typeof deposit.id === "string" &&
+    deposit.status === "confirmed" &&
+    typeof deposit.amountUsdc === "string" &&
+    typeof deposit.transactionHash === "string"
   );
 }
 
@@ -513,6 +539,118 @@ export async function prepareSmartWalletDeposit(
       "INVALID_RESPONSE",
       "Received an unexpected response from the server.",
       response.status,
+    );
+  }
+
+  return body;
+}
+
+async function postSmartWalletDeposit(
+  accessToken: string,
+  path: string,
+  bodyValue: unknown,
+  fallback: string,
+): Promise<unknown> {
+  const token = requireAccessToken(accessToken, true);
+  let response: Response;
+
+  try {
+    response = await fetch(`${apiBaseUrl}/api/v1/growth/smart-wallet-deposits/${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(bodyValue ?? {}),
+    });
+  } catch {
+    throw new GrowthAuthorizationApiError(
+      "NETWORK_ERROR",
+      "Unable to reach the server. Check your connection and try again.",
+      0,
+    );
+  }
+
+  let body: unknown = null;
+
+  try {
+    body = await response.json();
+  } catch {
+    throw new GrowthAuthorizationApiError(
+      response.ok ? "INVALID_RESPONSE" : "INTERNAL_ERROR",
+      response.ok
+        ? "Received an unexpected response from the server."
+        : fallback,
+      response.status,
+    );
+  }
+
+  if (!response.ok) {
+    const errorBody = body as ApiErrorBody;
+    throw new GrowthAuthorizationApiError(
+      parseAuthorizationErrorCode(errorBody.error?.code),
+      getSafeErrorMessage(errorBody, fallback),
+      response.status,
+    );
+  }
+
+  return body;
+}
+
+/** 3C.3: mark prepared deposit submitted. Does not send a transaction. */
+export async function submitSmartWalletDeposit(
+  accessToken: string,
+  depositId: string,
+): Promise<PreparedAaveDepositPlan> {
+  const body = await postSmartWalletDeposit(
+    accessToken,
+    `${depositId}/submit`,
+    {},
+    "We couldn’t start this deposit.",
+  );
+
+  if (!isPreparedAaveDepositPlan(body)) {
+    throw new GrowthAuthorizationApiError(
+      "INVALID_RESPONSE",
+      "Received an unexpected response from the server.",
+      200,
+    );
+  }
+
+  return body;
+}
+
+/** 3C.3: release a submitted deposit after a pre-hash send failure. */
+export async function failSmartWalletDeposit(
+  accessToken: string,
+  depositId: string,
+): Promise<void> {
+  await postSmartWalletDeposit(
+    accessToken,
+    `${depositId}/fail`,
+    {},
+    "We couldn’t cancel this deposit.",
+  );
+}
+
+/** 3C.3: record and verify a receipt. Does not send a transaction. */
+export async function confirmSmartWalletDeposit(
+  accessToken: string,
+  depositId: string,
+  transactionHash: string,
+): Promise<ConfirmedAaveDeposit> {
+  const body = await postSmartWalletDeposit(
+    accessToken,
+    `${depositId}/confirm`,
+    { transactionHash },
+    "We couldn’t confirm this deposit.",
+  );
+
+  if (!isConfirmedAaveDeposit(body)) {
+    throw new GrowthAuthorizationApiError(
+      "INVALID_RESPONSE",
+      "Received an unexpected response from the server.",
+      200,
     );
   }
 

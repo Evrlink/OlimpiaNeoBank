@@ -163,11 +163,17 @@ export function AuthenticatedTabShell({
         growth={growth}
         availableUsd={authSync.balance.availableUsd}
         moneyAddressMode={authSync.wallet.moneyAddressMode ?? "eoa"}
+        smartWalletAddress={
+          authSync.wallet.moneyAddressMode === "smart_wallet"
+            ? authSync.wallet.address
+            : null
+        }
         loading={growthLoading}
         error={growthError}
         getAccessToken={getAccessToken}
         onRetry={refreshGrowth}
         onBack={() => setHomeOverlay(null)}
+        onSmartWalletDepositSuccess={refreshHome}
       />
     );
   } else if (homeOverlay === "send") {
