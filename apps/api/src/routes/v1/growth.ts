@@ -419,6 +419,23 @@ export function createGrowthRouter(
       }
 
       requireSmartWalletAccount(wallet);
+      const existing = await smartWalletDeposits.store.getByIdForUser(
+        depositId,
+        privyUserId,
+      );
+      if (!existing) {
+        sendError(res, 404, "DEPOSIT_NOT_FOUND", "Deposit not found.");
+        return;
+      }
+
+      if (existing.transactionHash) {
+        throw new AaveDepositPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This deposit already has a transaction hash.",
+        );
+      }
+
       const failed = await smartWalletDeposits.store.markFailed({
         id: depositId,
         privyUserId,
@@ -426,8 +443,11 @@ export function createGrowthRouter(
         failedAt: smartWalletDeposits.now(),
       });
       if (!failed) {
-        sendError(res, 404, "DEPOSIT_NOT_FOUND", "Deposit not found.");
-        return;
+        throw new AaveDepositPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This deposit cannot be cancelled.",
+        );
       }
 
       res.status(200).json({ id: failed.id, status: failed.status });
@@ -495,7 +515,32 @@ export function createGrowthRouter(
         );
       }
 
-      const plan = toPlanFromStoredCalls(existing);
+      if (
+        existing.transactionHash &&
+        existing.transactionHash !== transactionHash
+      ) {
+        throw new AaveDepositPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This deposit already has a different transaction hash.",
+        );
+      }
+
+      const attached = await smartWalletDeposits.store.attachTransactionHash({
+        id: depositId,
+        privyUserId,
+        transactionHash,
+        attachedAt: smartWalletDeposits.now(),
+      });
+      if (!attached) {
+        throw new AaveDepositPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This deposit already has a different transaction hash.",
+        );
+      }
+
+      const plan = toPlanFromStoredCalls(attached);
       const rawAmount = assertExecutableAaveDepositPlan(
         plan,
         account.smartWalletAddress,
@@ -508,29 +553,22 @@ export function createGrowthRouter(
           rawAmount,
         });
       } catch (error) {
-        if (error instanceof AaveDepositReceiptPendingError) {
-          sendError(
-            res,
-            409,
-            "VALIDATION_ERROR",
-            "This deposit is still confirming.",
-          );
-          return;
-        }
-
-        if (
-          error instanceof AaveDepositPlanError &&
-          error.status === 400
-        ) {
-          await smartWalletDeposits.store.markFailed({
-            id: depositId,
-            privyUserId,
-            failureReason: error.message,
-            failedAt: smartWalletDeposits.now(),
-          });
-        }
-
-        throw error;
+        const reason =
+          error instanceof AaveDepositReceiptPendingError ||
+          error instanceof AaveDepositPlanError
+            ? error.message
+            : "This deposit is still confirming.";
+        await smartWalletDeposits.store.noteVerification({
+          id: depositId,
+          privyUserId,
+          failureReason: reason,
+          notedAt: smartWalletDeposits.now(),
+        });
+        throw new AaveDepositPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This deposit is still confirming.",
+        );
       }
 
       const confirmed = await smartWalletDeposits.store.markConfirmed({

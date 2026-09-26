@@ -38,6 +38,18 @@ export type SmartWalletDepositStore = {
     privyUserId: string;
     submittedAt: Date;
   }): Promise<StoredSmartWalletDeposit | null>;
+  attachTransactionHash(input: {
+    id: string;
+    privyUserId: string;
+    transactionHash: string;
+    attachedAt: Date;
+  }): Promise<StoredSmartWalletDeposit | null>;
+  noteVerification(input: {
+    id: string;
+    privyUserId: string;
+    failureReason: string;
+    notedAt: Date;
+  }): Promise<StoredSmartWalletDeposit | null>;
   markConfirmed(input: {
     id: string;
     privyUserId: string;
@@ -243,6 +255,53 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
       return result.rows[0] ? mapRow(result.rows[0]) : null;
     },
 
+    async attachTransactionHash(input) {
+      const pool = getPool();
+      if (!pool) {
+        throw new Error("Database is not configured.");
+      }
+
+      const attached = await pool.query<DepositRow>(
+        `
+          UPDATE smart_wallet_deposits
+          SET
+            transaction_hash = $3,
+            updated_at = $4
+          WHERE id = $1
+            AND privy_user_id = $2
+            AND status = 'submitted'
+            AND (transaction_hash IS NULL OR transaction_hash = $3)
+          RETURNING ${SELECT_COLUMNS}
+        `,
+        [input.id, input.privyUserId, input.transactionHash, input.attachedAt],
+      );
+
+      return attached.rows[0] ? mapRow(attached.rows[0]) : null;
+    },
+
+    async noteVerification(input) {
+      const pool = getPool();
+      if (!pool) {
+        throw new Error("Database is not configured.");
+      }
+
+      const noted = await pool.query<DepositRow>(
+        `
+          UPDATE smart_wallet_deposits
+          SET
+            failure_reason = $3,
+            updated_at = $4
+          WHERE id = $1
+            AND privy_user_id = $2
+            AND status = 'submitted'
+          RETURNING ${SELECT_COLUMNS}
+        `,
+        [input.id, input.privyUserId, input.failureReason, input.notedAt],
+      );
+
+      return noted.rows[0] ? mapRow(noted.rows[0]) : null;
+    },
+
     async markConfirmed(input) {
       const pool = getPool();
       if (!pool) {
@@ -256,10 +315,12 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
             status = 'confirmed',
             transaction_hash = $3,
             confirmed_at = $4,
-            updated_at = $4
+            updated_at = $4,
+            failure_reason = NULL
           WHERE id = $1
             AND privy_user_id = $2
             AND status = 'submitted'
+            AND (transaction_hash IS NULL OR transaction_hash = $3)
           RETURNING ${SELECT_COLUMNS}
         `,
         [input.id, input.privyUserId, input.transactionHash, input.confirmedAt],
@@ -284,6 +345,7 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
           WHERE id = $1
             AND privy_user_id = $2
             AND status IN ('prepared', 'submitted')
+            AND transaction_hash IS NULL
           RETURNING ${SELECT_COLUMNS}
         `,
         [input.id, input.privyUserId, input.failureReason, input.failedAt],
@@ -355,12 +417,45 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
       return cloneDeposit(updated);
     },
 
+    async attachTransactionHash(input) {
+      const row = rows.get(input.id);
+      if (!row || row.privyUserId !== input.privyUserId || row.status !== "submitted") {
+        return null;
+      }
+
+      if (row.transactionHash && row.transactionHash !== input.transactionHash) {
+        return null;
+      }
+
+      const updated = cloneDeposit({
+        ...row,
+        transactionHash: input.transactionHash,
+      });
+      rows.set(updated.id, updated);
+      return cloneDeposit(updated);
+    },
+
+    async noteVerification(input) {
+      const row = rows.get(input.id);
+      if (!row || row.privyUserId !== input.privyUserId || row.status !== "submitted") {
+        return null;
+      }
+
+      const updated = cloneDeposit({
+        ...row,
+        failureReason: input.failureReason,
+      });
+      rows.set(updated.id, updated);
+      return cloneDeposit(updated);
+    },
+
     async markConfirmed(input) {
       const row = rows.get(input.id);
       if (
         !row ||
         row.privyUserId !== input.privyUserId ||
-        row.status !== "submitted"
+        row.status !== "submitted" ||
+        (row.transactionHash && row.transactionHash !== input.transactionHash)
       ) {
         return null;
       }
@@ -370,6 +465,7 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
         status: "confirmed",
         transactionHash: input.transactionHash,
         confirmedAt: input.confirmedAt,
+        failureReason: null,
       });
       rows.set(updated.id, updated);
       return cloneDeposit(updated);
@@ -380,7 +476,8 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
       if (
         !row ||
         row.privyUserId !== input.privyUserId ||
-        (row.status !== "prepared" && row.status !== "submitted")
+        (row.status !== "prepared" && row.status !== "submitted") ||
+        row.transactionHash
       ) {
         return null;
       }

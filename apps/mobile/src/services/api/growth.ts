@@ -620,7 +620,7 @@ export async function submitSmartWalletDeposit(
   return body;
 }
 
-/** 3C.3: release a submitted deposit after a pre-hash send failure. */
+/** 3C.3: release a submitted deposit only when no transaction hash exists. */
 export async function failSmartWalletDeposit(
   accessToken: string,
   depositId: string,

@@ -66,6 +66,11 @@ function formatUsdcCurrency(value: string): string {
   return parsed < 0 ? `-$${abs}` : `$${abs}`;
 }
 
+function formatVariableApy(percent: string | null | undefined): string {
+  const trimmed = percent?.trim() ?? "";
+  return trimmed ? `${trimmed}% variable APY` : "Variable APY";
+}
+
 function parseUsdc(value: string): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : Number.NaN;
@@ -98,6 +103,8 @@ export function ChooseYieldScreen({
   const { user } = usePrivy();
   const preparedRef = useRef<PreparedGrowthAuthorization | null>(null);
   const smartWalletPlanRef = useRef<PreparedAaveDepositPlan | null>(null);
+  const sentTransactionHashRef = useRef<string | null>(null);
+  const depositSubmittedRef = useRef(false);
   const successScale = useRef(new Animated.Value(0.72)).current;
   const successOpacity = useRef(new Animated.Value(0)).current;
   const [step, setStep] = useState<AuthorizationStep>("enter");
@@ -133,11 +140,15 @@ export function ChooseYieldScreen({
   const resetToEnter = useCallback((message?: string) => {
     preparedRef.current = null;
     smartWalletPlanRef.current = null;
+    sentTransactionHashRef.current = null;
+    depositSubmittedRef.current = false;
     setReviewedAmount(null);
     setExpiresAt(null);
     setAuthorizedAmount(null);
     setSuccessKind("authorized");
     setExecutionEnabled(false);
+    setIsPreparing(false);
+    setIsAuthorizing(false);
     setStep("enter");
     setActionError(message ?? null);
   }, []);
@@ -169,6 +180,10 @@ export function ChooseYieldScreen({
       }),
     ]).start();
 
+    if (successKind === "deposited") {
+      return;
+    }
+
     const timeout = setTimeout(() => {
       returnToGrow();
     }, 1800);
@@ -176,7 +191,14 @@ export function ChooseYieldScreen({
     return () => {
       clearTimeout(timeout);
     };
-  }, [authorizedAmount, returnToGrow, step, successOpacity, successScale]);
+  }, [
+    authorizedAmount,
+    returnToGrow,
+    step,
+    successKind,
+    successOpacity,
+    successScale,
+  ]);
 
   const handleBack = useCallback(() => {
     if (isPreparing || isAuthorizing || isExecuting) {
@@ -224,6 +246,8 @@ export function ChooseYieldScreen({
         const plan = await prepareSmartWalletDeposit(accessToken ?? "", amountUsdc);
         preparedRef.current = null;
         smartWalletPlanRef.current = plan;
+        sentTransactionHashRef.current = null;
+        depositSubmittedRef.current = false;
         setExecutionEnabled(plan.executionEnabled);
         setReviewedAmount(plan.amountUsdc);
         setExpiresAt(null);
@@ -278,12 +302,35 @@ export function ChooseYieldScreen({
 
     try {
       const accessToken = await getAccessToken();
-      const plan = await prepareSmartWalletDeposit(accessToken ?? "", reviewed);
+      const existingHash = sentTransactionHashRef.current;
+      const existingPlan = smartWalletPlanRef.current;
+
+      if (existingHash && existingPlan?.id) {
+        const confirmed = await confirmSmartWalletDeposit(
+          accessToken ?? "",
+          existingPlan.id,
+          existingHash,
+        );
+        smartWalletPlanRef.current = null;
+        sentTransactionHashRef.current = null;
+        depositSubmittedRef.current = false;
+        setSuccessKind("deposited");
+        setAuthorizedAmount(confirmed.amountUsdc);
+        setStep("success");
+        await onSmartWalletDepositSuccess?.();
+        return;
+      }
+
+      const plan =
+        existingPlan ??
+        (await prepareSmartWalletDeposit(accessToken ?? "", reviewed));
       smartWalletPlanRef.current = plan;
       setExecutionEnabled(plan.executionEnabled);
 
       if (!plan.executionEnabled) {
-        setActionError("Smart Wallet deposits are not enabled.");
+        if (__DEV__) {
+          setActionError("Smart Wallet deposits are not enabled.");
+        }
         return;
       }
 
@@ -296,21 +343,34 @@ export function ChooseYieldScreen({
         clientSmartWalletAddress: client.account?.address ?? null,
       });
 
-      await submitSmartWalletDeposit(accessToken ?? "", plan.id);
+      if (!depositSubmittedRef.current) {
+        await submitSmartWalletDeposit(accessToken ?? "", plan.id);
+        depositSubmittedRef.current = true;
+      }
 
       let hash: string | null = null;
       try {
         hash = await client.sendTransaction({ calls: executable.calls });
       } catch (sendError) {
-        await failSmartWalletDeposit(accessToken ?? "", plan.id).catch(() => undefined);
+        if (!sentTransactionHashRef.current) {
+          await failSmartWalletDeposit(accessToken ?? "", plan.id).catch(() => undefined);
+          depositSubmittedRef.current = false;
+          smartWalletPlanRef.current = null;
+        }
         throw sendError;
       }
 
       if (!hash) {
-        await failSmartWalletDeposit(accessToken ?? "", plan.id).catch(() => undefined);
+        if (!sentTransactionHashRef.current) {
+          await failSmartWalletDeposit(accessToken ?? "", plan.id).catch(() => undefined);
+          depositSubmittedRef.current = false;
+          smartWalletPlanRef.current = null;
+        }
         setActionError("We couldn’t start earning. Please try again.");
         return;
       }
+
+      sentTransactionHashRef.current = hash;
 
       const confirmed = await confirmSmartWalletDeposit(
         accessToken ?? "",
@@ -318,6 +378,8 @@ export function ChooseYieldScreen({
         hash,
       );
       smartWalletPlanRef.current = null;
+      sentTransactionHashRef.current = null;
+      depositSubmittedRef.current = false;
       setSuccessKind("deposited");
       setAuthorizedAmount(confirmed.amountUsdc);
       setStep("success");
@@ -416,15 +478,18 @@ export function ChooseYieldScreen({
     resetToEnter,
   ]);
 
-  const title = step === "review" ? "Review amount" : "Choose Yield";
-  const subtitle =
+  const title =
     step === "review"
       ? isSmartWalletGrow
-        ? executionEnabled
-          ? "This moves the exact amount to Grow. The rate is variable and can change."
-          : "This prepares the deposit. Money will not move yet."
+        ? "Review Grow deposit"
+        : "Review amount"
+      : "Choose Yield";
+  const subtitle =
+    step === "review"
+      ? isSmartWalletGrow && reviewedAmount
+        ? `Put ${formatUsdc(reviewedAmount)} to work in Grow and start earning a variable yield.`
         : "Confirm the exact USDC amount. This only authorizes the request. No money will move yet."
-      : "See your current Grow balance, earned yield, and estimated variable rate.";
+      : "Choose how much to put into Grow.";
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -488,12 +553,11 @@ export function ChooseYieldScreen({
                 <Text style={styles.detailValue}>{formatUsdc(growth.earnedYieldUsdc)}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Estimated APY</Text>
-                <Text style={styles.detailValue}>{growth.liveApyPercent}%</Text>
+                <Text style={styles.detailLabel}>Rate</Text>
+                <Text style={styles.detailValue}>
+                  {formatVariableApy(growth.liveApyPercent)}
+                </Text>
               </View>
-              <Text style={styles.cardBody}>
-                APY is variable and can change. Values reflect the latest available data.
-              </Text>
               {loading ? <Text style={styles.refreshingText}>Refreshing…</Text> : null}
             </View>
           ) : null}
@@ -501,7 +565,7 @@ export function ChooseYieldScreen({
           {step === "enter" ? (
             <View style={styles.card}>
               <Text style={styles.cardTitle}>
-                {isSmartWalletGrow ? "Amount to prepare" : "Amount to authorize"}
+                {isSmartWalletGrow ? "Amount to grow" : "Amount to authorize"}
               </Text>
               <Text style={styles.availableText}>{remainingLabel}</Text>
               <View style={styles.inputRow}>
@@ -538,60 +602,70 @@ export function ChooseYieldScreen({
             </View>
           ) : null}
 
-          {step === "review" && reviewedAmount ? (
+          {step === "review" && reviewedAmount && isSmartWalletGrow ? (
+            <View style={styles.card}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Amount</Text>
+                <Text style={styles.detailValue}>{formatUsdc(reviewedAmount)}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Rate</Text>
+                <Text style={styles.detailValue}>
+                  {formatVariableApy(growth?.liveApyPercent)}
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Destination</Text>
+                <Text style={styles.detailValue}>Olimpia Grow</Text>
+              </View>
+              <Text style={styles.notMovedStatus}>Your money has not moved yet.</Text>
+              <Pressable
+                style={[styles.primaryButton, isExecuting ? styles.primaryButtonDisabled : null]}
+                onPress={() => {
+                  void handleStartEarning();
+                }}
+                disabled={isExecuting}
+                accessibilityRole="button"
+                accessibilityLabel={`Start earning ${formatUsdc(reviewedAmount)}`}
+              >
+                {isExecuting ? (
+                  <ActivityIndicator color={colors.white} />
+                ) : (
+                  <Text style={styles.primaryButtonLabel}>Start earning</Text>
+                )}
+              </Pressable>
+            </View>
+          ) : null}
+
+          {step === "review" && reviewedAmount && !isSmartWalletGrow ? (
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Exact amount</Text>
               <Text style={styles.balanceValue}>{formatUsdc(reviewedAmount)}</Text>
               <Text style={styles.cardBody}>
-                {isSmartWalletGrow
-                  ? executionEnabled
-                    ? "Start earning this exact amount. Money will move when you confirm."
-                    : "The deposit is prepared. Execution is not enabled yet, so no money will move."
-                  : "Authorize this exact amount for Grow. Nothing will move until a later step."}
+                Authorize this exact amount for Grow. Nothing will move until a later step.
               </Text>
               {expiresAt ? (
                 <Text style={styles.refreshingText}>
                   This authorization expires at {new Date(expiresAt).toLocaleTimeString()}.
                 </Text>
               ) : null}
-              {isSmartWalletGrow && executionEnabled ? (
-                <Pressable
-                  style={[styles.primaryButton, isExecuting ? styles.primaryButtonDisabled : null]}
-                  onPress={() => {
-                    void handleStartEarning();
-                  }}
-                  disabled={isExecuting}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Start earning ${formatUsdc(reviewedAmount)}`}
-                >
-                  {isExecuting ? (
-                    <ActivityIndicator color={colors.white} />
-                  ) : (
-                    <Text style={styles.primaryButtonLabel}>
-                      Start earning {formatUsdc(reviewedAmount)}
-                    </Text>
-                  )}
-                </Pressable>
-              ) : null}
-              {isSmartWalletGrow ? null : (
-                <Pressable
-                  style={[styles.primaryButton, isAuthorizing ? styles.primaryButtonDisabled : null]}
-                  onPress={() => {
-                    void handleAuthorize();
-                  }}
-                  disabled={isAuthorizing}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Authorize ${formatUsdc(reviewedAmount)}`}
-                >
-                  {isAuthorizing ? (
-                    <ActivityIndicator color={colors.white} />
-                  ) : (
-                    <Text style={styles.primaryButtonLabel}>
-                      Authorize {formatUsdc(reviewedAmount)}
-                    </Text>
-                  )}
-                </Pressable>
-              )}
+              <Pressable
+                style={[styles.primaryButton, isAuthorizing ? styles.primaryButtonDisabled : null]}
+                onPress={() => {
+                  void handleAuthorize();
+                }}
+                disabled={isAuthorizing}
+                accessibilityRole="button"
+                accessibilityLabel={`Authorize ${formatUsdc(reviewedAmount)}`}
+              >
+                {isAuthorizing ? (
+                  <ActivityIndicator color={colors.white} />
+                ) : (
+                  <Text style={styles.primaryButtonLabel}>
+                    Authorize {formatUsdc(reviewedAmount)}
+                  </Text>
+                )}
+              </Pressable>
             </View>
           ) : null}
 
@@ -617,11 +691,31 @@ export function ChooseYieldScreen({
                   {successKind === "deposited" ? "You're earning" : "Authorized!"}
                 </Text>
                 <Text style={styles.successAmount}>{formatUsdcCurrency(authorizedAmount)}</Text>
+                {successKind === "deposited" ? (
+                  <Text style={styles.successRate}>
+                    {formatVariableApy(growth?.liveApyPercent)}
+                  </Text>
+                ) : null}
                 <Text style={styles.successBody}>
                   {successKind === "deposited"
-                    ? "This amount is now in Grow. The rate is variable and can change."
+                    ? "This amount is now in Olimpia Grow."
                     : "Your authorization is ready. No money has moved yet."}
                 </Text>
+                {successKind === "deposited" ? (
+                  <Pressable
+                    style={[
+                      styles.primaryButton,
+                      styles.successDoneButton,
+                      isExecuting ? styles.primaryButtonDisabled : null,
+                    ]}
+                    onPress={returnToGrow}
+                    disabled={isExecuting}
+                    accessibilityRole="button"
+                    accessibilityLabel="Done"
+                  >
+                    <Text style={styles.primaryButtonLabel}>Done</Text>
+                  </Pressable>
+                ) : null}
               </Animated.View>
             </View>
           ) : null}
@@ -767,6 +861,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     color: colors.inkMuted,
+  },
+  notMovedStatus: {
+    marginTop: 8,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.ink,
   },
   availableText: {
     marginTop: 8,
@@ -916,5 +1017,17 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: colors.inkMuted,
     textAlign: "center",
+  },
+  successRate: {
+    marginTop: 8,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 15,
+    lineHeight: 20,
+    color: colors.ink,
+    textAlign: "center",
+  },
+  successDoneButton: {
+    alignSelf: "stretch",
+    minWidth: 200,
   },
 });

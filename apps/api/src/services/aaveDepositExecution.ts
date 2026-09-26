@@ -159,11 +159,7 @@ export async function verifyAaveDepositReceipt(
   }
 
   if (body.result.status !== "0x1") {
-    throw new AaveDepositPlanError(
-      400,
-      "VALIDATION_ERROR",
-      "This deposit did not succeed.",
-    );
+    throw new AaveDepositReceiptPendingError();
   }
 
   const logs = Array.isArray(body.result.logs) ? body.result.logs : [];
@@ -171,10 +167,6 @@ export async function verifyAaveDepositReceipt(
     !hasUsdcTransferToAToken(logs, input.smartWalletAddress, input.rawAmount) ||
     !hasAusdcCredit(logs, input.smartWalletAddress)
   ) {
-    throw new AaveDepositPlanError(
-      400,
-      "VALIDATION_ERROR",
-      "This deposit receipt does not match the prepared amount.",
-    );
+    throw new AaveDepositReceiptPendingError();
   }
 }

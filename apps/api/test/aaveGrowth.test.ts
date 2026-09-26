@@ -188,6 +188,8 @@ const TRANSFER_TOPIC =
   "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 const TX_HASH =
   "0x1111111111111111111111111111111111111111111111111111111111111111";
+const OTHER_TX_HASH =
+  "0x2222222222222222222222222222222222222222222222222222222222222222";
 
 function validPlan() {
   return buildAaveDepositPlan({
@@ -441,9 +443,7 @@ test("receipt verification is read-only and requires the Aave transfer pair", as
             { status: 200, headers: { "content-type": "application/json" } },
           ),
       ),
-    (error: unknown) =>
-      error instanceof AaveDepositPlanError &&
-      error.message === "This deposit receipt does not match the prepared amount.",
+    AaveDepositReceiptPendingError,
   );
 
   await assert.rejects(
@@ -579,6 +579,151 @@ test("confirm is idempotent for the same hash and never sends a transaction", as
       },
     );
     assert.equal(again.status, 200);
+  } finally {
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => (error ? reject(error) : resolve()));
+    });
+  }
+});
+
+test("confirm persists the hash before verification and retry uses the same hash", async () => {
+  let shouldMatch = false;
+  const { app, store } = createDepositApp({
+    executionEnabled: true,
+    verifyReceipt: async () => {
+      if (!shouldMatch) {
+        throw new AaveDepositReceiptPendingError();
+      }
+    },
+  });
+  const server = createServer(app);
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  assert.ok(address && typeof address === "object");
+
+  try {
+    const preparedResponse = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/prepare`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ amountUsdc: "1.50" }),
+      },
+    );
+    const prepared = (await preparedResponse.json()) as { id?: string };
+    assert.equal(preparedResponse.status, 201);
+
+    const submitResponse = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/${prepared.id}/submit`,
+      { method: "POST", headers: { "content-type": "application/json" }, body: "{}" },
+    );
+    assert.equal(submitResponse.status, 200);
+
+    const pendingResponse = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/${prepared.id}/confirm`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ transactionHash: TX_HASH }),
+      },
+    );
+    assert.equal(pendingResponse.status, 409);
+
+    const afterPending = await store.getByIdForUser(
+      prepared.id ?? "",
+      "did:privy:current-user",
+    );
+    assert.equal(afterPending?.status, "submitted");
+    assert.equal(afterPending?.transactionHash, TX_HASH);
+
+    const prepareAgain = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/prepare`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ amountUsdc: "1.50" }),
+      },
+    );
+    assert.equal(prepareAgain.status, 409);
+
+    const failResponse = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/${prepared.id}/fail`,
+      { method: "POST", headers: { "content-type": "application/json" }, body: "{}" },
+    );
+    assert.equal(failResponse.status, 409);
+    assert.equal(
+      (await store.getByIdForUser(prepared.id ?? "", "did:privy:current-user"))?.status,
+      "submitted",
+    );
+
+    const otherHash = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/${prepared.id}/confirm`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ transactionHash: OTHER_TX_HASH }),
+      },
+    );
+    assert.equal(otherHash.status, 409);
+    assert.equal(
+      (await store.getByIdForUser(prepared.id ?? "", "did:privy:current-user"))
+        ?.transactionHash,
+      TX_HASH,
+    );
+
+    shouldMatch = true;
+    const retry = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/${prepared.id}/confirm`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ transactionHash: TX_HASH }),
+      },
+    );
+    const confirmed = (await retry.json()) as { status?: string };
+    assert.equal(retry.status, 200);
+    assert.equal(confirmed.status, "confirmed");
+  } finally {
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => (error ? reject(error) : resolve()));
+    });
+  }
+});
+
+test("fail without a hash still releases a submitted deposit", async () => {
+  const { app, store } = createDepositApp({ executionEnabled: true });
+  const server = createServer(app);
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address();
+  assert.ok(address && typeof address === "object");
+
+  try {
+    const preparedResponse = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/prepare`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ amountUsdc: "1.50" }),
+      },
+    );
+    const prepared = (await preparedResponse.json()) as { id?: string };
+    assert.equal(preparedResponse.status, 201);
+
+    const submitResponse = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/${prepared.id}/submit`,
+      { method: "POST", headers: { "content-type": "application/json" }, body: "{}" },
+    );
+    assert.equal(submitResponse.status, 200);
+
+    const failResponse = await fetch(
+      `http://127.0.0.1:${address.port}/growth/smart-wallet-deposits/${prepared.id}/fail`,
+      { method: "POST", headers: { "content-type": "application/json" }, body: "{}" },
+    );
+    assert.equal(failResponse.status, 200);
+    assert.equal(
+      (await store.getByIdForUser(prepared.id ?? "", "did:privy:current-user"))?.status,
+      "failed",
+    );
   } finally {
     await new Promise<void>((resolve, reject) => {
       server.close((error) => (error ? reject(error) : resolve()));
