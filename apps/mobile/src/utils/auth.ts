@@ -1,8 +1,43 @@
 import type { User } from "@privy-io/api-types";
+import { getAllUserEmbeddedEthereumWallets } from "@privy-io/expo";
 import { AuthSyncApiError, type AuthSyncUser } from "@/services/api/authSync";
 
 export function hasEmbeddedEthereumWallet(user: User): boolean {
   return Boolean(getEmbeddedEthereumAddress(user));
+}
+
+export function hasPrivyEmbeddedEthereumWallet(user: unknown): boolean {
+  if (!user || typeof user !== "object") {
+    return false;
+  }
+
+  return getAllUserEmbeddedEthereumWallets(user as never).length > 0;
+}
+
+export function isAlreadyLoggedInError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : "";
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : "";
+
+  return (
+    code === "attempted_login_with_email_while_already_logged_in" ||
+    (/already logged in/i.test(message) && /useLinkWithEmail/i.test(message))
+  );
+}
+
+export function isExistingEmbeddedWalletError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : "";
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : "";
+
+  return (
+    /wallet already exists for this user/i.test(message) ||
+    (code === "embedded_wallet_creation_error" && /already exists/i.test(message))
+  );
 }
 
 export function getEmbeddedEthereumAddress(user: User | null | undefined): string | null {
@@ -10,7 +45,7 @@ export function getEmbeddedEthereumAddress(user: User | null | undefined): strin
     return null;
   }
 
-  for (const account of user.linked_accounts) {
+  for (const account of user.linked_accounts ?? []) {
     if (account.type !== "wallet") {
       continue;
     }
@@ -45,6 +80,14 @@ export function getSyncErrorMessage(error: unknown): string {
   }
 
   return "We couldn't finish setting up your account. Please try again.";
+}
+
+export function getLoginSetupErrorMessage(error: unknown): string {
+  if (error instanceof AuthSyncApiError) {
+    return getSyncErrorMessage(error);
+  }
+
+  return getAuthErrorMessage(error);
 }
 
 export function isValidEmail(value: string): boolean {

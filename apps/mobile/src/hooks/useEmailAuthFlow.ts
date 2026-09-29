@@ -5,8 +5,10 @@ import { syncAccount } from "@/services/api/authSync";
 import {
   getAuthErrorMessage,
   getEmbeddedEthereumAddress,
-  getSyncErrorMessage,
-  hasEmbeddedEthereumWallet,
+  getLoginSetupErrorMessage,
+  hasPrivyEmbeddedEthereumWallet,
+  isAlreadyLoggedInError,
+  isExistingEmbeddedWalletError,
   isValidEmail,
 } from "@/utils/auth";
 import { waitForLinkedSmartWallet } from "@/utils/smartWallet";
@@ -46,11 +48,17 @@ export function useEmailAuthFlow(
   userRef.current = user;
   const { sendCode, loginWithCode, state } = useLoginWithEmail({
     onError: (error) => {
+      if (isAlreadyLoggedInError(error)) {
+        return;
+      }
+
       setInlineError(getAuthErrorMessage(error));
       setStep((current) => (current === "loading" ? "otp" : current));
     },
   });
-  const { create } = useEmbeddedEthereumWallet();
+  const { create, wallets } = useEmbeddedEthereumWallet();
+  const walletsRef = useRef(wallets);
+  walletsRef.current = wallets;
 
   useEffect(() => {
     if (step !== "otp" || resendSeconds <= 0) {
@@ -71,67 +79,55 @@ export function useEmailAuthFlow(
     setOtpDigits(emptyOtpDigits());
   }, []);
 
-  const updateOtpDigit = useCallback((index: number, digit: string) => {
-    setOtpDigits((current) => {
-      const next = [...current];
-      next[index] = digit;
-      return next;
-    });
-    setInlineError(null);
+  const hasExistingEmbeddedWallet = useCallback((loginUser: unknown) => {
+    return (
+      walletsRef.current.length > 0 ||
+      hasPrivyEmbeddedEthereumWallet(loginUser) ||
+      hasPrivyEmbeddedEthereumWallet(userRef.current)
+    );
   }, []);
 
-  const submitEmail = useCallback(async () => {
-    if (!isValidEmail(normalizedEmail)) {
-      setInlineError("Enter a valid email address.");
-      return;
-    }
-
-    setInlineError(null);
-    clearOtpDigits();
-
-    try {
-      await sendCode({ email: normalizedEmail });
-      setResendSeconds(45);
-      setStep("otp");
-    } catch (error) {
-      setInlineError(getAuthErrorMessage(error));
-    }
-  }, [clearOtpDigits, normalizedEmail, sendCode]);
-
-  const submitOtp = useCallback(async () => {
-    if (otpCode.trim().length < 6) {
-      setInlineError("Enter the 6-digit code we sent to your email.");
-      return;
-    }
-
-    setInlineError(null);
-    setStep("loading");
-
-    try {
-      const user = await loginWithCode({
-        code: otpCode.trim(),
-        email: normalizedEmail,
-        ...(authMode === "signin" ? { disableSignup: true } : {}),
-      });
-
-      if (!user) {
-        setStep("otp");
-        setInlineError("That code didn't match. Check and try again.");
-        return;
+  const waitForExistingEmbeddedWallet = useCallback(
+    async (loginUser: unknown) => {
+      if (hasExistingEmbeddedWallet(loginUser)) {
+        return true;
       }
 
-      if (!hasEmbeddedEthereumWallet(user)) {
-        await create();
+      const started = Date.now();
+      while (Date.now() - started <= 1500) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        if (hasExistingEmbeddedWallet(loginUser)) {
+          return true;
+        }
+      }
+
+      return hasExistingEmbeddedWallet(loginUser);
+    },
+    [hasExistingEmbeddedWallet],
+  );
+
+  const continueAuthenticatedSession = useCallback(
+    async (sessionUser?: { linked_accounts?: readonly unknown[] } | null) => {
+      const resolvedUser = sessionUser ?? userRef.current;
+
+      if (!(await waitForExistingEmbeddedWallet(resolvedUser))) {
+        try {
+          await create();
+        } catch (error) {
+          if (!isExistingEmbeddedWalletError(error)) {
+            throw error;
+          }
+        }
       }
 
       const embeddedAddress =
         getEmbeddedEthereumAddress(userRef.current) ??
-        getEmbeddedEthereumAddress(user) ??
+        getEmbeddedEthereumAddress(resolvedUser as never) ??
         "";
       if (embeddedAddress) {
         await waitForLinkedSmartWallet({
           getLinkedAccounts: () =>
-            userRef.current?.linked_accounts ?? user.linked_accounts,
+            userRef.current?.linked_accounts ?? resolvedUser?.linked_accounts,
           embeddedAddress,
         });
       }
@@ -149,21 +145,140 @@ export function useEmailAuthFlow(
         syncResult.isNewUser && authMode === "signup" ? "youre-in" : "home";
 
       onSuccess({ destination, syncResult });
+    },
+    [authMode, create, getAccessToken, onSuccess, waitForExistingEmbeddedWallet],
+  );
+
+  const updateOtpDigit = useCallback((index: number, digit: string) => {
+    setOtpDigits((current) => {
+      const next = [...current];
+      next[index] = digit;
+      return next;
+    });
+    setInlineError(null);
+  }, []);
+
+  const submitEmail = useCallback(async () => {
+    if (userRef.current) {
+      setInlineError(null);
+      setStep("loading");
+
+      try {
+        await continueAuthenticatedSession(userRef.current);
+      } catch (error) {
+        setStep("email");
+        setInlineError(getLoginSetupErrorMessage(error));
+      }
+      return;
+    }
+
+    if (!isValidEmail(normalizedEmail)) {
+      setInlineError("Enter a valid email address.");
+      return;
+    }
+
+    setInlineError(null);
+    clearOtpDigits();
+
+    try {
+      await sendCode({ email: normalizedEmail });
+      setResendSeconds(45);
+      setStep("otp");
+    } catch (error) {
+      if (isAlreadyLoggedInError(error)) {
+        setStep("loading");
+        try {
+          await continueAuthenticatedSession(userRef.current);
+        } catch (resumeError) {
+          setStep("email");
+          setInlineError(getLoginSetupErrorMessage(resumeError));
+        }
+        return;
+      }
+
+      setInlineError(getAuthErrorMessage(error));
+    }
+  }, [clearOtpDigits, continueAuthenticatedSession, normalizedEmail, sendCode]);
+
+  const submitOtp = useCallback(async () => {
+    const existingUser = userRef.current;
+
+    if (existingUser) {
+      setInlineError(null);
+      setStep("loading");
+
+      try {
+        await continueAuthenticatedSession(existingUser);
+      } catch (error) {
+        setStep("otp");
+        setInlineError(getLoginSetupErrorMessage(error));
+      }
+      return;
+    }
+
+    if (otpCode.trim().length < 6) {
+      setInlineError("Enter the 6-digit code we sent to your email.");
+      return;
+    }
+
+    setInlineError(null);
+    setStep("loading");
+
+    try {
+      let sessionUser;
+
+      try {
+        sessionUser = await loginWithCode({
+          code: otpCode.trim(),
+          email: normalizedEmail,
+          ...(authMode === "signin" ? { disableSignup: true } : {}),
+        });
+      } catch (error) {
+        if (!isAlreadyLoggedInError(error)) {
+          throw error;
+        }
+
+        const started = Date.now();
+        while (!userRef.current && Date.now() - started <= 1500) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        sessionUser = userRef.current;
+      }
+
+      if (!sessionUser) {
+        setStep("otp");
+        setInlineError("That code didn't match. Check and try again.");
+        return;
+      }
+
+      await continueAuthenticatedSession(sessionUser);
     } catch (error) {
       setStep("otp");
-      setInlineError(getSyncErrorMessage(error));
+      setInlineError(getLoginSetupErrorMessage(error));
     }
   }, [
     authMode,
-    create,
-    getAccessToken,
+    continueAuthenticatedSession,
     loginWithCode,
     normalizedEmail,
-    onSuccess,
     otpCode,
   ]);
 
   const resendCode = useCallback(async () => {
+    if (userRef.current) {
+      setInlineError(null);
+      setStep("loading");
+
+      try {
+        await continueAuthenticatedSession(userRef.current);
+      } catch (error) {
+        setStep("otp");
+        setInlineError(getLoginSetupErrorMessage(error));
+      }
+      return;
+    }
+
     if (resendSeconds > 0 || !isValidEmail(normalizedEmail)) {
       return;
     }
@@ -175,9 +290,26 @@ export function useEmailAuthFlow(
       setResendSeconds(45);
       clearOtpDigits();
     } catch (error) {
+      if (isAlreadyLoggedInError(error)) {
+        setStep("loading");
+        try {
+          await continueAuthenticatedSession(userRef.current);
+        } catch (resumeError) {
+          setStep("otp");
+          setInlineError(getLoginSetupErrorMessage(resumeError));
+        }
+        return;
+      }
+
       setInlineError(getAuthErrorMessage(error));
     }
-  }, [clearOtpDigits, normalizedEmail, resendSeconds, sendCode]);
+  }, [
+    clearOtpDigits,
+    continueAuthenticatedSession,
+    normalizedEmail,
+    resendSeconds,
+    sendCode,
+  ]);
 
   const resetToEmail = useCallback(() => {
     setStep("email");
