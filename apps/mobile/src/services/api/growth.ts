@@ -61,10 +61,35 @@ export type ConfirmedAaveDeposit = {
   transactionHash: string;
 };
 
+export type PreparedAaveWithdrawCall = {
+  to: string;
+  data: string;
+  value: "0x0";
+};
+
+export type PreparedAaveWithdrawPlan = {
+  id: string;
+  chain: "base";
+  chainId: 8453;
+  smartWalletAddress: string;
+  amountUsdc: string;
+  calls: PreparedAaveWithdrawCall[];
+  executionEnabled: boolean;
+  sendAttemptedAt: string | null;
+};
+
+export type ConfirmedAaveWithdrawal = {
+  id: string;
+  status: "confirmed";
+  amountUsdc: string;
+  transactionHash: string;
+};
+
 export type GrowthAuthorizationErrorCode =
   | AuthSyncErrorCode
   | "VALIDATION_ERROR"
-  | "AUTHORIZATION_NOT_FOUND";
+  | "AUTHORIZATION_NOT_FOUND"
+  | "WITHDRAWAL_NOT_FOUND";
 
 export class GrowthAuthorizationApiError extends Error {
   readonly code: GrowthAuthorizationErrorCode;
@@ -89,6 +114,7 @@ const AUTHORIZATION_ERROR_CODES = new Set<GrowthAuthorizationErrorCode>([
   ...GROWTH_ERROR_CODES,
   "VALIDATION_ERROR",
   "AUTHORIZATION_NOT_FOUND",
+  "WITHDRAWAL_NOT_FOUND",
   "NETWORK_ERROR",
   "INVALID_RESPONSE",
 ]);
@@ -647,6 +673,246 @@ export async function confirmSmartWalletDeposit(
   );
 
   if (!isConfirmedAaveDeposit(body)) {
+    throw new GrowthAuthorizationApiError(
+      "INVALID_RESPONSE",
+      "Received an unexpected response from the server.",
+      200,
+    );
+  }
+
+  return body;
+}
+
+function isPreparedAaveWithdrawPlan(value: unknown): value is PreparedAaveWithdrawPlan {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const plan = value as PreparedAaveWithdrawPlan;
+  return (
+    typeof plan.id === "string" &&
+    plan.id.length > 0 &&
+    plan.chain === "base" &&
+    plan.chainId === 8453 &&
+    typeof plan.smartWalletAddress === "string" &&
+    typeof plan.amountUsdc === "string" &&
+    typeof plan.executionEnabled === "boolean" &&
+    (plan.sendAttemptedAt === null || typeof plan.sendAttemptedAt === "string") &&
+    Array.isArray(plan.calls) &&
+    plan.calls.length === 1 &&
+    plan.calls.every(
+      (call) =>
+        typeof call.to === "string" &&
+        typeof call.data === "string" &&
+        call.value === "0x0",
+    )
+  );
+}
+
+function isConfirmedAaveWithdrawal(value: unknown): value is ConfirmedAaveWithdrawal {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const withdrawal = value as ConfirmedAaveWithdrawal;
+  return (
+    typeof withdrawal.id === "string" &&
+    withdrawal.status === "confirmed" &&
+    typeof withdrawal.amountUsdc === "string" &&
+    typeof withdrawal.transactionHash === "string"
+  );
+}
+
+/** 3D.2: fetch exact Pool.withdraw calldata only. Does not send a transaction. */
+export async function prepareSmartWalletWithdrawal(
+  accessToken: string,
+  amountUsdc: string,
+): Promise<PreparedAaveWithdrawPlan> {
+  const token = requireAccessToken(accessToken, true);
+  let response: Response;
+
+  try {
+    response = await fetch(
+      `${apiBaseUrl}/api/v1/growth/smart-wallet-withdrawals/prepare`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ amountUsdc }),
+      },
+    );
+  } catch {
+    throw new GrowthAuthorizationApiError(
+      "NETWORK_ERROR",
+      "Unable to reach the server. Check your connection and try again.",
+      0,
+    );
+  }
+
+  let body: unknown = null;
+
+  try {
+    body = await response.json();
+  } catch {
+    throw new GrowthAuthorizationApiError(
+      response.ok ? "INVALID_RESPONSE" : "INTERNAL_ERROR",
+      response.ok
+        ? "Received an unexpected response from the server."
+        : "We couldn’t prepare this withdrawal.",
+      response.status,
+    );
+  }
+
+  if (!response.ok) {
+    const errorBody = body as ApiErrorBody;
+    throw new GrowthAuthorizationApiError(
+      parseAuthorizationErrorCode(errorBody.error?.code),
+      getSafeErrorMessage(errorBody, "We couldn’t prepare this withdrawal."),
+      response.status,
+    );
+  }
+
+  if (!isPreparedAaveWithdrawPlan(body)) {
+    throw new GrowthAuthorizationApiError(
+      "INVALID_RESPONSE",
+      "Received an unexpected response from the server.",
+      response.status,
+    );
+  }
+
+  return body;
+}
+
+async function postSmartWalletWithdrawal(
+  accessToken: string,
+  path: string,
+  bodyValue: unknown,
+  fallback: string,
+): Promise<unknown> {
+  const token = requireAccessToken(accessToken, true);
+  let response: Response;
+
+  try {
+    response = await fetch(
+      `${apiBaseUrl}/api/v1/growth/smart-wallet-withdrawals/${path}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bodyValue ?? {}),
+      },
+    );
+  } catch {
+    throw new GrowthAuthorizationApiError(
+      "NETWORK_ERROR",
+      "Unable to reach the server. Check your connection and try again.",
+      0,
+    );
+  }
+
+  let body: unknown = null;
+
+  try {
+    body = await response.json();
+  } catch {
+    throw new GrowthAuthorizationApiError(
+      response.ok ? "INVALID_RESPONSE" : "INTERNAL_ERROR",
+      response.ok
+        ? "Received an unexpected response from the server."
+        : fallback,
+      response.status,
+    );
+  }
+
+  if (!response.ok) {
+    const errorBody = body as ApiErrorBody;
+    throw new GrowthAuthorizationApiError(
+      parseAuthorizationErrorCode(errorBody.error?.code),
+      getSafeErrorMessage(errorBody, fallback),
+      response.status,
+    );
+  }
+
+  return body;
+}
+
+/** 3D.2: mark prepared withdrawal submitted. Does not send a transaction. */
+export async function submitSmartWalletWithdrawal(
+  accessToken: string,
+  withdrawalId: string,
+): Promise<PreparedAaveWithdrawPlan> {
+  const body = await postSmartWalletWithdrawal(
+    accessToken,
+    `${withdrawalId}/submit`,
+    {},
+    "We couldn’t start this withdrawal.",
+  );
+
+  if (!isPreparedAaveWithdrawPlan(body)) {
+    throw new GrowthAuthorizationApiError(
+      "INVALID_RESPONSE",
+      "Received an unexpected response from the server.",
+      200,
+    );
+  }
+
+  return body;
+}
+
+/** 3D: persist send-attempt lock before broadcast. Does not send a transaction. */
+export async function markSmartWalletWithdrawalSending(
+  accessToken: string,
+  withdrawalId: string,
+): Promise<PreparedAaveWithdrawPlan> {
+  const body = await postSmartWalletWithdrawal(
+    accessToken,
+    `${withdrawalId}/sending`,
+    {},
+    "We couldn’t lock this withdrawal.",
+  );
+
+  if (!isPreparedAaveWithdrawPlan(body)) {
+    throw new GrowthAuthorizationApiError(
+      "INVALID_RESPONSE",
+      "Received an unexpected response from the server.",
+      200,
+    );
+  }
+
+  return body;
+}
+
+/** 3D.2: release a submitted withdrawal only when no send has been attempted. */
+export async function failSmartWalletWithdrawal(
+  accessToken: string,
+  withdrawalId: string,
+): Promise<void> {
+  await postSmartWalletWithdrawal(
+    accessToken,
+    `${withdrawalId}/fail`,
+    {},
+    "We couldn’t cancel this withdrawal.",
+  );
+}
+
+/** 3D.2: record and verify a receipt. Does not send a transaction. */
+export async function confirmSmartWalletWithdrawal(
+  accessToken: string,
+  withdrawalId: string,
+  transactionHash: string,
+): Promise<ConfirmedAaveWithdrawal> {
+  const body = await postSmartWalletWithdrawal(
+    accessToken,
+    `${withdrawalId}/confirm`,
+    { transactionHash },
+    "We couldn’t confirm this withdrawal.",
+  );
+
+  if (!isConfirmedAaveWithdrawal(body)) {
     throw new GrowthAuthorizationApiError(
       "INVALID_RESPONSE",
       "Received an unexpected response from the server.",

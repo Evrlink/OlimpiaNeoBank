@@ -1,6 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useRef } from "react";
+import {
+  Animated,
+  Easing,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
 import { ActivityListCard } from "@/components/ActivityListCard";
@@ -22,12 +32,61 @@ type EmptyHomeScreenProps = {
   onChooseYield: () => void;
   onSend: () => void;
   onReceive: () => void;
+  onWithdraw?: () => void;
+  showWithdraw?: boolean;
   onSeeAllActivity?: () => void;
 };
 
 function parseBalance(value: string): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function GrowCardWithdrawAction({ onPress }: { onPress: () => void }) {
+  const press = useRef(new Animated.Value(0)).current;
+
+  const animatePress = (toValue: number) => {
+    Animated.timing(press, {
+      toValue,
+      duration: toValue === 1 ? 80 : 110,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={() => animatePress(1)}
+      onPressOut={() => animatePress(0)}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      style={styles.withdrawButton}
+      accessibilityRole="button"
+      accessibilityLabel="Withdraw"
+    >
+      <Animated.View
+        style={[
+          styles.withdrawButtonInner,
+          {
+            opacity: press.interpolate({
+              inputRange: [0, 1],
+              outputRange: [1, 0.65],
+            }),
+            transform: [
+              {
+                scale: press.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [1, 0.97],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <Text style={styles.withdrawButtonLabel}>Withdraw</Text>
+      </Animated.View>
+    </Pressable>
+  );
 }
 
 export function EmptyHomeScreen({
@@ -40,6 +99,8 @@ export function EmptyHomeScreen({
   onChooseYield,
   onSend,
   onReceive,
+  onWithdraw,
+  showWithdraw = false,
   onSeeAllActivity,
 }: EmptyHomeScreenProps) {
   const greetingName = getGreetingName(user);
@@ -144,6 +205,9 @@ export function EmptyHomeScreen({
                 <Text style={styles.earningMeta}>
                   Est. {growth.liveApyPercent}% APY · Variable
                 </Text>
+              ) : null}
+              {showWithdraw && onWithdraw ? (
+                <GrowCardWithdrawAction onPress={onWithdraw} />
               ) : null}
             </View>
 
@@ -425,6 +489,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     color: colors.inkMuted,
+  },
+  withdrawButton: {
+    marginTop: 12,
+    alignSelf: "flex-start",
+  },
+  withdrawButtonInner: {
+    backgroundColor: "rgba(111, 43, 70, 0.09)",
+    borderRadius: radius.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  withdrawButtonLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    lineHeight: 20,
+    color: colors.berry,
   },
   yieldPrompt: {
     marginTop: 16,

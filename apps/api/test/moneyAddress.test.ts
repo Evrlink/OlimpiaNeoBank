@@ -63,6 +63,7 @@ test("activity and growth dispatch by money address; Earn execution stays frozen
   assert.match(growth, /money_address_mode/);
   assert.match(growth, /getHomeGrowthForWallet/);
   assert.match(growth, /smart-wallet-deposits\/prepare/);
+  assert.match(growth, /smart-wallet-withdrawals\/prepare/);
   assert.doesNotMatch(growth, /getHomeBalanceForWallet/);
   assert.doesNotMatch(growth, /getHomeActivityForWallet/);
   assert.doesNotMatch(growth, /\._deposit\s*\(/);

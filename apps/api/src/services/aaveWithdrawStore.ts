@@ -1,85 +1,94 @@
 import { getPool } from "../db/pool.js";
 import {
-  AaveDepositPlanError,
-  type AaveDepositCall,
-} from "./aaveDepositPlan.js";
+  AaveWithdrawPlanError,
+  type AaveWithdrawCall,
+} from "./aaveWithdrawPlan.js";
 
-export type SmartWalletDepositStatus =
+export type SmartWalletWithdrawalStatus =
   | "prepared"
   | "submitted"
   | "confirmed"
   | "failed";
 
-export type StoredSmartWalletDeposit = {
+export type StoredSmartWalletWithdrawal = {
   id: string;
   userId: string;
   privyUserId: string;
   smartWalletAddress: string;
   amountUsdc: string;
   rawAmount: string;
-  calls: [AaveDepositCall, AaveDepositCall];
-  status: SmartWalletDepositStatus;
+  calls: [AaveWithdrawCall];
+  status: SmartWalletWithdrawalStatus;
   transactionHash: string | null;
   failureReason: string | null;
   expiresAt: Date;
   submittedAt: Date | null;
   confirmedAt: Date | null;
   createdAt: Date;
+  sendAttemptedAt: Date | null;
 };
 
-export type SmartWalletDepositStore = {
-  replacePrepared(row: StoredSmartWalletDeposit): Promise<StoredSmartWalletDeposit>;
+export type SmartWalletWithdrawStore = {
+  replacePrepared(
+    row: StoredSmartWalletWithdrawal,
+  ): Promise<StoredSmartWalletWithdrawal>;
   getByIdForUser(
     id: string,
     privyUserId: string,
-  ): Promise<StoredSmartWalletDeposit | null>;
+  ): Promise<StoredSmartWalletWithdrawal | null>;
+  hasSubmittedForUser(userId: string): Promise<boolean>;
   markSubmitted(input: {
     id: string;
     privyUserId: string;
     submittedAt: Date;
-  }): Promise<StoredSmartWalletDeposit | null>;
+  }): Promise<StoredSmartWalletWithdrawal | null>;
+  markSendAttempted(input: {
+    id: string;
+    privyUserId: string;
+    attemptedAt: Date;
+  }): Promise<StoredSmartWalletWithdrawal | null>;
   attachTransactionHash(input: {
     id: string;
     privyUserId: string;
     transactionHash: string;
     attachedAt: Date;
-  }): Promise<StoredSmartWalletDeposit | null>;
+  }): Promise<StoredSmartWalletWithdrawal | null>;
   noteVerification(input: {
     id: string;
     privyUserId: string;
     failureReason: string;
     notedAt: Date;
-  }): Promise<StoredSmartWalletDeposit | null>;
+  }): Promise<StoredSmartWalletWithdrawal | null>;
   markConfirmed(input: {
     id: string;
     privyUserId: string;
     transactionHash: string;
     confirmedAt: Date;
-  }): Promise<StoredSmartWalletDeposit | null>;
+  }): Promise<StoredSmartWalletWithdrawal | null>;
   markFailed(input: {
     id: string;
     privyUserId: string;
     failureReason: string;
     failedAt: Date;
-  }): Promise<StoredSmartWalletDeposit | null>;
-  hasSubmittedForUser(userId: string): Promise<boolean>;
+  }): Promise<StoredSmartWalletWithdrawal | null>;
 };
 
-type DepositRow = {
+type WithdrawalRow = {
   id: string;
   user_id: string;
   privy_user_id: string;
   smart_wallet_address: string;
   amount_usdc: string;
   raw_amount: string;
-  calls: [AaveDepositCall, AaveDepositCall];
-  status: SmartWalletDepositStatus;
+  calls: [AaveWithdrawCall];
+  status: SmartWalletWithdrawalStatus;
   transaction_hash: string | null;
   failure_reason: string | null;
   expires_at: Date;
   submitted_at: Date | null;
   confirmed_at: Date | null;
   created_at: Date;
+  send_attempted_at: Date | null;
 };
 
 const SELECT_COLUMNS = `
@@ -96,10 +105,11 @@ const SELECT_COLUMNS = `
   expires_at,
   submitted_at,
   confirmed_at,
-  created_at
+  created_at,
+  send_attempted_at
 `;
 
-function mapRow(row: DepositRow): StoredSmartWalletDeposit {
+function mapRow(row: WithdrawalRow): StoredSmartWalletWithdrawal {
   return {
     id: row.id,
     userId: row.user_id,
@@ -115,17 +125,20 @@ function mapRow(row: DepositRow): StoredSmartWalletDeposit {
     submittedAt: row.submitted_at,
     confirmedAt: row.confirmed_at,
     createdAt: row.created_at,
+    sendAttemptedAt: row.send_attempted_at,
   };
 }
 
-function cloneDeposit(row: StoredSmartWalletDeposit): StoredSmartWalletDeposit {
+function cloneWithdrawal(
+  row: StoredSmartWalletWithdrawal,
+): StoredSmartWalletWithdrawal {
   return {
     ...row,
-    calls: [row.calls[0], row.calls[1]],
+    calls: [row.calls[0]],
   };
 }
 
-export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore {
+export function createPostgresSmartWalletWithdrawStore(): SmartWalletWithdrawStore {
   return {
     async replacePrepared(row) {
       const pool = getPool();
@@ -136,10 +149,10 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
       const client = await pool.connect();
       try {
         await client.query("BEGIN");
-        const open = await client.query<{ status: SmartWalletDepositStatus }>(
+        const open = await client.query<{ status: SmartWalletWithdrawalStatus }>(
           `
             SELECT status
-            FROM smart_wallet_deposits
+            FROM smart_wallet_withdrawals
             WHERE user_id = $1 AND status IN ('prepared', 'submitted')
             FOR UPDATE
           `,
@@ -148,16 +161,16 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
 
         if (open.rows.some((item) => item.status === "submitted")) {
           await client.query("ROLLBACK");
-          throw new AaveDepositPlanError(
+          throw new AaveWithdrawPlanError(
             409,
             "VALIDATION_ERROR",
-            "A deposit is already in progress.",
+            "A withdrawal is already in progress.",
           );
         }
 
         await client.query(
           `
-            UPDATE smart_wallet_deposits
+            UPDATE smart_wallet_withdrawals
             SET
               status = 'failed',
               failure_reason = 'superseded',
@@ -167,9 +180,9 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
           [row.userId, row.createdAt],
         );
 
-        const inserted = await client.query<DepositRow>(
+        const inserted = await client.query<WithdrawalRow>(
           `
-            INSERT INTO smart_wallet_deposits (
+            INSERT INTO smart_wallet_withdrawals (
               id,
               user_id,
               privy_user_id,
@@ -219,10 +232,10 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
         throw new Error("Database is not configured.");
       }
 
-      const result = await pool.query<DepositRow>(
+      const result = await pool.query<WithdrawalRow>(
         `
           SELECT ${SELECT_COLUMNS}
-          FROM smart_wallet_deposits
+          FROM smart_wallet_withdrawals
           WHERE id = $1 AND privy_user_id = $2
         `,
         [id, privyUserId],
@@ -231,15 +244,35 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
       return result.rows[0] ? mapRow(result.rows[0]) : null;
     },
 
+    async hasSubmittedForUser(userId) {
+      const pool = getPool();
+      if (!pool) {
+        throw new Error("Database is not configured.");
+      }
+
+      const result = await pool.query<{ exists: boolean }>(
+        `
+          SELECT EXISTS(
+            SELECT 1
+            FROM smart_wallet_withdrawals
+            WHERE user_id = $1 AND status = 'submitted'
+          ) AS exists
+        `,
+        [userId],
+      );
+
+      return Boolean(result.rows[0]?.exists);
+    },
+
     async markSubmitted(input) {
       const pool = getPool();
       if (!pool) {
         throw new Error("Database is not configured.");
       }
 
-      const result = await pool.query<DepositRow>(
+      const result = await pool.query<WithdrawalRow>(
         `
-          UPDATE smart_wallet_deposits
+          UPDATE smart_wallet_withdrawals
           SET
             status = 'submitted',
             submitted_at = $3,
@@ -256,15 +289,39 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
       return result.rows[0] ? mapRow(result.rows[0]) : null;
     },
 
+    async markSendAttempted(input) {
+      const pool = getPool();
+      if (!pool) {
+        throw new Error("Database is not configured.");
+      }
+
+      const result = await pool.query<WithdrawalRow>(
+        `
+          UPDATE smart_wallet_withdrawals
+          SET
+            send_attempted_at = COALESCE(send_attempted_at, $3),
+            updated_at = $3
+          WHERE id = $1
+            AND privy_user_id = $2
+            AND status = 'submitted'
+            AND transaction_hash IS NULL
+          RETURNING ${SELECT_COLUMNS}
+        `,
+        [input.id, input.privyUserId, input.attemptedAt],
+      );
+
+      return result.rows[0] ? mapRow(result.rows[0]) : null;
+    },
+
     async attachTransactionHash(input) {
       const pool = getPool();
       if (!pool) {
         throw new Error("Database is not configured.");
       }
 
-      const attached = await pool.query<DepositRow>(
+      const attached = await pool.query<WithdrawalRow>(
         `
-          UPDATE smart_wallet_deposits
+          UPDATE smart_wallet_withdrawals
           SET
             transaction_hash = $3,
             updated_at = $4
@@ -286,9 +343,9 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
         throw new Error("Database is not configured.");
       }
 
-      const noted = await pool.query<DepositRow>(
+      const noted = await pool.query<WithdrawalRow>(
         `
-          UPDATE smart_wallet_deposits
+          UPDATE smart_wallet_withdrawals
           SET
             failure_reason = $3,
             updated_at = $4
@@ -309,9 +366,9 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
         throw new Error("Database is not configured.");
       }
 
-      const result = await pool.query<DepositRow>(
+      const result = await pool.query<WithdrawalRow>(
         `
-          UPDATE smart_wallet_deposits
+          UPDATE smart_wallet_withdrawals
           SET
             status = 'confirmed',
             transaction_hash = $3,
@@ -336,9 +393,9 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
         throw new Error("Database is not configured.");
       }
 
-      const result = await pool.query<DepositRow>(
+      const result = await pool.query<WithdrawalRow>(
         `
-          UPDATE smart_wallet_deposits
+          UPDATE smart_wallet_withdrawals
           SET
             status = 'failed',
             failure_reason = $3,
@@ -347,6 +404,7 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
             AND privy_user_id = $2
             AND status IN ('prepared', 'submitted')
             AND transaction_hash IS NULL
+            AND send_attempted_at IS NULL
           RETURNING ${SELECT_COLUMNS}
         `,
         [input.id, input.privyUserId, input.failureReason, input.failedAt],
@@ -354,31 +412,11 @@ export function createPostgresSmartWalletDepositStore(): SmartWalletDepositStore
 
       return result.rows[0] ? mapRow(result.rows[0]) : null;
     },
-
-    async hasSubmittedForUser(userId) {
-      const pool = getPool();
-      if (!pool) {
-        throw new Error("Database is not configured.");
-      }
-
-      const result = await pool.query<{ exists: boolean }>(
-        `
-          SELECT EXISTS(
-            SELECT 1
-            FROM smart_wallet_deposits
-            WHERE user_id = $1 AND status = 'submitted'
-          ) AS exists
-        `,
-        [userId],
-      );
-
-      return Boolean(result.rows[0]?.exists);
-    },
   };
 }
 
-export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
-  const rows = new Map<string, StoredSmartWalletDeposit>();
+export function createMemorySmartWalletWithdrawStore(): SmartWalletWithdrawStore {
+  const rows = new Map<string, StoredSmartWalletWithdrawal>();
 
   return {
     async replacePrepared(row) {
@@ -388,25 +426,29 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
         }
 
         if (existing.status === "submitted") {
-          throw new AaveDepositPlanError(
+          throw new AaveWithdrawPlanError(
             409,
             "VALIDATION_ERROR",
-            "A deposit is already in progress.",
+            "A withdrawal is already in progress.",
           );
         }
 
         if (existing.status === "prepared") {
           rows.set(existing.id, {
-            ...cloneDeposit(existing),
+            ...cloneWithdrawal(existing),
             status: "failed",
             failureReason: "superseded",
           });
         }
       }
 
-      const stored = cloneDeposit({ ...row, status: "prepared" });
+      const stored = cloneWithdrawal({
+        ...row,
+        status: "prepared",
+        sendAttemptedAt: null,
+      });
       rows.set(stored.id, stored);
-      return cloneDeposit(stored);
+      return cloneWithdrawal(stored);
     },
 
     async getByIdForUser(id, privyUserId) {
@@ -415,7 +457,17 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
         return null;
       }
 
-      return cloneDeposit(row);
+      return cloneWithdrawal(row);
+    },
+
+    async hasSubmittedForUser(userId) {
+      for (const existing of rows.values()) {
+        if (existing.userId === userId && existing.status === "submitted") {
+          return true;
+        }
+      }
+
+      return false;
     },
 
     async markSubmitted(input) {
@@ -429,13 +481,32 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
         return null;
       }
 
-      const updated = cloneDeposit({
+      const updated = cloneWithdrawal({
         ...row,
         status: "submitted",
         submittedAt: input.submittedAt,
       });
       rows.set(updated.id, updated);
-      return cloneDeposit(updated);
+      return cloneWithdrawal(updated);
+    },
+
+    async markSendAttempted(input) {
+      const row = rows.get(input.id);
+      if (
+        !row ||
+        row.privyUserId !== input.privyUserId ||
+        row.status !== "submitted" ||
+        row.transactionHash
+      ) {
+        return null;
+      }
+
+      const updated = cloneWithdrawal({
+        ...row,
+        sendAttemptedAt: row.sendAttemptedAt ?? input.attemptedAt,
+      });
+      rows.set(updated.id, updated);
+      return cloneWithdrawal(updated);
     },
 
     async attachTransactionHash(input) {
@@ -448,12 +519,12 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
         return null;
       }
 
-      const updated = cloneDeposit({
+      const updated = cloneWithdrawal({
         ...row,
         transactionHash: input.transactionHash,
       });
       rows.set(updated.id, updated);
-      return cloneDeposit(updated);
+      return cloneWithdrawal(updated);
     },
 
     async noteVerification(input) {
@@ -462,12 +533,12 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
         return null;
       }
 
-      const updated = cloneDeposit({
+      const updated = cloneWithdrawal({
         ...row,
         failureReason: input.failureReason,
       });
       rows.set(updated.id, updated);
-      return cloneDeposit(updated);
+      return cloneWithdrawal(updated);
     },
 
     async markConfirmed(input) {
@@ -481,7 +552,7 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
         return null;
       }
 
-      const updated = cloneDeposit({
+      const updated = cloneWithdrawal({
         ...row,
         status: "confirmed",
         transactionHash: input.transactionHash,
@@ -489,7 +560,7 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
         failureReason: null,
       });
       rows.set(updated.id, updated);
-      return cloneDeposit(updated);
+      return cloneWithdrawal(updated);
     },
 
     async markFailed(input) {
@@ -498,28 +569,19 @@ export function createMemorySmartWalletDepositStore(): SmartWalletDepositStore {
         !row ||
         row.privyUserId !== input.privyUserId ||
         (row.status !== "prepared" && row.status !== "submitted") ||
-        row.transactionHash
+        row.transactionHash ||
+        row.sendAttemptedAt
       ) {
         return null;
       }
 
-      const updated = cloneDeposit({
+      const updated = cloneWithdrawal({
         ...row,
         status: "failed",
         failureReason: input.failureReason,
       });
       rows.set(updated.id, updated);
-      return cloneDeposit(updated);
-    },
-
-    async hasSubmittedForUser(userId) {
-      for (const existing of rows.values()) {
-        if (existing.userId === userId && existing.status === "submitted") {
-          return true;
-        }
-      }
-
-      return false;
+      return cloneWithdrawal(updated);
     },
   };
 }

@@ -114,6 +114,11 @@ export const env = {
     process.env.AAVE_SMART_WALLET_DEPOSITS_ENABLED,
     false,
   ),
+  /** 3D.1 kill switch. Default off. Never enable in this change. */
+  aaveSmartWalletWithdrawalsEnabled: parseBoolean(
+    process.env.AAVE_SMART_WALLET_WITHDRAWALS_ENABLED,
+    false,
+  ),
 };
 
 export function requirePrivyConfig(): void {

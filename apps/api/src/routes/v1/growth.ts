@@ -23,6 +23,25 @@ import {
   type SmartWalletDepositStore,
   type StoredSmartWalletDeposit,
 } from "../../services/aaveDepositStore.js";
+import { getAusdcRawOnBase } from "../../services/aaveGrowth.js";
+import {
+  AaveWithdrawReceiptPendingError,
+  requireAaveSmartWalletWithdrawalsEnabled,
+  verifyAaveWithdrawReceipt,
+} from "../../services/aaveWithdrawExecution.js";
+import {
+  AaveWithdrawPlanError,
+  assertExecutableAaveWithdrawPlan,
+  assertWithdrawPlanHasNoSecrets,
+  buildAaveWithdrawPlan,
+  toWithdrawPlanFromStoredCalls,
+  type PreparedAaveWithdrawResponse,
+} from "../../services/aaveWithdrawPlan.js";
+import {
+  createPostgresSmartWalletWithdrawStore,
+  type SmartWalletWithdrawStore,
+  type StoredSmartWalletWithdrawal,
+} from "../../services/aaveWithdrawStore.js";
 import { getUsdcRawOnBase } from "../../services/usdcBalance.js";
 import {
   createDefaultGrowthAuthorizationService,
@@ -60,12 +79,23 @@ type SmartWalletDepositDependencies = {
   now: () => Date;
 };
 
+type SmartWalletWithdrawDependencies = {
+  isExecutionEnabled: () => boolean;
+  store: SmartWalletWithdrawStore;
+  getAvailableRawAusdc: (address: string) => Promise<bigint>;
+  getVault: () => Promise<{ decimals: number }>;
+  verifyReceipt: typeof verifyAaveWithdrawReceipt;
+  createId: () => string;
+  now: () => Date;
+};
+
 type GrowthRouterDependencies = {
   auth: RequestHandler;
   lookupWallet: (privyUserId: string) => Promise<WalletLookup>;
   getGrowth: (privyWalletId: string) => Promise<GrowthSummary>;
   authorization: GrowthAuthorizationService;
   smartWalletDeposits: SmartWalletDepositDependencies;
+  smartWalletWithdrawals: SmartWalletWithdrawDependencies;
 };
 
 function usesSmartWallet(wallet: WalletLookup): boolean {
@@ -82,6 +112,18 @@ function defaultSmartWalletDeposits(): SmartWalletDepositDependencies {
     getAvailableRawUsdc: getUsdcRawOnBase,
     getVault: getRequiredAaveBaseUsdcVault,
     verifyReceipt: verifyAaveDepositReceipt,
+    createId: () => randomUUID(),
+    now: () => new Date(),
+  };
+}
+
+function defaultSmartWalletWithdrawals(): SmartWalletWithdrawDependencies {
+  return {
+    isExecutionEnabled: () => env.aaveSmartWalletWithdrawalsEnabled,
+    store: createPostgresSmartWalletWithdrawStore(),
+    getAvailableRawAusdc: getAusdcRawOnBase,
+    getVault: getRequiredAaveBaseUsdcVault,
+    verifyReceipt: verifyAaveWithdrawReceipt,
     createId: () => randomUUID(),
     now: () => new Date(),
   };
@@ -138,7 +180,10 @@ function sendAuthorizationError(res: Parameters<typeof sendError>[0], error: unk
 }
 
 function sendPlanError(res: Parameters<typeof sendError>[0], error: unknown) {
-  if (error instanceof AaveDepositPlanError) {
+  if (
+    error instanceof AaveDepositPlanError ||
+    error instanceof AaveWithdrawPlanError
+  ) {
     sendError(res, error.status, error.code, error.message);
     return;
   }
@@ -148,7 +193,7 @@ function sendPlanError(res: Parameters<typeof sendError>[0], error: unknown) {
     return;
   }
 
-  sendError(res, 502, "PRIVY_UNAVAILABLE", "Unable to prepare this deposit.");
+  sendError(res, 502, "PRIVY_UNAVAILABLE", "Unable to prepare this request.");
 }
 
 function toPlanResponse(
@@ -167,7 +212,10 @@ function toPlanResponse(
   };
 }
 
-function requireSmartWalletAccount(wallet: WalletLookup): {
+function requireSmartWalletAccount(
+  wallet: WalletLookup,
+  pathNoun = "deposit",
+): {
   userId: string;
   smartWalletAddress: string;
 } {
@@ -175,7 +223,7 @@ function requireSmartWalletAccount(wallet: WalletLookup): {
     throw new AaveDepositPlanError(
       409,
       "VALIDATION_ERROR",
-      "This deposit path is only for Smart Wallet accounts.",
+      `This ${pathNoun} path is only for Smart Wallet accounts.`,
     );
   }
 
@@ -193,6 +241,25 @@ function requireSmartWalletAccount(wallet: WalletLookup): {
   };
 }
 
+function toWithdrawPlanResponse(
+  withdrawal: StoredSmartWalletWithdrawal,
+  executionEnabled: boolean,
+): PreparedAaveWithdrawResponse {
+  const plan = toWithdrawPlanFromStoredCalls({
+    smartWalletAddress: withdrawal.smartWalletAddress,
+    amountUsdc: withdrawal.amountUsdc,
+    calls: withdrawal.calls,
+  });
+  return {
+    id: withdrawal.id,
+    ...plan,
+    executionEnabled,
+    sendAttemptedAt: withdrawal.sendAttemptedAt
+      ? withdrawal.sendAttemptedAt.toISOString()
+      : null,
+  };
+}
+
 export function createGrowthRouter(
   dependencies: Partial<GrowthRouterDependencies> = {},
 ): Router {
@@ -203,6 +270,8 @@ export function createGrowthRouter(
     dependencies.authorization ?? createDefaultGrowthAuthorizationService();
   const smartWalletDeposits =
     dependencies.smartWalletDeposits ?? defaultSmartWalletDeposits();
+  const smartWalletWithdrawals =
+    dependencies.smartWalletWithdrawals ?? defaultSmartWalletWithdrawals();
   const router = Router();
 
   router.get("/", auth, async (req, res) => {
@@ -302,6 +371,13 @@ export function createGrowthRouter(
       }
 
       const account = requireSmartWalletAccount(wallet);
+      if (await smartWalletWithdrawals.store.hasSubmittedForUser(account.userId)) {
+        throw new AaveDepositPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "A withdrawal is already in progress.",
+        );
+      }
       const vault = await smartWalletDeposits.getVault();
       const availableRawUsdc = await smartWalletDeposits.getAvailableRawUsdc(
         account.smartWalletAddress,
@@ -582,6 +658,411 @@ export function createGrowthRouter(
           409,
           "VALIDATION_ERROR",
           "This deposit cannot be confirmed.",
+        );
+      }
+
+      res.status(200).json({
+        id: confirmed.id,
+        status: confirmed.status,
+        amountUsdc: confirmed.amountUsdc,
+        transactionHash: confirmed.transactionHash,
+      });
+    } catch (error) {
+      sendPlanError(res, error);
+    }
+  });
+
+  /** 3D.1: persist exact Pool.withdraw calldata only. Does not execute. */
+  router.post("/smart-wallet-withdrawals/prepare", auth, async (req, res) => {
+    const { privyUserId } = req as AuthenticatedRequest;
+
+    try {
+      const wallet = await lookupWallet(privyUserId);
+
+      if (!wallet.userExists) {
+        sendError(
+          res,
+          404,
+          "USER_NOT_FOUND",
+          "Account not found. Complete sign-in sync first.",
+        );
+        return;
+      }
+
+      const account = requireSmartWalletAccount(wallet, "withdrawal");
+      if (await smartWalletDeposits.store.hasSubmittedForUser(account.userId)) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "A deposit is already in progress.",
+        );
+      }
+      const vault = await smartWalletWithdrawals.getVault();
+      const availableRawAusdc = await smartWalletWithdrawals.getAvailableRawAusdc(
+        account.smartWalletAddress,
+      );
+      const plan = buildAaveWithdrawPlan({
+        smartWalletAddress: account.smartWalletAddress,
+        amountUsdc:
+          typeof req.body?.amountUsdc === "string" ? req.body.amountUsdc : "",
+        availableRawAusdc,
+        decimals: vault.decimals,
+      });
+      const rawAmount = assertExecutableAaveWithdrawPlan(
+        plan,
+        account.smartWalletAddress,
+      );
+      assertWithdrawPlanHasNoSecrets(
+        plan,
+        env.privyEarnAaveBaseUsdcVaultId,
+        env.privyAppSecret,
+      );
+      const now = smartWalletWithdrawals.now();
+      const stored = await smartWalletWithdrawals.store.replacePrepared({
+        id: smartWalletWithdrawals.createId(),
+        userId: account.userId,
+        privyUserId,
+        smartWalletAddress: account.smartWalletAddress,
+        amountUsdc: plan.amountUsdc,
+        rawAmount: rawAmount.toString(),
+        calls: plan.calls,
+        status: "prepared",
+        transactionHash: null,
+        failureReason: null,
+        expiresAt: new Date(now.getTime() + PREPARE_TTL_MS),
+        submittedAt: null,
+        confirmedAt: null,
+        createdAt: now,
+        sendAttemptedAt: null,
+      });
+      res.status(201).json(
+        toWithdrawPlanResponse(
+          stored,
+          smartWalletWithdrawals.isExecutionEnabled(),
+        ),
+      );
+    } catch (error) {
+      sendPlanError(res, error);
+    }
+  });
+
+  router.post("/smart-wallet-withdrawals/:id/submit", auth, async (req, res) => {
+    const { privyUserId } = req as AuthenticatedRequest;
+    const withdrawalId = req.params.id?.trim() ?? "";
+
+    try {
+      requireAaveSmartWalletWithdrawalsEnabled(
+        smartWalletWithdrawals.isExecutionEnabled(),
+      );
+      const wallet = await lookupWallet(privyUserId);
+      if (!wallet.userExists) {
+        sendError(
+          res,
+          404,
+          "USER_NOT_FOUND",
+          "Account not found. Complete sign-in sync first.",
+        );
+        return;
+      }
+
+      const account = requireSmartWalletAccount(wallet, "withdrawal");
+      const existing = await smartWalletWithdrawals.store.getByIdForUser(
+        withdrawalId,
+        privyUserId,
+      );
+      if (!existing) {
+        sendError(res, 404, "WITHDRAWAL_NOT_FOUND", "Withdrawal not found.");
+        return;
+      }
+
+      const plan = toWithdrawPlanFromStoredCalls(existing);
+      assertExecutableAaveWithdrawPlan(plan, account.smartWalletAddress);
+      const submitted = await smartWalletWithdrawals.store.markSubmitted({
+        id: withdrawalId,
+        privyUserId,
+        submittedAt: smartWalletWithdrawals.now(),
+      });
+      if (!submitted) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal cannot be submitted.",
+        );
+      }
+
+      res.status(200).json(
+        toWithdrawPlanResponse(
+          submitted,
+          smartWalletWithdrawals.isExecutionEnabled(),
+        ),
+      );
+    } catch (error) {
+      sendPlanError(res, error);
+    }
+  });
+
+  router.post("/smart-wallet-withdrawals/:id/sending", auth, async (req, res) => {
+    const { privyUserId } = req as AuthenticatedRequest;
+    const withdrawalId = req.params.id?.trim() ?? "";
+
+    try {
+      requireAaveSmartWalletWithdrawalsEnabled(
+        smartWalletWithdrawals.isExecutionEnabled(),
+      );
+      const wallet = await lookupWallet(privyUserId);
+      if (!wallet.userExists) {
+        sendError(
+          res,
+          404,
+          "USER_NOT_FOUND",
+          "Account not found. Complete sign-in sync first.",
+        );
+        return;
+      }
+
+      const account = requireSmartWalletAccount(wallet, "withdrawal");
+      const existing = await smartWalletWithdrawals.store.getByIdForUser(
+        withdrawalId,
+        privyUserId,
+      );
+      if (!existing) {
+        sendError(res, 404, "WITHDRAWAL_NOT_FOUND", "Withdrawal not found.");
+        return;
+      }
+
+      if (existing.status !== "submitted") {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal cannot be marked as sending.",
+        );
+      }
+
+      if (existing.transactionHash) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal already has a transaction hash.",
+        );
+      }
+
+      const plan = toWithdrawPlanFromStoredCalls(existing);
+      assertExecutableAaveWithdrawPlan(plan, account.smartWalletAddress);
+      const marked = await smartWalletWithdrawals.store.markSendAttempted({
+        id: withdrawalId,
+        privyUserId,
+        attemptedAt: smartWalletWithdrawals.now(),
+      });
+      if (!marked) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal cannot be marked as sending.",
+        );
+      }
+
+      res.status(200).json(
+        toWithdrawPlanResponse(
+          marked,
+          smartWalletWithdrawals.isExecutionEnabled(),
+        ),
+      );
+    } catch (error) {
+      sendPlanError(res, error);
+    }
+  });
+
+  router.post("/smart-wallet-withdrawals/:id/fail", auth, async (req, res) => {
+    const { privyUserId } = req as AuthenticatedRequest;
+    const withdrawalId = req.params.id?.trim() ?? "";
+
+    try {
+      requireAaveSmartWalletWithdrawalsEnabled(
+        smartWalletWithdrawals.isExecutionEnabled(),
+      );
+      const wallet = await lookupWallet(privyUserId);
+      if (!wallet.userExists) {
+        sendError(
+          res,
+          404,
+          "USER_NOT_FOUND",
+          "Account not found. Complete sign-in sync first.",
+        );
+        return;
+      }
+
+      requireSmartWalletAccount(wallet, "withdrawal");
+      const existing = await smartWalletWithdrawals.store.getByIdForUser(
+        withdrawalId,
+        privyUserId,
+      );
+      if (!existing) {
+        sendError(res, 404, "WITHDRAWAL_NOT_FOUND", "Withdrawal not found.");
+        return;
+      }
+
+      if (existing.transactionHash) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal already has a transaction hash.",
+        );
+      }
+
+      if (existing.sendAttemptedAt) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal send has already been attempted.",
+        );
+      }
+
+      const failed = await smartWalletWithdrawals.store.markFailed({
+        id: withdrawalId,
+        privyUserId,
+        failureReason: "send_failed",
+        failedAt: smartWalletWithdrawals.now(),
+      });
+      if (!failed) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal cannot be cancelled.",
+        );
+      }
+
+      res.status(200).json({ id: failed.id, status: failed.status });
+    } catch (error) {
+      sendPlanError(res, error);
+    }
+  });
+
+  router.post("/smart-wallet-withdrawals/:id/confirm", auth, async (req, res) => {
+    const { privyUserId } = req as AuthenticatedRequest;
+    const withdrawalId = req.params.id?.trim() ?? "";
+
+    try {
+      requireAaveSmartWalletWithdrawalsEnabled(
+        smartWalletWithdrawals.isExecutionEnabled(),
+      );
+      const wallet = await lookupWallet(privyUserId);
+      if (!wallet.userExists) {
+        sendError(
+          res,
+          404,
+          "USER_NOT_FOUND",
+          "Account not found. Complete sign-in sync first.",
+        );
+        return;
+      }
+
+      const account = requireSmartWalletAccount(wallet, "withdrawal");
+      const existing = await smartWalletWithdrawals.store.getByIdForUser(
+        withdrawalId,
+        privyUserId,
+      );
+      if (!existing) {
+        sendError(res, 404, "WITHDRAWAL_NOT_FOUND", "Withdrawal not found.");
+        return;
+      }
+
+      const transactionHash = parseTransactionHash(req.body?.transactionHash);
+      if (
+        existing.status === "confirmed" &&
+        existing.transactionHash === transactionHash
+      ) {
+        res.status(200).json({
+          id: existing.id,
+          status: existing.status,
+          amountUsdc: existing.amountUsdc,
+          transactionHash: existing.transactionHash,
+        });
+        return;
+      }
+
+      if (existing.status === "confirmed") {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal was already confirmed.",
+        );
+      }
+
+      if (existing.status !== "submitted") {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal is not waiting for a receipt.",
+        );
+      }
+
+      if (
+        existing.transactionHash &&
+        existing.transactionHash !== transactionHash
+      ) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal already has a different transaction hash.",
+        );
+      }
+
+      const attached = await smartWalletWithdrawals.store.attachTransactionHash({
+        id: withdrawalId,
+        privyUserId,
+        transactionHash,
+        attachedAt: smartWalletWithdrawals.now(),
+      });
+      if (!attached) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal already has a different transaction hash.",
+        );
+      }
+
+      const plan = toWithdrawPlanFromStoredCalls(attached);
+      const rawAmount = assertExecutableAaveWithdrawPlan(
+        plan,
+        account.smartWalletAddress,
+      );
+
+      try {
+        await smartWalletWithdrawals.verifyReceipt({
+          transactionHash,
+          smartWalletAddress: account.smartWalletAddress,
+          rawAmount,
+        });
+      } catch (error) {
+        const reason =
+          error instanceof AaveWithdrawReceiptPendingError ||
+          error instanceof AaveWithdrawPlanError
+            ? error.message
+            : "This withdrawal is still confirming.";
+        await smartWalletWithdrawals.store.noteVerification({
+          id: withdrawalId,
+          privyUserId,
+          failureReason: reason,
+          notedAt: smartWalletWithdrawals.now(),
+        });
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal is still confirming.",
+        );
+      }
+
+      const confirmed = await smartWalletWithdrawals.store.markConfirmed({
+        id: withdrawalId,
+        privyUserId,
+        transactionHash,
+        confirmedAt: smartWalletWithdrawals.now(),
+      });
+      if (!confirmed) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "This withdrawal cannot be confirmed.",
         );
       }
 

@@ -2,6 +2,7 @@ import { usePrivy } from "@privy-io/expo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, View } from "react-native";
 import type { TabId } from "@/components/AppTabBar";
+import { WithdrawSheet } from "@/components/WithdrawSheet";
 import { TabNavigationProvider } from "@/context/TabNavigationContext";
 import { ActivityScreen } from "@/screens/ActivityScreen";
 import { CardScreen } from "@/screens/CardScreen";
@@ -39,10 +40,16 @@ export function AuthenticatedTabShell({
   const [growth, setGrowth] = useState<GrowthSummary | null>(null);
   const [growthLoading, setGrowthLoading] = useState(true);
   const [growthError, setGrowthError] = useState<string | null>(null);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
   const homeRequestId = useRef(0);
   const growthRequestId = useRef(0);
+  const withdrawExecutingRef = useRef(false);
   const onBalanceDisplayChangeRef = useRef(onBalanceDisplayChange);
   onBalanceDisplayChangeRef.current = onBalanceDisplayChange;
+  const isSmartWallet = authSync.wallet.moneyAddressMode === "smart_wallet";
+  const growBalance = Number(growth?.currentRedeemableUsdc);
+  const canWithdraw =
+    isSmartWallet && Number.isFinite(growBalance) && growBalance > 0;
 
   const isHomeVisible = activeTab === "home" && homeOverlay === null;
 
@@ -76,14 +83,14 @@ export function AuthenticatedTabShell({
     [getAccessToken],
   );
 
-  const refreshHome = useCallback(async () => {
+  const refreshHome = useCallback(async (): Promise<AuthSyncBalance | null> => {
     const requestId = ++homeRequestId.current;
 
     try {
       const accessToken = await getAccessToken();
 
       if (!accessToken) {
-        return;
+        return null;
       }
 
       const [balanceResult, activityResult] = await Promise.allSettled([
@@ -93,18 +100,24 @@ export function AuthenticatedTabShell({
       ]);
 
       if (requestId !== homeRequestId.current) {
-        return;
+        return null;
       }
 
+      let nextBalance: AuthSyncBalance | null = null;
+
       if (balanceResult.status === "fulfilled") {
+        nextBalance = balanceResult.value;
         onBalanceDisplayChangeRef.current?.(balanceResult.value);
       }
 
       if (activityResult.status === "fulfilled") {
         setActivityItems(activityResult.value.items);
       }
+
+      return nextBalance;
     } catch {
       // Keep the last known Home data on screen.
+      return null;
     }
   }, [getAccessToken, refreshGrowth]);
 
@@ -151,9 +164,24 @@ export function AuthenticatedTabShell({
   }, [refreshHome]);
 
   const handleTabPress = (tab: TabId) => {
-    setHomeOverlay(null);
+    if (!withdrawExecutingRef.current) {
+      setHomeOverlay(null);
+    }
     setActiveTab(tab);
   };
+
+  const handleWithdrawClose = useCallback(() => {
+    if (withdrawExecutingRef.current) {
+      return;
+    }
+
+    setWithdrawOpen(false);
+  }, []);
+
+  const handleWithdrawRefresh = useCallback(async () => {
+    const nextBalance = await refreshHome();
+    return nextBalance?.availableUsd ?? authSync.balance.availableUsd;
+  }, [authSync.balance.availableUsd, refreshHome]);
 
   let content = null;
 
@@ -173,7 +201,9 @@ export function AuthenticatedTabShell({
         getAccessToken={getAccessToken}
         onRetry={refreshGrowth}
         onBack={() => setHomeOverlay(null)}
-        onSmartWalletDepositSuccess={refreshHome}
+        onSmartWalletDepositSuccess={async () => {
+          await refreshHome();
+        }}
       />
     );
   } else if (homeOverlay === "send") {
@@ -201,6 +231,8 @@ export function AuthenticatedTabShell({
             onChooseYield={() => setHomeOverlay("choose-yield")}
             onSend={() => setHomeOverlay("send")}
             onReceive={() => setHomeOverlay("receive")}
+            onWithdraw={canWithdraw ? () => setWithdrawOpen(true) : undefined}
+            showWithdraw={canWithdraw}
             onSeeAllActivity={() => setHomeOverlay("activity")}
           />
         ) : null}
@@ -221,6 +253,21 @@ export function AuthenticatedTabShell({
   return (
     <TabNavigationProvider onTabPress={handleTabPress}>
       <View style={{ flex: 1 }}>{content}</View>
+      {isSmartWallet ? (
+        <WithdrawSheet
+          visible={withdrawOpen}
+          growBalanceUsdc={growth?.currentRedeemableUsdc ?? "0"}
+          availableUsd={authSync.balance.availableUsd}
+          moneyAddressMode={authSync.wallet.moneyAddressMode}
+          smartWalletAddress={authSync.wallet.address}
+          getAccessToken={getAccessToken}
+          onClose={handleWithdrawClose}
+          onRefreshBalances={handleWithdrawRefresh}
+          onExecutionLockChange={(locked) => {
+            withdrawExecutingRef.current = locked;
+          }}
+        />
+      ) : null}
     </TabNavigationProvider>
   );
 }
