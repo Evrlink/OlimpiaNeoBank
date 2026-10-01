@@ -5,6 +5,7 @@ import { balanceRouter } from "./balance.js";
 import { fundingRouter } from "./funding.js";
 import { growthRouter } from "./growth.js";
 import { meRouter } from "./me.js";
+import { sendsRouter } from "./sends.js";
 
 export const v1Router = Router();
 
@@ -21,4 +22,5 @@ v1Router.use("/activity", activityRouter);
 v1Router.use("/balance", balanceRouter);
 v1Router.use("/funding", fundingRouter);
 v1Router.use("/growth", growthRouter);
+v1Router.use("/sends", sendsRouter);
 v1Router.use("/me", meRouter);

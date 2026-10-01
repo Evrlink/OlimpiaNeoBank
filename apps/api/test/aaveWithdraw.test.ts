@@ -13,6 +13,7 @@ import {
   BASE_USDC,
 } from "../src/services/aaveAddresses.js";
 import { createMemorySmartWalletDepositStore } from "../src/services/aaveDepositStore.js";
+import { createMemorySmartWalletSendStore } from "../src/services/usdcSendStore.js";
 import {
   AaveWithdrawReceiptPendingError,
   requireAaveSmartWalletWithdrawalsEnabled,
@@ -60,6 +61,7 @@ function createWithdrawApp(input: {
 }) {
   const withdrawStore = createMemorySmartWalletWithdrawStore();
   const depositStore = createMemorySmartWalletDepositStore();
+  const sendStore = createMemorySmartWalletSendStore();
   const app = express();
   app.use(express.json());
   app.use(
@@ -107,10 +109,13 @@ function createWithdrawApp(input: {
         createId: () => WITHDRAW_ID,
         now: () => new Date("2026-09-25T21:00:00.000Z"),
       },
+      smartWalletSends: {
+        store: sendStore,
+      },
     }),
   );
 
-  return { app, withdrawStore, depositStore };
+  return { app, withdrawStore, depositStore, sendStore };
 }
 
 test("withdraw plan is one Pool.withdraw to the same Smart Wallet", () => {

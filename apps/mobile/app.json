@@ -9,7 +9,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "app.olimpia.mobile"
+      "bundleIdentifier": "app.olimpia.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Olimpia uses the camera to scan wallet QR codes."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +21,15 @@
       "package": "app.olimpia.mobile"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Olimpia uses the camera to scan wallet QR codes.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
     ]
   }
 }

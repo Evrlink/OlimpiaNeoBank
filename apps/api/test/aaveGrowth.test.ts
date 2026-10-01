@@ -31,6 +31,7 @@ import {
 } from "../src/services/aaveDepositPlan.js";
 import { createMemorySmartWalletDepositStore } from "../src/services/aaveDepositStore.js";
 import { createMemorySmartWalletWithdrawStore } from "../src/services/aaveWithdrawStore.js";
+import { createMemorySmartWalletSendStore } from "../src/services/usdcSendStore.js";
 import { getHomeGrowthForWallet } from "../src/services/walletGrowth.js";
 
 const SMART = "0x545803dDb0eE8eB96A531628cB8d3E0306d7e4CA";
@@ -257,6 +258,9 @@ function createDepositApp(input: {
         verifyReceipt: async () => undefined,
         createId: () => "55555555-5555-5555-5555-555555555555",
         now: () => new Date("2026-09-25T21:00:00.000Z"),
+      },
+      smartWalletSends: {
+        store: createMemorySmartWalletSendStore(),
       },
     }),
   );

@@ -32,6 +32,7 @@ type EmptyHomeScreenProps = {
   onChooseYield: () => void;
   onSend: () => void;
   onReceive: () => void;
+  canOpenSend?: boolean;
   onWithdraw?: () => void;
   showWithdraw?: boolean;
   onSeeAllActivity?: () => void;
@@ -99,6 +100,7 @@ export function EmptyHomeScreen({
   onChooseYield,
   onSend,
   onReceive,
+  canOpenSend = false,
   onWithdraw,
   showWithdraw = false,
   onSeeAllActivity,
@@ -311,13 +313,27 @@ export function EmptyHomeScreen({
             <Text style={styles.balanceLine}>Balance · ${balance.totalDisplayUsd}</Text>
 
             <View style={styles.quickRow}>
-              <View style={styles.quickItem} accessibilityRole="text">
-                <View style={styles.quickIconWrapDisabled}>
-                  <Ionicons name="arrow-up-outline" size={16} color={colors.inkMuted} />
+              {canOpenSend ? (
+                <Pressable
+                  style={styles.quickItemActive}
+                  onPress={onSend}
+                  accessibilityRole="button"
+                  accessibilityLabel="Send"
+                >
+                  <View style={styles.quickIconWrap}>
+                    <Ionicons name="arrow-up-outline" size={16} color={colors.raspberry} />
+                  </View>
+                  <Text style={styles.quickLabel}>Send</Text>
+                </Pressable>
+              ) : (
+                <View style={styles.quickItem} accessibilityRole="text">
+                  <View style={styles.quickIconWrapDisabled}>
+                    <Ionicons name="arrow-up-outline" size={16} color={colors.inkMuted} />
+                  </View>
+                  <Text style={styles.quickLabelDisabled}>Send</Text>
+                  <Text style={styles.quickComingSoon}>Coming soon</Text>
                 </View>
-                <Text style={styles.quickLabelDisabled}>Send</Text>
-                <Text style={styles.quickComingSoon}>Coming soon</Text>
-              </View>
+              )}
               <Pressable
                 style={styles.quickItemActive}
                 onPress={onReceive}

@@ -44,6 +44,7 @@ export function AuthenticatedTabShell({
   const homeRequestId = useRef(0);
   const growthRequestId = useRef(0);
   const withdrawExecutingRef = useRef(false);
+  const sendExecutingRef = useRef(false);
   const onBalanceDisplayChangeRef = useRef(onBalanceDisplayChange);
   onBalanceDisplayChangeRef.current = onBalanceDisplayChange;
   const isSmartWallet = authSync.wallet.moneyAddressMode === "smart_wallet";
@@ -164,7 +165,7 @@ export function AuthenticatedTabShell({
   }, [refreshHome]);
 
   const handleTabPress = (tab: TabId) => {
-    if (!withdrawExecutingRef.current) {
+    if (!withdrawExecutingRef.current && !sendExecutingRef.current) {
       setHomeOverlay(null);
     }
     setActiveTab(tab);
@@ -207,7 +208,29 @@ export function AuthenticatedTabShell({
       />
     );
   } else if (homeOverlay === "send") {
-    content = <SendMoneyScreen onBack={() => setHomeOverlay(null)} />;
+    content = (
+      <SendMoneyScreen
+        onBack={() => {
+          if (!sendExecutingRef.current) {
+            setHomeOverlay(null);
+          }
+        }}
+        availableUsd={authSync.balance.availableUsd}
+        moneyAddressMode={authSync.wallet.moneyAddressMode}
+        smartWalletAddress={
+          authSync.wallet.moneyAddressMode === "smart_wallet"
+            ? authSync.wallet.address
+            : null
+        }
+        getAccessToken={getAccessToken}
+        onSent={async () => {
+          await refreshHome();
+        }}
+        onExecutionLockChange={(locked) => {
+          sendExecutingRef.current = locked;
+        }}
+      />
+    );
   } else if (homeOverlay === "receive") {
     content = (
       <ReceiveMoneyScreen
@@ -231,6 +254,7 @@ export function AuthenticatedTabShell({
             onChooseYield={() => setHomeOverlay("choose-yield")}
             onSend={() => setHomeOverlay("send")}
             onReceive={() => setHomeOverlay("receive")}
+            canOpenSend={isSmartWallet}
             onWithdraw={canWithdraw ? () => setWithdrawOpen(true) : undefined}
             showWithdraw={canWithdraw}
             onSeeAllActivity={() => setHomeOverlay("activity")}

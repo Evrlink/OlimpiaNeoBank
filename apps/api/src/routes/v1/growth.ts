@@ -44,6 +44,10 @@ import {
 } from "../../services/aaveWithdrawStore.js";
 import { getUsdcRawOnBase } from "../../services/usdcBalance.js";
 import {
+  createPostgresSmartWalletSendStore,
+  type SmartWalletSendStore,
+} from "../../services/usdcSendStore.js";
+import {
   createDefaultGrowthAuthorizationService,
   GrowthAuthorizationError,
 } from "../../services/privyGrowthAuthorization.js";
@@ -89,6 +93,10 @@ type SmartWalletWithdrawDependencies = {
   now: () => Date;
 };
 
+type SmartWalletSendLockDependencies = {
+  store: SmartWalletSendStore;
+};
+
 type GrowthRouterDependencies = {
   auth: RequestHandler;
   lookupWallet: (privyUserId: string) => Promise<WalletLookup>;
@@ -96,6 +104,7 @@ type GrowthRouterDependencies = {
   authorization: GrowthAuthorizationService;
   smartWalletDeposits: SmartWalletDepositDependencies;
   smartWalletWithdrawals: SmartWalletWithdrawDependencies;
+  smartWalletSends: SmartWalletSendLockDependencies;
 };
 
 function usesSmartWallet(wallet: WalletLookup): boolean {
@@ -126,6 +135,12 @@ function defaultSmartWalletWithdrawals(): SmartWalletWithdrawDependencies {
     verifyReceipt: verifyAaveWithdrawReceipt,
     createId: () => randomUUID(),
     now: () => new Date(),
+  };
+}
+
+function defaultSmartWalletSendLock(): SmartWalletSendLockDependencies {
+  return {
+    store: createPostgresSmartWalletSendStore(),
   };
 }
 
@@ -272,6 +287,8 @@ export function createGrowthRouter(
     dependencies.smartWalletDeposits ?? defaultSmartWalletDeposits();
   const smartWalletWithdrawals =
     dependencies.smartWalletWithdrawals ?? defaultSmartWalletWithdrawals();
+  const smartWalletSends =
+    dependencies.smartWalletSends ?? defaultSmartWalletSendLock();
   const router = Router();
 
   router.get("/", auth, async (req, res) => {
@@ -376,6 +393,13 @@ export function createGrowthRouter(
           409,
           "VALIDATION_ERROR",
           "A withdrawal is already in progress.",
+        );
+      }
+      if (await smartWalletSends.store.hasSubmittedForUser(account.userId)) {
+        throw new AaveDepositPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "A send is already in progress.",
         );
       }
       const vault = await smartWalletDeposits.getVault();
@@ -695,6 +719,13 @@ export function createGrowthRouter(
           409,
           "VALIDATION_ERROR",
           "A deposit is already in progress.",
+        );
+      }
+      if (await smartWalletSends.store.hasSubmittedForUser(account.userId)) {
+        throw new AaveWithdrawPlanError(
+          409,
+          "VALIDATION_ERROR",
+          "A send is already in progress.",
         );
       }
       const vault = await smartWalletWithdrawals.getVault();

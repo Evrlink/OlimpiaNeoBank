@@ -119,6 +119,11 @@ export const env = {
     process.env.AAVE_SMART_WALLET_WITHDRAWALS_ENABLED,
     false,
   ),
+  /** 3E.1 kill switch. Default off. Never enable in this change. */
+  smartWalletSendsEnabled: parseBoolean(
+    process.env.SMART_WALLET_SENDS_ENABLED,
+    false,
+  ),
 };
 
 export function requirePrivyConfig(): void {
