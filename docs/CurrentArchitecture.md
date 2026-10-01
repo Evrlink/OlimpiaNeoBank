@@ -1,6 +1,6 @@
 # Olimpia — Current Architecture
 
-**Status:** Implemented architecture at commit `dac4cff`  
+**Status:** Implemented architecture at commit `3cf806b`  
 **Scope:** What the code does today, not the older planned V1 docs  
 **This file is the source of truth** until later documentation is aligned to it
 
@@ -12,14 +12,21 @@ Older docs (`docs/V1Architecture.md`, `docs/architecture/Architecture.md`, and r
 
 | Stage | Meaning | Status |
 |-------|---------|--------|
-| **3A** | Sponsored-gas proof (Coinbase Smart Wallet + Paymaster) | **Complete.** The Sepolia proof screen remains `__DEV__` only. Production Grow gas is Base Mainnet. |
-| **3B** | Smart Wallet money layer (identity, Receive, Available, Activity) | **Complete** |
-| **3C** | Smart Wallet → Aave Grow deposits with Coinbase-sponsored gas | **Complete** (implementation + live Base deposits). Execution is **gated OFF by default**. |
-| **3D** | Withdraw from Grow back to Available | **Not built** |
+| **3A** | Sponsored-gas proof (Coinbase Smart Wallet + Paymaster) | ✅ **Complete.** The Sepolia proof screen remains `__DEV__` only. Production Grow gas is Base Mainnet. |
+| **3B** | Smart Wallet money layer (identity, Receive, Available, Activity) | ✅ **Complete** |
+| **3C** | Smart Wallet → Aave Grow deposits with Coinbase-sponsored gas | ✅ **Complete** (implementation + live Base deposits). Execution is **gated OFF by default**. |
+| **3D** | Withdraw from Grow back to Available | ✅ **Complete** (implementation + live Base withdrawal). Execution is **gated OFF by default**. |
 
 Live Smart Wallet Grow deposits of $0.10 and $0.20 were confirmed on Base Mainnet. That proves the 3C path. It does not mean production execution is left on.
 
-The Grow execution kill switch `AAVE_SMART_WALLET_DEPOSITS_ENABLED` **defaults to false**. Prepare is allowed while the flag is off. Submit, send, and confirm stop before any UserOperation is sent.
+A controlled Smart Wallet Grow withdrawal of exactly $0.10 USDC was confirmed on Base Mainnet on **September 30, 2026**. That proves the 3D path. It does not mean production execution is left on.
+
+Both Grow execution kill switches **default to false**:
+
+- `AAVE_SMART_WALLET_DEPOSITS_ENABLED`
+- `AAVE_SMART_WALLET_WITHDRAWALS_ENABLED`
+
+Prepare is allowed while a flag is off. Submit, send, and confirm stop before any UserOperation is sent. After the 3D live verification, both flags were returned to **OFF**.
 
 ---
 
@@ -109,7 +116,7 @@ The backend ledger (`user_balances`) is **not** what Home Available shows for Sm
 | `smart_wallet` | Base USDC `Transfer` logs for the Smart Wallet (`getUsdcActivityOnBase`) |
 | `eoa` | Existing Privy wallet activity path (`getHomeActivityForPrivyWallet`) |
 
-Smart Wallet activity is USDC transfers only. A Grow supply appears as USDC leaving the Smart Wallet. aUSDC mints are not a separate activity feed.
+Smart Wallet activity is USDC transfers only. A Grow supply appears as USDC leaving the Smart Wallet. A Grow withdraw appears as USDC returning to the Smart Wallet. aUSDC mints and burns are not a separate activity feed.
 
 ---
 
@@ -160,9 +167,64 @@ Statuses: `prepared` → `submitted` → `confirmed`. `failed` is allowed only w
 - Privy Earn is not the Smart Wallet Grow architecture.
 - EOA Grow reads may still use Privy Earn position/metadata. That is a legacy read/authorize path, not current Smart Wallet execution.
 
-### Grow withdrawal (3D)
+### Smart Wallet Grow withdrawal (3D)
 
-**Not built.** There is no Smart Wallet withdraw route and no Earn withdraw execution. Do not document withdrawal as complete.
+Implemented for `money_address_mode = smart_wallet` only.
+
+Flow: **Olimpia Grow / Aave → Coinbase Smart Wallet → Available USDC**.
+
+1. User chooses an exact amount ≤ Grow (aUSDC) on Home → Withdraw.
+2. Mobile prepares `POST /api/v1/growth/smart-wallet-withdrawals/prepare`.
+3. If the withdrawal kill switch is off, Confirm returns before `getClientForChain` / `sendTransaction`.
+4. If the withdrawal kill switch is on:
+   - Client re-checks the plan (`assertExecutableAaveWithdrawPlan`).
+   - `POST .../sending` sets `send_attempted_at` **before** broadcast.
+   - One Coinbase Smart Wallet UserOperation is sent on Base (`sendTransaction` once).
+   - That UserOperation contains exactly one call:
+     - Aave V3 Base Pool `withdraw(address,uint256,address)` of the **exact** amount
+     - `to` / destination = the same Coinbase Smart Wallet
+   - No ERC-20 `approve` is required for withdraw.
+   - `uint256.max` is rejected by server and client.
+   - Coinbase CDP Paymaster sponsors gas (Dashboard configuration only; no Paymaster URL or credential is in the repo or client).
+   - After `sendTransaction` returns a hash, that hash is persisted, then the receipt is verified.
+5. Available increases by the withdrawn USDC. Grow is the remaining Smart Wallet **aUSDC**.
+
+EOA users cannot use this prepare / submit / sending / send / confirm path (`requireSmartWalletAccount`).
+
+**No Privy Earn `_withdraw` execution exists.** Privy Earn is not the Smart Wallet Grow withdrawal architecture.
+
+### Retry-safe withdrawal model (3D)
+
+Statuses: `prepared` → `submitted` → `confirmed`. `failed` is allowed only when `transaction_hash` is null **and** `send_attempted_at` is null.
+
+| Rule | Behavior |
+|------|----------|
+| Send-attempt lock | `POST .../sending` sets `send_attempted_at` before `sendTransaction`. An uncertain send is not automatically resent |
+| Persist hash first | Client stores the send hash, then `POST .../confirm` attaches it **before** receipt verification |
+| Known hash is confirm-only | If a hash is already in memory, retry confirms that hash only. It does not send again |
+| Hashed `submitted` cannot send again | Prepare will not replace an open `submitted` row |
+| Same hash only | A different replacement hash is rejected |
+| `/fail` | Rejects a row that already has a hash, or a row with `send_attempted_at` set |
+| Receipt not ready / mismatch | Stays `submitted`; confirm returns 409 “still confirming”; does not mark failed |
+
+### Deposit / withdrawal cross-lock
+
+Prepare refuses if the **other** side already has a `submitted` row for that user. A submitted deposit blocks preparing a withdrawal, and a submitted withdrawal blocks preparing a deposit.
+
+### September 30, 2026 controlled Base Mainnet verification
+
+Live-verified on Base Mainnet. After this test, both kill switches were returned to **OFF**.
+
+| Item | Result |
+|------|--------|
+| Amount | Exactly **$0.10 USDC** (`100000` USDC units) withdrawn from Grow |
+| Available | **$0.70 → $0.80** |
+| Grow / aUSDC | Approximately **$0.300157 → $0.200157** |
+| Receipt | Succeeded |
+| Aave V3 `Withdraw` event | Verified; destination = the Coinbase Smart Wallet |
+| Gas | Coinbase Paymaster sponsored; Smart Wallet paid no ETH gas |
+| Original Privy EOA | Not involved; remaining USDC / ETH untouched |
+| Transaction hash | `0xa81e25911a43d1456418c2b07d16df433df2aa06d1da2ecd658b6afe8a27b62f` |
 
 ---
 
@@ -170,7 +232,7 @@ Statuses: `prepared` → `submitted` → `confirmed`. `failed` is allowed only w
 
 | Item | Implemented |
 |------|-------------|
-| Grow gas (Smart Wallet, Base) | Coinbase CDP Paymaster sponsorship |
+| Grow deposit and withdrawal gas (Smart Wallet, Base) | Coinbase CDP Paymaster sponsorship |
 | Who pays Grow gas | Coinbase Paymaster, not Privy, and not the user’s ETH |
 | Where Paymaster is configured | Coinbase Developer Platform Dashboard only |
 | In repo / client | No Paymaster URL, secret, or credential |
@@ -179,16 +241,16 @@ The 3A Sepolia sponsorship screen is `__DEV__` only and is not the production Gr
 
 ---
 
-## 9. Kill switch
+## 9. Kill switches
 
-`AAVE_SMART_WALLET_DEPOSITS_ENABLED` is parsed with default **false** (`apps/api/src/config/env.ts`).
+Both flags are parsed with default **false** (`apps/api/src/config/env.ts`). They are independent.
 
-| Flag | Prepare | Submit / send / confirm |
-|------|---------|-------------------------|
-| `false` (default) | Allowed | Blocked before any UserOperation |
-| `true` | Allowed | Smart Wallet Aave deposit may send |
+| Flag | Default | Prepare | Submit / send / confirm |
+|------|---------|---------|-------------------------|
+| `AAVE_SMART_WALLET_DEPOSITS_ENABLED` | `false` | Allowed | Deposit UserOperation blocked unless `true` |
+| `AAVE_SMART_WALLET_WITHDRAWALS_ENABLED` | `false` | Allowed | Withdrawal UserOperation blocked unless `true` |
 
-Do not put a Paymaster URL in this variable or in any client env.
+Do not put a Paymaster URL in these variables or in any client env. After the September 30, 2026 live withdrawal, both flags were returned to **OFF**.
 
 ---
 
@@ -203,7 +265,7 @@ Do not put a Paymaster URL in this variable or in any client env.
 | Privy Earn as Smart Wallet Grow execution | Incorrect. Do not use. |
 | Ledger as Smart Wallet Available/Activity truth | Incorrect. Those reads are on-chain. |
 | Sepolia as production money/gas architecture | Incorrect. Production money path is Base Mainnet. |
-| Grow withdrawal | **Not built** |
+| Grow withdrawal (3D) | **Built** for Smart Wallet users. Live-verified on Base. Execution remains **gated OFF by default**. |
 
 ---
 
@@ -221,10 +283,12 @@ flowchart TD
   sw --> receiveSW[Receive USDC on Base]
   receiveSW --> availSW[Available = USDC.balanceOf SW]
   availSW --> actSW[Activity = Base USDC Transfer logs]
-  availSW --> growSW[Grow: one UserOp<br/>exact approve + Aave supply]
+  availSW --> growSW[Grow deposit: one UserOp<br/>exact approve + Aave supply]
   growSW --> paymaster[CDP Paymaster sponsors gas]
   growSW --> ausdc[aUSDC held by Smart Wallet]
-  ausdc -.-> withdrawMissing[3D withdraw: not built]
+  ausdc --> withdrawSW[Grow withdraw: one UserOp<br/>exact Aave withdraw to same SW]
+  withdrawSW --> paymaster
+  withdrawSW --> availSW
 
   eoaMoney --> receiveEOA[Receive USDC on Base]
   receiveEOA --> availEOA[Available = Privy USDC balance]
@@ -275,7 +339,22 @@ flowchart TD
 | `apps/mobile/src/services/aavePlanGuard.ts` | Client send guards |
 | `apps/mobile/src/services/api/growth.ts` | Prepare / submit / confirm / fail clients |
 | `apps/mobile/App.tsx` | `SmartWalletsProvider` |
-| `apps/api/src/config/env.ts` | `aaveSmartWalletDepositsEnabled` default `false` |
+| `apps/api/src/config/env.ts` | `aaveSmartWalletDepositsEnabled` and `aaveSmartWalletWithdrawalsEnabled` default `false` |
+
+### Smart Wallet Grow withdrawal
+
+| File | Role |
+|------|------|
+| `apps/api/src/services/aaveWithdrawPlan.ts` | Exact Pool `withdraw`; reject `uint256.max`; destination must be the same Smart Wallet |
+| `apps/api/src/services/aaveWithdrawExecution.ts` | Withdrawal kill switch; attach-then-verify receipt rules |
+| `apps/api/src/services/aaveWithdrawStore.ts` | `prepared` / `submitted` / `confirmed` / `failed`; hash attach; `send_attempted_at`; fail only if hash and send-attempt are both null |
+| `apps/api/src/routes/v1/growth.ts` | Withdraw prepare, submit, sending, fail, confirm; deposit/withdrawal cross-lock |
+| `apps/api/migrations/009_smart_wallet_withdrawals.sql` | Withdrawal rows |
+| `apps/api/migrations/010_smart_wallet_withdrawals_send_attempted.sql` | `send_attempted_at` |
+| `apps/mobile/src/components/WithdrawSheet.tsx` | Amount / Processing / Done; confirm-only retry |
+| `apps/mobile/src/services/aaveWithdrawExecution.ts` | Send-attempt lock; one `sendTransaction`; confirm-only if hash is known |
+| `apps/mobile/src/services/aaveWithdrawPlanGuard.ts` | Client send guards |
+| `apps/mobile/src/services/api/growth.ts` | Withdraw prepare / submit / sending / confirm / fail clients |
 
 ### Legacy EOA authorize (frozen execution)
 
@@ -301,4 +380,4 @@ flowchart TD
 
 ---
 
-*End of Current Architecture (`dac4cff`)*
+*End of Current Architecture (`3cf806b`)*
