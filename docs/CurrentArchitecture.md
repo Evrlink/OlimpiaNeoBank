@@ -1,6 +1,6 @@
 # Olimpia — Current Architecture
 
-**Status:** Implemented architecture at commit `3cf806b`  
+**Status:** Implemented architecture through commit `52375f1`  
 **Scope:** What the code does today, not the older planned V1 docs  
 **This file is the source of truth** until later documentation is aligned to it
 
@@ -16,17 +16,21 @@ Older docs (`docs/V1Architecture.md`, `docs/architecture/Architecture.md`, and r
 | **3B** | Smart Wallet money layer (identity, Receive, Available, Activity) | ✅ **Complete** |
 | **3C** | Smart Wallet → Aave Grow deposits with Coinbase-sponsored gas | ✅ **Complete** (implementation + live Base deposits). Execution is **gated OFF by default**. |
 | **3D** | Withdraw from Grow back to Available | ✅ **Complete** (implementation + live Base withdrawal). Execution is **gated OFF by default**. |
+| **3E** | Smart Wallet Send (Available USDC → any valid Base address) | ✅ **Implemented.** Live transaction test is **deferred**. Execution is **gated OFF by default**. |
 
 Live Smart Wallet Grow deposits of $0.10 and $0.20 were confirmed on Base Mainnet. That proves the 3C path. It does not mean production execution is left on.
 
 A controlled Smart Wallet Grow withdrawal of exactly $0.10 USDC was confirmed on Base Mainnet on **September 30, 2026**. That proves the 3D path. It does not mean production execution is left on.
 
-Both Grow execution kill switches **default to false**:
+**No live Stage 3E Send transaction has been executed yet.** Implementation and API tests are complete. Physical-device native Paste verification is a pre-release check. The iOS 27 Device Hub simulator pasteboard is broken and is not a reason to change the Send field.
+
+All three money-movement kill switches **default to false** and are currently **OFF**:
 
 - `AAVE_SMART_WALLET_DEPOSITS_ENABLED`
 - `AAVE_SMART_WALLET_WITHDRAWALS_ENABLED`
+- `SMART_WALLET_SENDS_ENABLED`
 
-Prepare is allowed while a flag is off. Submit, send, and confirm stop before any UserOperation is sent. After the 3D live verification, both flags were returned to **OFF**.
+Prepare is allowed while a flag is off. Submit, send, and confirm stop before any UserOperation is sent. After the 3D live verification, both Grow flags were returned to **OFF**. After the paused 3E live-test prep, the Send flag was returned to **OFF**.
 
 ---
 
@@ -60,7 +64,7 @@ Olimpia has **two money modes**. Mode is chosen once, on first wallet insert, an
 
 - New users with a linked Smart Wallet get `money_address_mode = smart_wallet`.
 - The public wallet address returned by `/auth/sync` and `/me` is the Smart Wallet (`toPublicMoneyAddress`).
-- Receive, Available, Activity, and Grow for those users all use that Smart Wallet.
+- Receive, Available, Activity, Grow, and Send for those users all use that Smart Wallet. The hidden Privy EOA is never the Send sender.
 
 ---
 
@@ -116,7 +120,7 @@ The backend ledger (`user_balances`) is **not** what Home Available shows for Sm
 | `smart_wallet` | Base USDC `Transfer` logs for the Smart Wallet (`getUsdcActivityOnBase`) |
 | `eoa` | Existing Privy wallet activity path (`getHomeActivityForPrivyWallet`) |
 
-Smart Wallet activity is USDC transfers only. A Grow supply appears as USDC leaving the Smart Wallet. A Grow withdraw appears as USDC returning to the Smart Wallet. aUSDC mints and burns are not a separate activity feed.
+Smart Wallet activity is USDC transfers only. A Grow supply appears as USDC leaving the Smart Wallet. A Grow withdraw appears as USDC returning to the Smart Wallet. A Smart Wallet Send appears as USDC leaving the Smart Wallet to the destination. aUSDC mints and burns are not a separate activity feed. No extra Activity wiring is required for Send.
 
 ---
 
@@ -207,9 +211,13 @@ Statuses: `prepared` → `submitted` → `confirmed`. `failed` is allowed only w
 | `/fail` | Rejects a row that already has a hash, or a row with `send_attempted_at` set |
 | Receipt not ready / mismatch | Stays `submitted`; confirm returns 409 “still confirming”; does not mark failed |
 
-### Deposit / withdrawal cross-lock
+### Deposit / withdrawal / Send cross-lock
 
-Prepare refuses if the **other** side already has a `submitted` row for that user. A submitted deposit blocks preparing a withdrawal, and a submitted withdrawal blocks preparing a deposit.
+Prepare refuses if another money-movement path already has a `submitted` row for that user.
+
+- A submitted deposit blocks preparing a withdrawal or a Send.
+- A submitted withdrawal blocks preparing a deposit or a Send.
+- A submitted Send blocks preparing a deposit or a withdrawal.
 
 ### September 30, 2026 controlled Base Mainnet verification
 
@@ -228,33 +236,90 @@ Live-verified on Base Mainnet. After this test, both kill switches were returned
 
 ---
 
-## 8. Gas
+## 8. Send
 
-| Item | Implemented |
-|------|-------------|
-| Grow deposit and withdrawal gas (Smart Wallet, Base) | Coinbase CDP Paymaster sponsorship |
-| Who pays Grow gas | Coinbase Paymaster, not Privy, and not the user’s ETH |
-| Where Paymaster is configured | Coinbase Developer Platform Dashboard only |
-| In repo / client | No Paymaster URL, secret, or credential |
+Product name: **Send**. Implemented for `money_address_mode = smart_wallet` only.
 
-The 3A Sepolia sponsorship screen is `__DEV__` only and is not the production Grow path.
+**Status:** Implemented at commit `52375f1`. **No live Stage 3E Send transaction has been executed yet.** The live test is deferred. Execution remains gated **OFF**.
+
+Flow: **Available USDC on the Coinbase Smart Wallet → any valid Base wallet address**.
+
+Send uses **Available USDC only**. It never spends Grow / aUSDC. Amount cannot exceed `USDC.balanceOf(smartWallet)`. Destinations that are the same Smart Wallet, the zero address, Base USDC, aUSDC, or the Aave V3 Pool are rejected. `uint256.max` is rejected.
+
+1. Smart Wallet users can open Send even with $0 Available. The Send button stays disabled until the amount is valid and ≤ Available. EOA users cannot execute this path.
+2. Mobile prepares `POST /api/v1/sends/prepare`.
+3. Same-screen states: **Send → Confirm Send → Sending → Sent**.
+4. Confirm Send shows the amount and a shortened destination. Sending holds an execution lock against duplicate taps.
+5. If the Send kill switch is off, Confirm returns before `getClientForChain` / `sendTransaction`.
+6. If the Send kill switch is on:
+   - Client re-checks the plan (`assertExecutableUsdcSendPlan`).
+   - `POST /api/v1/sends/:id/sending` sets `send_attempted_at` **before** broadcast.
+   - One Coinbase Smart Wallet UserOperation is sent on Base (`sendTransaction` once).
+   - That UserOperation contains exactly one call:
+     - Official Base USDC `transfer(address,uint256)` of the **exact** entered amount
+     - `to` = Base USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
+     - Native value = `0`
+   - Chain is Base Mainnet, chain ID `8453`.
+   - The sender is the Coinbase Smart Wallet. The hidden Privy EOA is never the sender.
+   - Coinbase CDP Paymaster sponsors gas (Dashboard configuration only; no Paymaster URL or credential is in the repo or client).
+   - After `sendTransaction` returns a hash, that hash is persisted, then the receipt is verified (USDC `Transfer` from the Smart Wallet to the destination for the exact amount).
+7. Sent shows amount sent, shortened destination, transaction hash, and **View Transaction on BaseScan**. Done closes Send and refreshes Home Available and Activity.
+
+EOA users cannot use this prepare / submit / sending / send / confirm path (`requireSmartWalletAccount`).
+
+Outgoing Send USDC is a normal Base USDC `Transfer` from the Smart Wallet, so it appears in existing Smart Wallet Activity with no extra feed.
+
+### QR and Paste
+
+- **Scan QR** uses `expo-camera` and parses a Base wallet address (bare `0x`, `ethereum:`, `eip155:8453:`). Paste / manual entry remains available if camera permission is denied or the camera native module is missing.
+- The wallet-address field is a normal iOS `TextInput` (`textContentType="none"`, `autoComplete="off"`). The intended product paste path is the native long-press **Paste** menu.
+- Physical-device native Paste verification remains a **pre-release check**. The iOS 27 Device Hub simulator pasteboard is broken (`simctl pbcopy` reports success but the device pasteboard stays empty). Do not change the Send field to work around that host bug.
+
+### Retry-safe Send model (3E)
+
+Statuses: `prepared` → `submitted` → `confirmed`. `failed` is allowed only when `transaction_hash` is null **and** `send_attempted_at` is null.
+
+| Rule | Behavior |
+|------|----------|
+| Send-attempt lock | `POST .../sending` sets `send_attempted_at` before `sendTransaction`. An uncertain send is not automatically resent |
+| Persist hash first | Client stores the send hash, then `POST .../confirm` attaches it **before** receipt verification |
+| Known hash is confirm-only | If a hash is already in memory, retry confirms that hash only. It does not send again |
+| Hashed `submitted` cannot send again | Prepare will not replace an open `submitted` row |
+| Same hash only | A different replacement hash is rejected |
+| `/fail` | Rejects a row that already has a hash, or a row with `send_attempted_at` set |
+| Receipt not ready / mismatch | Stays `submitted`; confirm returns 409 “still confirming”; does not mark failed |
 
 ---
 
-## 9. Kill switches
+## 9. Gas
 
-Both flags are parsed with default **false** (`apps/api/src/config/env.ts`). They are independent.
+| Item | Implemented |
+|------|-------------|
+| Grow deposit, Grow withdrawal, and Send gas (Smart Wallet, Base) | Coinbase CDP Paymaster sponsorship |
+| Who pays that gas | Coinbase Paymaster, not Privy, and not the user’s ETH |
+| Where Paymaster is configured | Coinbase Developer Platform Dashboard only |
+| CDP Base Mainnet allowlist | USDC `approve(address,uint256)` and USDC `transfer(address,uint256)`. Aave Pool configuration is unchanged |
+| In repo / client | No Paymaster URL, secret, or credential |
+
+The 3A Sepolia sponsorship screen is `__DEV__` only and is not the production Grow or Send path.
+
+---
+
+## 10. Kill switches
+
+All three flags are parsed with default **false** (`apps/api/src/config/env.ts`). They are independent. All three are currently **OFF**.
 
 | Flag | Default | Prepare | Submit / send / confirm |
 |------|---------|---------|-------------------------|
 | `AAVE_SMART_WALLET_DEPOSITS_ENABLED` | `false` | Allowed | Deposit UserOperation blocked unless `true` |
 | `AAVE_SMART_WALLET_WITHDRAWALS_ENABLED` | `false` | Allowed | Withdrawal UserOperation blocked unless `true` |
+| `SMART_WALLET_SENDS_ENABLED` | `false` | Allowed | Send UserOperation blocked unless `true` |
 
-Do not put a Paymaster URL in these variables or in any client env. After the September 30, 2026 live withdrawal, both flags were returned to **OFF**.
+Do not put a Paymaster URL in these variables or in any client env. After the September 30, 2026 live withdrawal, both Grow flags were returned to **OFF**. After the paused 3E live-test prep, `SMART_WALLET_SENDS_ENABLED` was returned to **OFF**.
 
 ---
 
-## 10. What is not current architecture
+## 11. What is not current architecture
 
 | Topic | Status |
 |-------|--------|
@@ -266,10 +331,11 @@ Do not put a Paymaster URL in these variables or in any client env. After the Se
 | Ledger as Smart Wallet Available/Activity truth | Incorrect. Those reads are on-chain. |
 | Sepolia as production money/gas architecture | Incorrect. Production money path is Base Mainnet. |
 | Grow withdrawal (3D) | **Built** for Smart Wallet users. Live-verified on Base. Execution remains **gated OFF by default**. |
+| Smart Wallet Send (3E) | **Built** for Smart Wallet users. **No live Send transaction yet.** Execution remains **gated OFF by default**. Physical-device native Paste is a pre-release check. |
 
 ---
 
-## 11. Architecture flow
+## 12. Architecture flow
 
 ```mermaid
 flowchart TD
@@ -284,7 +350,10 @@ flowchart TD
   receiveSW --> availSW[Available = USDC.balanceOf SW]
   availSW --> actSW[Activity = Base USDC Transfer logs]
   availSW --> growSW[Grow deposit: one UserOp<br/>exact approve + Aave supply]
+  availSW --> sendSW[Send: one UserOp<br/>exact USDC transfer]
   growSW --> paymaster[CDP Paymaster sponsors gas]
+  sendSW --> paymaster
+  sendSW --> actSW
   growSW --> ausdc[aUSDC held by Smart Wallet]
   ausdc --> withdrawSW[Grow withdraw: one UserOp<br/>exact Aave withdraw to same SW]
   withdrawSW --> paymaster
@@ -298,7 +367,7 @@ flowchart TD
 
 ---
 
-## 12. Code entrypoints
+## 13. Code entrypoints
 
 ### Identity and mode
 
@@ -314,7 +383,7 @@ flowchart TD
 | File | Role |
 |------|------|
 | `apps/mobile/src/screens/ReceiveMoneyScreen.tsx` | Shows public money address |
-| `apps/mobile/src/components/AuthenticatedTabShell.tsx` | Passes `/me` address into Receive / Grow |
+| `apps/mobile/src/components/AuthenticatedTabShell.tsx` | Passes `/me` address into Receive / Grow / Send |
 | `apps/api/src/services/walletBalance.ts` | Mode split for Available |
 | `apps/api/src/services/usdcBalance.ts` | Base USDC `balanceOf` |
 | `apps/api/src/services/privyBalance.ts` | Legacy EOA Privy balance |
@@ -339,7 +408,7 @@ flowchart TD
 | `apps/mobile/src/services/aavePlanGuard.ts` | Client send guards |
 | `apps/mobile/src/services/api/growth.ts` | Prepare / submit / confirm / fail clients |
 | `apps/mobile/App.tsx` | `SmartWalletsProvider` |
-| `apps/api/src/config/env.ts` | `aaveSmartWalletDepositsEnabled` and `aaveSmartWalletWithdrawalsEnabled` default `false` |
+| `apps/api/src/config/env.ts` | Deposit, withdrawal, and Send kill switches default `false` |
 
 ### Smart Wallet Grow withdrawal
 
@@ -348,13 +417,28 @@ flowchart TD
 | `apps/api/src/services/aaveWithdrawPlan.ts` | Exact Pool `withdraw`; reject `uint256.max`; destination must be the same Smart Wallet |
 | `apps/api/src/services/aaveWithdrawExecution.ts` | Withdrawal kill switch; attach-then-verify receipt rules |
 | `apps/api/src/services/aaveWithdrawStore.ts` | `prepared` / `submitted` / `confirmed` / `failed`; hash attach; `send_attempted_at`; fail only if hash and send-attempt are both null |
-| `apps/api/src/routes/v1/growth.ts` | Withdraw prepare, submit, sending, fail, confirm; deposit/withdrawal cross-lock |
+| `apps/api/src/routes/v1/growth.ts` | Withdraw prepare, submit, sending, fail, confirm; deposit / withdrawal / Send cross-lock |
 | `apps/api/migrations/009_smart_wallet_withdrawals.sql` | Withdrawal rows |
 | `apps/api/migrations/010_smart_wallet_withdrawals_send_attempted.sql` | `send_attempted_at` |
 | `apps/mobile/src/components/WithdrawSheet.tsx` | Amount / Processing / Done; confirm-only retry |
 | `apps/mobile/src/services/aaveWithdrawExecution.ts` | Send-attempt lock; one `sendTransaction`; confirm-only if hash is known |
 | `apps/mobile/src/services/aaveWithdrawPlanGuard.ts` | Client send guards |
 | `apps/mobile/src/services/api/growth.ts` | Withdraw prepare / submit / sending / confirm / fail clients |
+
+### Smart Wallet Send
+
+| File | Role |
+|------|------|
+| `apps/api/src/services/usdcSendPlan.ts` | Exact USDC `transfer`; reject self, protocol, zero, `uint256.max`, over-Available |
+| `apps/api/src/services/usdcSendExecution.ts` | Send kill switch; attach-then-verify receipt rules |
+| `apps/api/src/services/usdcSendStore.ts` | `prepared` / `submitted` / `confirmed` / `failed`; hash attach; `send_attempted_at`; fail only if hash and send-attempt are both null |
+| `apps/api/src/routes/v1/sends.ts` | Prepare, submit, sending, fail, confirm |
+| `apps/api/migrations/011_smart_wallet_sends.sql` | Send rows + `send_attempted_at` from day one |
+| `apps/mobile/src/screens/SendMoneyScreen.tsx` | Send / Confirm Send / Sending / Sent; Scan QR; native address field |
+| `apps/mobile/src/services/usdcSendExecution.ts` | Send-attempt lock; one `sendTransaction`; confirm-only if hash is known |
+| `apps/mobile/src/services/usdcSendPlanGuard.ts` | Client send guards |
+| `apps/mobile/src/services/usdcSendQr.ts` | Parse pasted or scanned Base addresses |
+| `apps/mobile/src/services/api/sends.ts` | Prepare / submit / sending / confirm clients |
 
 ### Legacy EOA authorize (frozen execution)
 
@@ -371,7 +455,7 @@ flowchart TD
 
 ---
 
-## 13. Security notes for later docs
+## 14. Security notes for later docs
 
 - Do not document Paymaster URLs.
 - Do not copy `.env.local` values, API keys, tokens, or CDP credentials into documentation.
@@ -380,4 +464,4 @@ flowchart TD
 
 ---
 
-*End of Current Architecture (`3cf806b`)*
+*End of Current Architecture (`52375f1`)*
