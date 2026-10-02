@@ -1,6 +1,6 @@
 # Olimpia — Current Architecture
 
-**Status:** Implemented architecture through commit `52375f1`  
+**Status:** Implemented architecture through commit `248a8eb`  
 **Scope:** What the code does today, not the older planned V1 docs  
 **This file is the source of truth** until later documentation is aligned to it
 
@@ -17,6 +17,7 @@ Older docs (`docs/V1Architecture.md`, `docs/architecture/Architecture.md`, and r
 | **3C** | Smart Wallet → Aave Grow deposits with Coinbase-sponsored gas | ✅ **Complete** (implementation + live Base deposits). Execution is **gated OFF by default**. |
 | **3D** | Withdraw from Grow back to Available | ✅ **Complete** (implementation + live Base withdrawal). Execution is **gated OFF by default**. |
 | **3E** | Smart Wallet Send (Available USDC → any valid Base address) | ✅ **Implemented.** Live transaction test is **deferred**. Execution is **gated OFF by default**. |
+| **3F** | Production-grade Smart Wallet Activity History | ✅ **Complete** (durable Postgres index + classified feed). Live money-movement flags stay **OFF**. |
 
 Live Smart Wallet Grow deposits of $0.10 and $0.20 were confirmed on Base Mainnet. That proves the 3C path. It does not mean production execution is left on.
 
@@ -92,7 +93,7 @@ No other chain or asset is a current money path.
 | `smart_wallet` | Coinbase Smart Wallet | Directly to the Smart Wallet on Base |
 | `eoa` | Privy embedded EOA | Directly to the EOA on Base |
 
-There is no separate “credit the ledger, then show Available” step for Smart Wallet users. Available and Activity read chain state for that address.
+There is no separate “credit the ledger, then show Available” step for Smart Wallet users. Available still reads chain state for that address. Activity for Smart Wallet users is a durable Postgres index of Base USDC `Transfer` logs for that address, not a live rolling RPC window.
 
 Fiat **Add Money** / Coinbase Headless Onramp is **not** the current V1 funding path. That code is preserved and unmounted for post-V1. Do not treat it as how users fund today.
 
@@ -117,10 +118,48 @@ The backend ledger (`user_balances`) is **not** what Home Available shows for Sm
 
 | Mode | Read |
 |------|------|
-| `smart_wallet` | Base USDC `Transfer` logs for the Smart Wallet (`getUsdcActivityOnBase`) |
+| `smart_wallet` | Durable Postgres Activity (`getIndexedSmartWalletActivity`) after incremental Base RPC catch-up |
 | `eoa` | Existing Privy wallet activity path (`getHomeActivityForPrivyWallet`) |
 
-Smart Wallet activity is USDC transfers only. A Grow supply appears as USDC leaving the Smart Wallet. A Grow withdraw appears as USDC returning to the Smart Wallet. A Smart Wallet Send appears as USDC leaving the Smart Wallet to the destination. aUSDC mints and burns are not a separate activity feed. No extra Activity wiring is required for Send.
+### Smart Wallet Activity (3F) — Complete
+
+On-chain source remains official Base USDC `Transfer` logs for the Smart Wallet. The live path no longer uses the old rolling **24,000-block / ~13-hour** `getUsdcActivityOnBase` window.
+
+| Step | Behavior |
+|------|----------|
+| First index | Start from `wallets.created_at` (Smart Wallet registration), converted from the current head timestamp using ~2s Base blocks, minus an **1,800-block (~1 hour) safety buffer**. Do not scan Base from genesis. |
+| Catch-up | Incremental `eth_getLogs` from `indexed_through_block + 1` through the current head, in 8,000-block chunks, with a bounded RPC budget |
+| Persist then checkpoint | Write `smart_wallet_activity_events` first. Advance `smart_wallet_activity_cursors` only after that insert succeeds. The checkpoint never moves backwards. |
+| Idempotency | Unique `(transaction_hash, log_index)`; retries do not duplicate rows |
+| RPC failure | If a cursor or stored rows already exist, serve that history. A first-time failure with no indexed history fails closed (does not return an empty list as if there were none). |
+
+aUSDC mints and burns are not a separate activity feed.
+
+### Classification
+
+One chronological list. Confirmed Olimpia Grow rows are the authority for Grow labels. A transfer is not labeled Grow only because the counterparty is the Aave Pool.
+
+| Customer type | Meaning |
+|---------------|---------|
+| **Received** | Ordinary inbound USDC |
+| **Sent** | Ordinary outbound USDC, including a confirmed Smart Wallet Send |
+| **Added to Grow** | USDC leaving the Smart Wallet in a confirmed Grow deposit transaction |
+| **Moved to Available** | USDC returning to the Smart Wallet in a confirmed Grow withdrawal transaction |
+
+Direction stays `out` for Added to Grow and `in` for Moved to Available. In a multi-log transaction, only the matching-direction USDC Transfer is relabeled.
+
+### Mobile paging
+
+The app never loads the entire history at once.
+
+| Surface | Behavior |
+|---------|----------|
+| Home | Requests and shows the **5** most recent items |
+| See All | Loads **20** items initially (`ActivityScreen`, `limit: 20`) |
+| Older pages | Scrolling near the bottom automatically requests the next 20 using `next_cursor` |
+| End | Stops when `next_cursor` is null |
+
+The old **Load older activity** button has been removed.
 
 ---
 
@@ -267,7 +306,7 @@ Send uses **Available USDC only**. It never spends Grow / aUSDC. Amount cannot e
 
 EOA users cannot use this prepare / submit / sending / send / confirm path (`requireSmartWalletAccount`).
 
-Outgoing Send USDC is a normal Base USDC `Transfer` from the Smart Wallet, so it appears in existing Smart Wallet Activity with no extra feed.
+Outgoing Send USDC is a normal Base USDC `Transfer` from the Smart Wallet, so it appears in the durable Smart Wallet Activity feed as **Sent**. No extra Send ledger is required.
 
 ### QR and Paste
 
@@ -328,7 +367,8 @@ Do not put a Paymaster URL in these variables or in any client env. After the Se
 | Bridge.xyz / Dakota | Not active |
 | Gnosis Pay / card spend | Not implemented |
 | Privy Earn as Smart Wallet Grow execution | Incorrect. Do not use. |
-| Ledger as Smart Wallet Available/Activity truth | Incorrect. Those reads are on-chain. |
+| Ledger as Smart Wallet Available truth | Incorrect. Available is on-chain USDC `balanceOf`. |
+| Live 24,000-block RPC window as Smart Wallet Activity truth | Incorrect. That helper is legacy. Live Smart Wallet Activity is the durable Postgres index (3F). |
 | Sepolia as production money/gas architecture | Incorrect. Production money path is Base Mainnet. |
 | Grow withdrawal (3D) | **Built** for Smart Wallet users. Live-verified on Base. Execution remains **gated OFF by default**. |
 | Smart Wallet Send (3E) | **Built** for Smart Wallet users. **No live Send transaction yet.** Execution remains **gated OFF by default**. Physical-device native Paste is a pre-release check. |
@@ -348,7 +388,7 @@ flowchart TD
 
   sw --> receiveSW[Receive USDC on Base]
   receiveSW --> availSW[Available = USDC.balanceOf SW]
-  availSW --> actSW[Activity = Base USDC Transfer logs]
+  availSW --> actSW[Activity = durable Postgres index<br/>of Base USDC Transfer logs]
   availSW --> growSW[Grow deposit: one UserOp<br/>exact approve + Aave supply]
   availSW --> sendSW[Send: one UserOp<br/>exact USDC transfer]
   growSW --> paymaster[CDP Paymaster sponsors gas]
@@ -387,9 +427,15 @@ flowchart TD
 | `apps/api/src/services/walletBalance.ts` | Mode split for Available |
 | `apps/api/src/services/usdcBalance.ts` | Base USDC `balanceOf` |
 | `apps/api/src/services/privyBalance.ts` | Legacy EOA Privy balance |
-| `apps/api/src/services/walletActivity.ts` | Mode split for Activity |
-| `apps/api/src/services/usdcActivity.ts` | Base USDC Transfer logs |
+| `apps/api/src/services/walletActivity.ts` | Mode split for Activity (indexed Smart Wallet vs Privy EOA) |
+| `apps/api/src/services/smartWalletActivityStore.ts` | `smart_wallet_activity_events` + separate indexing cursor |
+| `apps/api/src/services/smartWalletActivityIndexer.ts` | Incremental `eth_getLogs` catch-up; page from Postgres |
+| `apps/api/src/services/smartWalletActivityClassification.ts` | Confirmed Grow hash labels; customer Activity types |
+| `apps/api/migrations/012_smart_wallet_activity_events.sql` | Durable events + `smart_wallet_activity_cursors` |
+| `apps/api/src/services/usdcActivity.ts` | Legacy 24,000-block window helper (not the live Smart Wallet path) |
 | `apps/api/src/services/privyActivity.ts` | Legacy EOA Privy activity |
+| `apps/mobile/src/components/AuthenticatedTabShell.tsx` | Home Activity preview (`limit: 5`) |
+| `apps/mobile/src/screens/ActivityScreen.tsx` | See All: first 20, then infinite scroll via `next_cursor` |
 | `apps/api/src/services/walletGrowth.ts` | Mode split for Grow summary |
 | `apps/api/src/services/aaveGrowth.ts` | Smart Wallet aUSDC read |
 | `apps/api/src/services/privyGrowth.ts` | Legacy EOA Grow read / metadata |
@@ -464,4 +510,4 @@ flowchart TD
 
 ---
 
-*End of Current Architecture (`52375f1`)*
+*End of Current Architecture (`248a8eb`)*
