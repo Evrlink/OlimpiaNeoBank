@@ -41,7 +41,6 @@ export function AuthScreen({ mode, onSuccess, onBack }: AuthScreenProps) {
   const subtitle = isSignIn
     ? "Sign in to pick up where you left off."
     : "Sign up in minutes. Olimpia keeps the money tools simple behind the scenes.";
-  const loadingCopy = isSignIn ? "Signing you in..." : "Creating your account...";
 
   const otpRefs = useRef<Array<TextInput | null>>([]);
 
@@ -58,9 +57,16 @@ export function AuthScreen({ mode, onSuccess, onBack }: AuthScreenProps) {
     submitEmail,
     submitOtp,
     resendCode,
+    retryWalletSetup,
     resetToEmail,
   } = useEmailAuthFlow(mode, onSuccess);
 
+  const loadingCopy =
+    step === "loading"
+      ? "setting up wallet…"
+      : isSignIn
+        ? "Signing you in..."
+        : "Creating your account...";
   const isLoading = step === "loading" || isSendingCode || isSubmittingCode;
   const displayEmail = email.trim() || "you@example.com";
   const resendLabel = useMemo(() => {
@@ -119,7 +125,20 @@ export function AuthScreen({ mode, onSuccess, onBack }: AuthScreenProps) {
           <View style={styles.backButtonSpacer} />
         </View>
 
-        {step === "otp" ? (
+        {step === "setup-retry" ? (
+          <View style={styles.otpSection}>
+            <Text style={styles.title}>Almost there</Text>
+            <Text style={styles.subtitle}>We couldn’t finish setting up.</Text>
+            <Pressable
+              style={styles.primaryButton}
+              onPress={() => void retryWalletSetup()}
+              accessibilityRole="button"
+              accessibilityLabel="Try again"
+            >
+              <Text style={styles.primaryLabel}>Try again</Text>
+            </Pressable>
+          </View>
+        ) : step === "otp" ? (
           <View style={styles.otpSection}>
             <Text style={styles.title}>Verify your email</Text>
             <Text style={styles.otpCopy}>We sent a 6-digit code to</Text>

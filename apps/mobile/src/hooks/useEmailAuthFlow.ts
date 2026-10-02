@@ -9,11 +9,15 @@ import {
   hasPrivyEmbeddedEthereumWallet,
   isAlreadyLoggedInError,
   isExistingEmbeddedWalletError,
+  isSmartWalletNotReadyError,
   isValidEmail,
 } from "@/utils/auth";
 import { waitForLinkedSmartWallet } from "@/utils/smartWallet";
 
-export type AuthFlowStep = "email" | "otp" | "loading";
+export type AuthFlowStep = "email" | "otp" | "loading" | "setup-retry";
+
+const SMART_WALLET_SYNC_ATTEMPTS = 5;
+const SMART_WALLET_SYNC_RETRY_MS = 1500;
 
 const emptyOtpDigits = () => Array.from({ length: 6 }, () => "");
 
@@ -30,6 +34,7 @@ type UseEmailAuthFlowResult = {
   submitEmail: () => Promise<void>;
   submitOtp: () => Promise<void>;
   resendCode: () => Promise<void>;
+  retryWalletSetup: () => Promise<void>;
   resetToEmail: () => void;
 };
 
@@ -106,6 +111,48 @@ export function useEmailAuthFlow(
     [hasExistingEmbeddedWallet],
   );
 
+  const syncAccountUntilReady = useCallback(async () => {
+    let lastError: unknown;
+
+    for (let attempt = 0; attempt < SMART_WALLET_SYNC_ATTEMPTS; attempt++) {
+      const accessToken = await getAccessToken();
+
+      if (!accessToken) {
+        setStep("otp");
+        setInlineError("Your session expired. Please verify your email again.");
+        return null;
+      }
+
+      try {
+        return await syncAccount(accessToken);
+      } catch (error) {
+        lastError = error;
+
+        if (
+          !isSmartWalletNotReadyError(error) ||
+          attempt === SMART_WALLET_SYNC_ATTEMPTS - 1
+        ) {
+          throw error;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, SMART_WALLET_SYNC_RETRY_MS));
+      }
+    }
+
+    throw lastError;
+  }, [getAccessToken]);
+
+  const failWalletSetup = useCallback((error: unknown) => {
+    if (isSmartWalletNotReadyError(error)) {
+      setInlineError(null);
+      setStep("setup-retry");
+      return;
+    }
+
+    setInlineError(getLoginSetupErrorMessage(error));
+    setStep("otp");
+  }, []);
+
   const continueAuthenticatedSession = useCallback(
     async (sessionUser?: { linked_accounts?: readonly unknown[] } | null) => {
       const resolvedUser = sessionUser ?? userRef.current;
@@ -132,21 +179,24 @@ export function useEmailAuthFlow(
         });
       }
 
-      const accessToken = await getAccessToken();
+      const syncResult = await syncAccountUntilReady();
 
-      if (!accessToken) {
-        setStep("otp");
-        setInlineError("Your session expired. Please verify your email again.");
+      if (!syncResult) {
         return;
       }
 
-      const syncResult = await syncAccount(accessToken);
       const destination =
         syncResult.isNewUser && authMode === "signup" ? "youre-in" : "home";
 
       onSuccess({ destination, syncResult });
     },
-    [authMode, create, getAccessToken, onSuccess, waitForExistingEmbeddedWallet],
+    [
+      authMode,
+      create,
+      onSuccess,
+      syncAccountUntilReady,
+      waitForExistingEmbeddedWallet,
+    ],
   );
 
   const updateOtpDigit = useCallback((index: number, digit: string) => {
@@ -166,8 +216,7 @@ export function useEmailAuthFlow(
       try {
         await continueAuthenticatedSession(userRef.current);
       } catch (error) {
-        setStep("email");
-        setInlineError(getLoginSetupErrorMessage(error));
+        failWalletSetup(error);
       }
       return;
     }
@@ -190,15 +239,20 @@ export function useEmailAuthFlow(
         try {
           await continueAuthenticatedSession(userRef.current);
         } catch (resumeError) {
-          setStep("email");
-          setInlineError(getLoginSetupErrorMessage(resumeError));
+          failWalletSetup(resumeError);
         }
         return;
       }
 
       setInlineError(getAuthErrorMessage(error));
     }
-  }, [clearOtpDigits, continueAuthenticatedSession, normalizedEmail, sendCode]);
+  }, [
+    clearOtpDigits,
+    continueAuthenticatedSession,
+    failWalletSetup,
+    normalizedEmail,
+    sendCode,
+  ]);
 
   const submitOtp = useCallback(async () => {
     const existingUser = userRef.current;
@@ -210,8 +264,7 @@ export function useEmailAuthFlow(
       try {
         await continueAuthenticatedSession(existingUser);
       } catch (error) {
-        setStep("otp");
-        setInlineError(getLoginSetupErrorMessage(error));
+        failWalletSetup(error);
       }
       return;
     }
@@ -254,12 +307,12 @@ export function useEmailAuthFlow(
 
       await continueAuthenticatedSession(sessionUser);
     } catch (error) {
-      setStep("otp");
-      setInlineError(getLoginSetupErrorMessage(error));
+      failWalletSetup(error);
     }
   }, [
     authMode,
     continueAuthenticatedSession,
+    failWalletSetup,
     loginWithCode,
     normalizedEmail,
     otpCode,
@@ -273,8 +326,7 @@ export function useEmailAuthFlow(
       try {
         await continueAuthenticatedSession(userRef.current);
       } catch (error) {
-        setStep("otp");
-        setInlineError(getLoginSetupErrorMessage(error));
+        failWalletSetup(error);
       }
       return;
     }
@@ -295,8 +347,7 @@ export function useEmailAuthFlow(
         try {
           await continueAuthenticatedSession(userRef.current);
         } catch (resumeError) {
-          setStep("otp");
-          setInlineError(getLoginSetupErrorMessage(resumeError));
+          failWalletSetup(resumeError);
         }
         return;
       }
@@ -306,10 +357,22 @@ export function useEmailAuthFlow(
   }, [
     clearOtpDigits,
     continueAuthenticatedSession,
+    failWalletSetup,
     normalizedEmail,
     resendSeconds,
     sendCode,
   ]);
+
+  const retryWalletSetup = useCallback(async () => {
+    setInlineError(null);
+    setStep("loading");
+
+    try {
+      await continueAuthenticatedSession(userRef.current);
+    } catch (error) {
+      failWalletSetup(error);
+    }
+  }, [continueAuthenticatedSession, failWalletSetup]);
 
   const resetToEmail = useCallback(() => {
     setStep("email");
@@ -331,6 +394,7 @@ export function useEmailAuthFlow(
     submitEmail,
     submitOtp,
     resendCode,
+    retryWalletSetup,
     resetToEmail,
   };
 }

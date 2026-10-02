@@ -90,6 +90,10 @@ export function getLoginSetupErrorMessage(error: unknown): string {
   return getAuthErrorMessage(error);
 }
 
+export function isSmartWalletNotReadyError(error: unknown): boolean {
+  return error instanceof AuthSyncApiError && error.code === "SMART_WALLET_NOT_READY";
+}
+
 export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
