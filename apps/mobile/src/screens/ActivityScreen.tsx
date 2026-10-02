@@ -9,6 +9,8 @@ import {
   StyleSheet,
   Text,
   View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityListCard } from "@/components/ActivityListCard";
@@ -17,6 +19,14 @@ import { getActivity, type ActivityItem } from "@/services/api/activity";
 import { colors, radius, spacing } from "@/theme/colors";
 
 const PAGE_SIZE = 20;
+const LOAD_MORE_THRESHOLD = 80;
+
+function isNearBottom(nativeEvent: NativeScrollEvent): boolean {
+  return (
+    nativeEvent.layoutMeasurement.height + nativeEvent.contentOffset.y >=
+    nativeEvent.contentSize.height - LOAD_MORE_THRESHOLD
+  );
+}
 
 type ActivityScreenProps = {
   onBack: () => void;
@@ -105,6 +115,17 @@ export function ActivityScreen({ onBack }: ActivityScreenProps) {
     }
   }, [loadPage, nextCursor]);
 
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (!isNearBottom(event.nativeEvent)) {
+        return;
+      }
+
+      void handleLoadOlder();
+    },
+    [handleLoadOlder],
+  );
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <LinearGradient
@@ -118,6 +139,8 @@ export function ActivityScreen({ onBack }: ActivityScreenProps) {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={handleScroll}
       >
         <View style={styles.topBar}>
           <Pressable
@@ -143,22 +166,10 @@ export function ActivityScreen({ onBack }: ActivityScreenProps) {
           ) : items.length > 0 ? (
             <>
               <ActivityListCard items={items} />
-              {nextCursor ? (
-                <Pressable
-                  style={styles.loadOlder}
-                  onPress={() => {
-                    void handleLoadOlder();
-                  }}
-                  disabled={isLoadingMore}
-                  accessibilityRole="button"
-                  accessibilityLabel="Load older activity"
-                >
-                  {isLoadingMore ? (
-                    <ActivityIndicator color={colors.raspberry} />
-                  ) : (
-                    <Text style={styles.loadOlderLabel}>Load older activity</Text>
-                  )}
-                </Pressable>
+              {isLoadingMore ? (
+                <View style={styles.loadMoreWrap}>
+                  <ActivityIndicator color={colors.raspberry} />
+                </View>
               ) : null}
             </>
           ) : (
@@ -235,16 +246,11 @@ const styles = StyleSheet.create({
     marginTop: 32,
     alignItems: "center",
   },
-  loadOlder: {
+  loadMoreWrap: {
     marginTop: 16,
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
-  },
-  loadOlderLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: colors.raspberry,
   },
   emptyCard: {
     marginTop: 12,
