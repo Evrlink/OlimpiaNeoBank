@@ -97,12 +97,19 @@ activityRouter.get("/", requireAuth, async (req, res) => {
     }
 
     const walletResult = await pool.query<{
+      user_id: string;
       privy_wallet_id: string | null;
       smart_wallet_address: string | null;
       money_address_mode: string | null;
+      created_at: Date;
     }>(
       `
-        SELECT w.privy_wallet_id, w.smart_wallet_address, w.money_address_mode
+        SELECT
+          u.id AS user_id,
+          w.privy_wallet_id,
+          w.smart_wallet_address,
+          w.money_address_mode,
+          w.created_at
         FROM users u
         JOIN wallets w ON w.user_id = u.id
         WHERE u.privy_user_id = $1
@@ -138,6 +145,8 @@ activityRouter.get("/", requireAuth, async (req, res) => {
 
     const { limit, cursor } = pagination;
     const page = await getHomeActivityForWallet({
+      userId: walletRow.user_id,
+      walletCreatedAt: walletRow.created_at,
       moneyAddressMode: walletRow.money_address_mode,
       privyWalletId: walletRow.privy_wallet_id ?? "",
       smartWalletAddress: walletRow.smart_wallet_address,

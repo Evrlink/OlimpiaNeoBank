@@ -420,14 +420,16 @@ test("smart_wallet mode reads the smart wallet only; eoa stays on Privy", async 
 
   await getHomeActivityForWallet(
     {
+      userId: "11111111-1111-1111-1111-111111111111",
+      walletCreatedAt: new Date("2026-09-01T00:00:00.000Z"),
       moneyAddressMode: "smart_wallet",
       privyWalletId: "eoa-wallet-id",
       smartWalletAddress: SMART,
       limit: 5,
     },
     {
-      getUsdcActivityOnBase: async (address) => {
-        calls.push(`sw:${address}`);
+      getIndexedSmartWalletActivity: async (input) => {
+        calls.push(`sw:${input.smartWalletAddress}`);
         return { items: [], nextCursor: null };
       },
       getHomeActivityForPrivyWallet: async (walletId) => {
@@ -445,8 +447,8 @@ test("smart_wallet mode reads the smart wallet only; eoa stays on Privy", async 
       limit: 5,
     },
     {
-      getUsdcActivityOnBase: async (address) => {
-        calls.push(`sw:${address}`);
+      getIndexedSmartWalletActivity: async (input) => {
+        calls.push(`sw:${input.smartWalletAddress}`);
         return { items: [], nextCursor: null };
       },
       getHomeActivityForPrivyWallet: async (walletId) => {
@@ -464,8 +466,8 @@ test("smart_wallet mode reads the smart wallet only; eoa stays on Privy", async 
       limit: 5,
     },
     {
-      getUsdcActivityOnBase: async (address) => {
-        calls.push(`sw:${address}`);
+      getIndexedSmartWalletActivity: async (input) => {
+        calls.push(`sw:${input.smartWalletAddress}`);
         return { items: [], nextCursor: null };
       },
       getHomeActivityForPrivyWallet: async (walletId) => {

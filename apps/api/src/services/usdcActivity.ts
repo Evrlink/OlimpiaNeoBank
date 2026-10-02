@@ -327,7 +327,7 @@ async function getLogsInRange(
   }
 }
 
-/** Read-only Base USDC Transfer logs for one address. No transactions. */
+/** Legacy 24,000-block window. Live Smart Wallet Activity uses getIndexedSmartWalletActivity. */
 export async function getUsdcActivityOnBase(
   address: string,
   limit: number,
