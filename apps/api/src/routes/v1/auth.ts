@@ -25,6 +25,11 @@ authRouter.post("/sync", requireAuth, async (req, res) => {
         return;
       }
 
+      if (error.code === "SMART_WALLET_NOT_READY") {
+        sendError(res, 503, "SMART_WALLET_NOT_READY", error.message);
+        return;
+      }
+
       sendError(res, 500, "SYNC_FAILED", error.message);
       return;
     }

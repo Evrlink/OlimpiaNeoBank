@@ -1,3 +1,4 @@
+import type { User } from "@privy-io/node";
 import {
   extractEmail,
   extractEmbeddedEthereumWallet,
@@ -13,11 +14,29 @@ import {
   type UserProfile,
   type WalletSummary,
 } from "../lib/responses.js";
-import {
-  resolveInsertMoneyAddressMode,
-  toPublicMoneyAddress,
-} from "./moneyAddress.js";
+import { toPublicMoneyAddress } from "./moneyAddress.js";
 import { getHomeBalanceForWallet } from "./walletBalance.js";
+
+type QueryResult<T> = { rows: T[] };
+
+type AuthSyncClient = {
+  query<T = unknown>(sql: string, values?: unknown[]): Promise<QueryResult<T>>;
+  release(): void;
+};
+
+export type AuthSyncPool = {
+  connect(): Promise<AuthSyncClient>;
+};
+
+export type SyncAuthenticatedUserDeps = {
+  getPool?: () => AuthSyncPool | null;
+  fetchPrivyUser?: (privyUserId: string) => Promise<User>;
+  resolvePrivyWalletId?: (input: {
+    privyUserId: string;
+    address: string;
+  }) => Promise<string | null>;
+  getHomeBalanceForWallet?: typeof getHomeBalanceForWallet;
+};
 
 type SyncResult = {
   user: UserProfile;
@@ -47,7 +66,10 @@ type DbWalletRow = {
 export class AuthSyncError extends Error {
   constructor(
     message: string,
-    readonly code: "PRIVY_UNAVAILABLE" | "SYNC_FAILED" = "SYNC_FAILED",
+    readonly code:
+      | "PRIVY_UNAVAILABLE"
+      | "SYNC_FAILED"
+      | "SMART_WALLET_NOT_READY" = "SYNC_FAILED",
   ) {
     super(message);
     this.name = "AuthSyncError";
@@ -69,17 +91,24 @@ function toWalletSummary(row: DbWalletRow): WalletSummary {
   };
 }
 
-export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncResult> {
-  const pool = getPool();
+export async function syncAuthenticatedUser(
+  privyUserId: string,
+  deps: SyncAuthenticatedUserDeps = {},
+): Promise<SyncResult> {
+  const pool = deps.getPool ? deps.getPool() : getPool();
 
   if (!pool) {
     throw new AuthSyncError("Database is not configured.");
   }
 
+  const loadPrivyUser = deps.fetchPrivyUser ?? fetchPrivyUser;
+  const loadPrivyWalletId = deps.resolvePrivyWalletId ?? resolvePrivyWalletId;
+  const loadHomeBalance = deps.getHomeBalanceForWallet ?? getHomeBalanceForWallet;
+
   let privyUser;
 
   try {
-    privyUser = await fetchPrivyUser(privyUserId);
+    privyUser = await loadPrivyUser(privyUserId);
   } catch {
     throw new AuthSyncError("Unable to fetch user from Privy.", "PRIVY_UNAVAILABLE");
   }
@@ -98,7 +127,7 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
 
   if (!privyWalletId) {
     try {
-      privyWalletId = await resolvePrivyWalletId({
+      privyWalletId = await loadPrivyWalletId({
         privyUserId,
         address: walletAddress,
       });
@@ -107,7 +136,7 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
     }
   }
 
-  const client = await pool.connect();
+  const client = (await pool.connect()) as AuthSyncClient;
 
   let isNewUser = false;
   let userRow: DbUserRow;
@@ -135,6 +164,22 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
     );
 
     userRow = userResult.rows[0];
+
+    const existingWallet = await client.query<{
+      id: string;
+      money_address_mode: string | null;
+    }>(
+      "SELECT id, money_address_mode FROM wallets WHERE user_id = $1",
+      [userRow.id],
+    );
+    const hasWalletRow = existingWallet.rows.length > 0;
+
+    if (!hasWalletRow && !smartWallet) {
+      throw new AuthSyncError(
+        "Smart Wallet is still being created. Please try again.",
+        "SMART_WALLET_NOT_READY",
+      );
+    }
 
     const walletResult = await client.query<DbWalletRow>(
       `
@@ -170,7 +215,9 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
         privyWalletId,
         smartWallet?.address ?? null,
         smartWallet?.type ?? null,
-        resolveInsertMoneyAddressMode(isNewUser, Boolean(smartWallet)),
+        hasWalletRow
+          ? (existingWallet.rows[0]?.money_address_mode ?? "eoa")
+          : "smart_wallet",
       ],
     );
 
@@ -212,7 +259,7 @@ export async function syncAuthenticatedUser(privyUserId: string): Promise<SyncRe
   let balance: BalanceSummary;
 
   try {
-    balance = await getHomeBalanceForWallet({
+    balance = await loadHomeBalance({
       moneyAddressMode: walletRow.money_address_mode,
       privyWalletId: walletRow.privy_wallet_id,
       smartWalletAddress: walletRow.smart_wallet_address,

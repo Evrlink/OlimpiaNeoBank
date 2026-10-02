@@ -103,7 +103,7 @@ test("auth sync never flips money_address_mode on existing wallet rows", async (
   const source = await readFile(path.join(apiRoot, "src/services/authSync.ts"), "utf8");
 
   assert.match(source, /extractSmartWalletIdentity/);
-  assert.match(source, /resolveInsertMoneyAddressMode/);
+  assert.match(source, /SMART_WALLET_NOT_READY/);
   assert.match(source, /toPublicMoneyAddress/);
   assert.doesNotMatch(source, /money_address_mode = EXCLUDED/);
 });
