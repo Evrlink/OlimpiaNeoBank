@@ -1,3 +1,4 @@
+import { attachDatabasePool } from "@vercel/functions";
 import pg from "pg";
 import { env } from "../config/env.js";
 
@@ -11,7 +12,11 @@ export function getPool(): pg.Pool | null {
   }
 
   if (!pool) {
-    pool = new Pool({ connectionString: env.databaseUrl });
+    pool = new Pool({
+      connectionString: env.databaseUrl,
+      max: 5,
+    });
+    attachDatabasePool(pool);
   }
 
   return pool;

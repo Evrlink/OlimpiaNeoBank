@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
@@ -13,6 +16,7 @@
   },
   "dependencies": {
     "@privy-io/node": "^0.24.0",
+    "@vercel/functions": "^3.9.11",
     "cors": "^2.8.6",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

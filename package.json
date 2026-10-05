@@ -17,7 +17,7 @@
     "start:mobile": "npm run start -w @olimpia/mobile"
   },
   "engines": {
-    "node": ">=18"
+    "node": "22.x"
   },
   "overrides": {
     "expo": "52.0.49",
