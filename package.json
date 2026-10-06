@@ -21,7 +21,8 @@
   },
   "overrides": {
     "expo": "52.0.49",
-    "react-native": "0.76.9"
+    "react-native": "0.76.9",
+    "@tanstack/react-start": "1.168.60"
   },
   "devDependencies": {
     "ox": "0.8.9",
