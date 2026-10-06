@@ -26,7 +26,8 @@ const TRANSFER_TOPIC =
 const ADDRESS_PATTERN = /^0x[0-9a-fA-F]{40}$/;
 const TX_HASH_PATTERN = /^0x[0-9a-fA-F]{64}$/;
 const DEFAULT_BASE_RPC_URL = "https://mainnet.base.org";
-export const INDEXER_CHUNK_BLOCKS = 8_000n;
+/** Inclusive chunk length. Public Base allows toBlock - fromBlock <= 500. */
+export const INDEXER_CHUNK_BLOCKS = 501n;
 export const INDEXER_MAX_RPC_CALLS = 64;
 /** Base targets ~2s blocks. Used only to convert wallets.created_at → a start block. */
 export const BASE_BLOCK_SECONDS = 2n;

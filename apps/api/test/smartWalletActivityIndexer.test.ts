@@ -15,6 +15,7 @@ import {
   catchUpSmartWalletActivity,
   estimateStartBlockFromWalletCreatedAt,
   getIndexedSmartWalletActivity,
+  INDEXER_CHUNK_BLOCKS,
   toIndexedUsdcTransfer,
 } from "../src/services/smartWalletActivityIndexer.js";
 import {
@@ -97,7 +98,13 @@ function createChainFetch(input: {
   headTimestamp?: bigint;
   logs: ReturnType<typeof transferLog>[];
   failOn?: "blockNumber" | "getLogs" | "getBlock";
-  onGetLogs?: (range: { fromBlock: bigint; toBlock: bigint }) => void;
+  onGetLogs?: (range: {
+    fromBlock: bigint;
+    toBlock: bigint;
+    inbound: boolean;
+  }) => void;
+  /** Reject eth_getLogs when toBlock - fromBlock is greater than this. */
+  maxBlockDifference?: bigint;
 }): typeof fetch {
   return async (_url, init) => {
     const body = JSON.parse(String(init?.body)) as {
@@ -122,9 +129,25 @@ function createChainFetch(input: {
       }
       const fromBlock = BigInt(body.params?.[0]?.fromBlock ?? "0x0");
       const toBlock = BigInt(body.params?.[0]?.toBlock ?? "0x0");
-      input.onGetLogs?.({ fromBlock, toBlock });
       const topics = body.params?.[0]?.topics ?? [];
       const inbound = Boolean(topics[2]);
+      input.onGetLogs?.({ fromBlock, toBlock, inbound });
+      if (
+        input.maxBlockDifference != null &&
+        toBlock - fromBlock > input.maxBlockDifference
+      ) {
+        return new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            error: {
+              code: -32614,
+              message: "eth_getLogs is limited to a 500 range",
+            },
+          }),
+          { status: 413, headers: { "content-type": "application/json" } },
+        );
+      }
       const matching = input.logs.filter((log) => {
         const block = BigInt(log.blockNumber);
         if (block < fromBlock || block > toBlock) {
@@ -333,6 +356,140 @@ test("catch-up is incremental and resumes from the durable checkpoint", async ()
   );
   assert.ok(ranges.every((range) => range.fromBlock >= startBlock));
   assert.ok(ranges.some((range) => range.fromBlock >= 3_200n));
+});
+
+function assertContiguousRanges(
+  ranges: Array<{ fromBlock: bigint; toBlock: bigint }>,
+  startBlock: bigint,
+  head: bigint,
+): void {
+  assert.ok(ranges.length > 1);
+  assert.equal(ranges[0]?.fromBlock, startBlock);
+  for (let index = 0; index < ranges.length; index += 1) {
+    const range = ranges[index];
+    assert.ok(range);
+    assert.ok(range.toBlock - range.fromBlock <= 500n);
+    if (index > 0) {
+      assert.equal(range.fromBlock, ranges[index - 1]?.toBlock + 1n);
+    }
+  }
+  assert.equal(ranges[ranges.length - 1]?.toBlock, head);
+}
+
+test("public Base eth_getLogs ranges stay within 500 blocks", async () => {
+  assert.equal(INDEXER_CHUNK_BLOCKS, 501n);
+
+  const startBlock = 10_000n;
+  const head = startBlock + START_BLOCK_SAFETY_BUFFER + 1_200n;
+  const store = createMemorySmartWalletActivityStore();
+  const ranges: Array<{
+    fromBlock: bigint;
+    toBlock: bigint;
+    inbound: boolean;
+  }> = [];
+  const walletCreatedAt = createdAtForStartBlock({
+    headBlock: head,
+    headTimestampSeconds: 1_700_000_000n,
+    startBlock,
+  });
+
+  const page = await getIndexedSmartWalletActivity(
+    {
+      userId: USER_ID,
+      smartWalletAddress: SMART,
+      walletCreatedAt,
+      limit: 5,
+    },
+    {
+      store,
+      fetchImpl: createChainFetch({
+        head,
+        headTimestamp: 1_700_000_000n,
+        maxBlockDifference: 500n,
+        logs: [
+          transferLog({
+            hash: txHash("f"),
+            blockNumber: startBlock + 100n,
+            logIndex: 2,
+            from: OTHER,
+            to: SMART,
+            amount: 4_000_000n,
+          }),
+        ],
+        onGetLogs: (range) => ranges.push(range),
+      }),
+    },
+  );
+
+  const inbound = ranges.filter((range) => range.inbound);
+  const outbound = ranges.filter((range) => !range.inbound);
+  assertContiguousRanges(inbound, startBlock, head);
+  assertContiguousRanges(outbound, startBlock, head);
+  assert.equal(page.items.length, 1);
+  assert.equal(page.items[0]?.id, `${txHash("f")}:2`);
+  assert.equal(page.items[0]?.amountUsd, "4.00");
+
+  const cursor = await store.getCursor({
+    userId: USER_ID,
+    smartWalletAddress: SMART,
+  });
+  assert.equal(cursor?.indexedThroughBlock, head);
+});
+
+test("chunk boundaries do not skip or duplicate transfers", async () => {
+  const startBlock = 20_000n;
+  const chunkEnd = startBlock + INDEXER_CHUNK_BLOCKS - 1n;
+  const nextStart = startBlock + INDEXER_CHUNK_BLOCKS;
+  const head = startBlock + START_BLOCK_SAFETY_BUFFER + INDEXER_CHUNK_BLOCKS + 10n;
+  const store = createMemorySmartWalletActivityStore();
+  const walletCreatedAt = createdAtForStartBlock({
+    headBlock: head,
+    headTimestampSeconds: 1_700_000_000n,
+    startBlock,
+  });
+
+  const page = await getIndexedSmartWalletActivity(
+    {
+      userId: USER_ID,
+      smartWalletAddress: SMART,
+      walletCreatedAt,
+      limit: 5,
+    },
+    {
+      store,
+      fetchImpl: createChainFetch({
+        head,
+        headTimestamp: 1_700_000_000n,
+        maxBlockDifference: 500n,
+        logs: [
+          transferLog({
+            hash: txHash("7"),
+            blockNumber: chunkEnd,
+            logIndex: 1,
+            from: OTHER,
+            to: SMART,
+            amount: 1_000_000n,
+          }),
+          transferLog({
+            hash: txHash("8"),
+            blockNumber: nextStart,
+            logIndex: 0,
+            from: SMART,
+            to: OTHER,
+            amount: 2_000_000n,
+          }),
+        ],
+      }),
+    },
+  );
+
+  assert.deepEqual(
+    page.items.map((item) => `${item.id}:${item.type}:${item.amountUsd}`),
+    [
+      `${txHash("8")}:0:sent:2.00`,
+      `${txHash("7")}:1:received:1.00`,
+    ],
+  );
 });
 
 test("re-indexing is idempotent and never moves the checkpoint backwards", async () => {
