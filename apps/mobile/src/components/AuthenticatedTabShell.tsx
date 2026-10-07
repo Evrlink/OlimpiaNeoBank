@@ -260,7 +260,13 @@ export function AuthenticatedTabShell({
             onSeeAllActivity={() => setHomeOverlay("activity")}
           />
         ) : null}
-        {activeTab === "savings" ? <SavingsScreen /> : null}
+        {activeTab === "savings" ? (
+          <SavingsScreen
+            getAccessToken={getAccessToken}
+            currentGrowBalanceUsdc={growth?.currentRedeemableUsdc ?? null}
+            growLoading={growthLoading}
+          />
+        ) : null}
         {activeTab === "card" ? <CardScreen /> : null}
         {activeTab === "profile" ? (
           <ProfileScreen

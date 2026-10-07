@@ -3,6 +3,10 @@ import { getPool } from "../../db/pool.js";
 import { sendError } from "../../lib/errors.js";
 import { requireAuth } from "../../middleware/requireAuth.js";
 import {
+  EMPTY_GOAL_GROW,
+  readSmartWalletGoalGrow,
+} from "../../services/goalProgress.js";
+import {
   getSavingsGoalForPrivyUser,
   parseSavingsGoalWrite,
   saveSavingsGoalForPrivyUser,
@@ -35,7 +39,26 @@ goalRouter.get("/", requireAuth, async (req, res) => {
       return;
     }
 
-    res.status(200).json({ goal: result.goal });
+    res.set("Cache-Control", "no-store");
+
+    if (!result.goal) {
+      res.status(200).json({ goal: null });
+      return;
+    }
+
+    let grow = EMPTY_GOAL_GROW;
+    try {
+      grow = await readSmartWalletGoalGrow(privyUserId, result.goal.targetAmountUsd, pool);
+    } catch {
+      grow = EMPTY_GOAL_GROW;
+    }
+
+    res.status(200).json({
+      goal: {
+        ...result.goal,
+        ...grow,
+      },
+    });
   } catch {
     sendError(res, 500, "INTERNAL_ERROR", "Unable to load your goal.");
   }

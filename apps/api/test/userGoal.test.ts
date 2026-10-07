@@ -66,7 +66,7 @@ test("a goal write rejects an empty name or a non-positive target", () => {
   );
 });
 
-test("goal routes do not touch balance or yield fields", async () => {
+test("goal storage does not use balance buckets", async () => {
   const route = await readFile(
     path.join(apiRoot, "src/routes/v1/goal.ts"),
     "utf8",
@@ -75,12 +75,21 @@ test("goal routes do not touch balance or yield fields", async () => {
     path.join(apiRoot, "src/services/userGoal.ts"),
     "utf8",
   );
-  const combined = `${route}\n${service}`;
+  const progress = await readFile(
+    path.join(apiRoot, "src/services/goalProgress.ts"),
+    "utf8",
+  );
+  const combined = `${route}\n${service}\n${progress}`;
 
   assert.match(route, /goalRouter\.get\("\/"/);
   assert.match(route, /goalRouter\.put\("\/"/);
+  assert.doesNotMatch(service, /goals_allocated_usd/);
   assert.doesNotMatch(combined, /goals_allocated_usd/);
   assert.doesNotMatch(combined, /available_usd/);
   assert.doesNotMatch(combined, /growth_allocated_usd/);
-  assert.doesNotMatch(combined, /progress/);
+  assert.doesNotMatch(combined, /aaveDepositExecution/);
+  assert.doesNotMatch(combined, /aaveWithdrawExecution/);
+  assert.doesNotMatch(combined, /usdcSend/);
+  assert.doesNotMatch(combined, /smart_wallet_deposits/);
+  assert.doesNotMatch(combined, /smart_wallet_withdrawals/);
 });

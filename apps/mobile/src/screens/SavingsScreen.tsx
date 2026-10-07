@@ -1,136 +1,233 @@
 /**
- * Savings tab — local named goals with no target dates.
+ * Savings tab — one informational My Goal, stored on the account.
+ * The goal is a name and target only. It does not move USDC.
  */
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from "react-native";
+import Svg, { Circle } from "react-native-svg";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppTabBar } from "@/components/AppTabBar";
+import { AuthSyncApiError } from "@/services/api/authSync";
+import { getGoal, saveGoal, type SavingsGoal } from "@/services/api/goal";
 import { colors, radius, spacing } from "@/theme/colors";
 
-type SavingsGoal = {
-  id: string;
-  title: string;
-  principalUsd: number;
+type SavingsScreenProps = {
+  getAccessToken: () => Promise<string | null>;
+  currentGrowBalanceUsdc?: string | null;
+  growLoading?: boolean;
 };
 
-type ScreenMode = "list" | "add" | "create";
+const NAME_MAX_LENGTH = 80;
+const SETUP_PLACEHOLDER = "#A39A94";
 
-const INITIAL_GOALS: SavingsGoal[] = [];
+const RING_RADIUS = 84;
+const RING_SIZE = 192;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-function formatUsd(value: number): string {
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+function cents(value: string): number {
+  const trimmed = value.trim();
+  if (!/^\d+(\.\d+)?$/.test(trimmed)) {
+    return 0;
+  }
+
+  const [whole = "0", fraction = ""] = trimmed.split(".");
+  return Number(whole) * 100 + Number(`${fraction}00`.slice(0, 2));
+}
+
+function fromCents(value: number): string {
+  const centsValue = Math.max(0, value);
+  return `${Math.floor(centsValue / 100)}.${String(centsValue % 100).padStart(2, "0")}`;
+}
+
+function normalizeUsd(value: string | null | undefined): string | null {
+  if (!value || !/^\d+(\.\d+)?$/.test(value.trim())) {
+    return null;
+  }
+
+  return fromCents(cents(value));
+}
+
+function formatGoalUsd(value: string): string {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) {
+    return value;
+  }
+
+  const wholeDollars = value.endsWith(".00");
+  return amount.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: wholeDollars ? 0 : 2,
+    maximumFractionDigits: wholeDollars ? 0 : 2,
   });
 }
 
-function parseAmount(text: string): number {
-  const parsed = Number(text.replace(/[^0-9.]/g, ""));
-  return Number.isFinite(parsed) ? parsed : 0;
+function formatYield(value: string): string {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) {
+    return value;
+  }
+
+  return `+${amount.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
-export function SavingsScreen() {
-  const [goals, setGoals] = useState<SavingsGoal[]>(INITIAL_GOALS);
-  const [mode, setMode] = useState<ScreenMode>("list");
-  const [selectedGoalId, setSelectedGoalId] = useState("");
-  const [amountText, setAmountText] = useState("");
-  const [newTitle, setNewTitle] = useState("");
+function progressPercent(growBalanceUsdc: string, targetAmountUsd: string): number {
+  const target = cents(targetAmountUsd);
+  if (target <= 0) {
+    return 0;
+  }
 
-  const [goalIndex, setGoalIndex] = useState(0);
-  const { width: windowWidth } = useWindowDimensions();
-  const goalCardWidth = Math.max(windowWidth - spacing.screenX * 2 - 20, 280);
-  const goalStride = goalCardWidth + 12;
+  return Math.floor((cents(growBalanceUsdc) * 100) / target);
+}
 
-  const totalPrincipal = useMemo(
-    () => goals.reduce((sum, goal) => sum + goal.principalUsd, 0),
-    [goals],
-  );
+function showYieldStrip(yieldEarnedUsdc: string | null): boolean {
+  if (!yieldEarnedUsdc) {
+    return false;
+  }
 
-  const onGoalScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const next = Math.round(event.nativeEvent.contentOffset.x / goalStride);
-    setGoalIndex(Math.min(Math.max(next, 0), Math.max(goals.length - 1, 0)));
-  };
+  return cents(yieldEarnedUsdc) > 0;
+}
 
-  const handleConfirmAdd = () => {
-    const amount = parseAmount(amountText);
-    if (amount <= 0 || !selectedGoalId) {
+function sanitizeAmount(text: string): string {
+  const cleaned = text.replace(/[^0-9.]/g, "");
+  const [whole = "", ...rest] = cleaned.split(".");
+  if (rest.length === 0) {
+    return whole;
+  }
+
+  return `${whole}.${rest.join("").slice(0, 2)}`;
+}
+
+function isValidTarget(text: string): boolean {
+  if (!/^\d+(\.\d{1,2})?$/.test(text)) {
+    return false;
+  }
+
+  const amount = Number(text);
+  return Number.isFinite(amount) && amount > 0;
+}
+
+export function SavingsScreen({
+  getAccessToken,
+  currentGrowBalanceUsdc = null,
+  growLoading = false,
+}: SavingsScreenProps) {
+  const [goal, setGoal] = useState<SavingsGoal | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [targetText, setTargetText] = useState("");
+  const [nameFocused, setNameFocused] = useState(false);
+  const [amountFocused, setAmountFocused] = useState(false);
+
+  const loadGoal = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+
+    try {
+      const accessToken = (await getAccessToken()) ?? "";
+      const saved = await getGoal(accessToken);
+      setGoal(saved);
+      setEditing(false);
+    } catch (error) {
+      const message =
+        error instanceof AuthSyncApiError
+          ? error.message
+          : "Unable to load your goal.";
+      setLoadError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [getAccessToken]);
+
+  useEffect(() => {
+    void loadGoal();
+  }, [loadGoal]);
+
+  const canSave = name.trim().length > 0 && isValidTarget(targetText) && !saving;
+
+  async function handleSave() {
+    if (!canSave) {
       return;
     }
-    setGoals((current) =>
-      current.map((goal) =>
-        goal.id === selectedGoalId
-          ? { ...goal, principalUsd: goal.principalUsd + amount }
-          : goal,
-      ),
-    );
-    setAmountText("");
-    setMode("list");
-  };
 
-  const handleCreateGoal = () => {
-    const title = newTitle.trim() || "Goal";
-    const id = `${title.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
-    const amount = parseAmount(amountText);
-    const next: SavingsGoal = {
-      id,
-      title,
-      principalUsd: amount > 0 ? amount : 0,
-    };
-    setGoals((current) => [...current, next]);
-    setSelectedGoalId(id);
-    setGoalIndex(goals.length);
-    setNewTitle("");
-    setAmountText("");
-    setMode("list");
-  };
+    setSaving(true);
+    setSaveError(null);
 
-  if (mode === "add" && goals.length > 0) {
-    return (
-      <AddToSavingsView
-        goals={goals}
-        selectedGoalId={selectedGoalId}
-        amountText={amountText}
-        onSelectGoal={setSelectedGoalId}
-        onChangeAmount={setAmountText}
-        onBack={() => {
-          setAmountText("");
-          setMode("list");
-        }}
-        onConfirm={handleConfirmAdd}
-      />
-    );
+    try {
+      const accessToken = (await getAccessToken()) ?? "";
+      const saved = await saveGoal(accessToken, {
+        name: name.trim(),
+        targetAmountUsd: Number(targetText).toFixed(2),
+      });
+
+      if (!saved) {
+        setSaveError("Unable to save your goal.");
+        return;
+      }
+
+      try {
+        setGoal((await getGoal(accessToken)) ?? saved);
+      } catch {
+        setGoal(saved);
+      }
+      setEditing(false);
+    } catch (error) {
+      const message =
+        error instanceof AuthSyncApiError
+          ? error.message
+          : "Unable to save your goal.";
+      setSaveError(message);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  // Empty = create form on one screen. Also used for “New goal” from the list.
-  if (goals.length === 0 || mode === "create") {
-    return (
-      <CreateGoalView
-        title={newTitle}
-        amountText={amountText}
-        showBack={goals.length > 0}
-        isFirstGoal={goals.length === 0}
-        onChangeTitle={setNewTitle}
-        onChangeAmount={setAmountText}
-        onBack={() => {
-          setAmountText("");
-          setMode("list");
-        }}
-        onCreate={handleCreateGoal}
-      />
-    );
+  function startEditing() {
+    if (!goal) {
+      return;
+    }
+
+    setName(goal.name);
+    setTargetText(goal.targetAmountUsd);
+    setSaveError(null);
+    setEditing(true);
   }
+
+  function cancelEditing() {
+    setSaveError(null);
+    setEditing(false);
+  }
+
+  const showGoalForm = !loading && !loadError && (!goal || editing);
+  const liveGrowBalanceUsdc =
+    goal?.growBalanceUsdc ?? normalizeUsd(currentGrowBalanceUsdc);
+  const liveRemainingUsdc =
+    goal?.remainingUsdc ??
+    (goal && liveGrowBalanceUsdc
+      ? fromCents(cents(goal.targetAmountUsd) - cents(liveGrowBalanceUsdc))
+      : null);
+  const showSavedProgress = Boolean(
+    goal && !editing && liveGrowBalanceUsdc && liveRemainingUsdc,
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -138,110 +235,225 @@ export function SavingsScreen() {
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        bounces
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Savings</Text>
-        <Text style={styles.subtitle}>Organize your USDC into goals. Add anytime.</Text>
-
-        <View style={styles.summaryCard}>
-          <Text style={styles.muted}>Amount</Text>
-          <Text style={styles.heroAmount}>${formatUsd(totalPrincipal)}</Text>
-        </View>
-
-        <Pressable
-          style={styles.primaryButton}
-          onPress={() => {
-            setSelectedGoalId(goals[goalIndex]?.id ?? goals[0]?.id ?? "");
-            setAmountText("");
-            setMode("add");
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Add to savings"
-        >
-          <Ionicons name="add" size={18} color={colors.white} />
-          <Text style={styles.primaryLabel}>Add to savings</Text>
-        </Pressable>
-        <Text style={styles.hint}>Add USDC from your available balance to a goal.</Text>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitleInline}>Your goals</Text>
-          {goals.length > 1 ? (
-            <Text style={styles.scrollHint}>
-              {goalIndex + 1} of {goals.length}
-            </Text>
-          ) : null}
-        </View>
-
-        <ScrollView
-          horizontal
-          pagingEnabled={false}
-          decelerationRate="fast"
-          snapToInterval={goalStride}
-          snapToAlignment="start"
-          disableIntervalMomentum
-          showsHorizontalScrollIndicator={false}
-          onScroll={onGoalScroll}
-          scrollEventThrottle={16}
-          contentContainerStyle={styles.goalCarouselContent}
-          style={styles.goalCarousel}
-        >
-          {goals.map((goal) => (
-            <View key={goal.id} style={[styles.goalCard, { width: goalCardWidth }]}>
-              <View style={styles.goalHeader}>
-                <Text style={styles.goalTitle}>{goal.title}</Text>
-                <Text style={styles.goalAmount}>${formatUsd(goal.principalUsd)}</Text>
-              </View>
+        {showGoalForm ? (
+          <View style={styles.setupTitle}>
+            <Text style={styles.title}>My Goal</Text>
+            <Text style={styles.setupSubtitle}>What are you working toward?</Text>
+          </View>
+        ) : (
+          <View style={styles.headerRow}>
+            <Text style={styles.title}>My Goal</Text>
+            {!loading && !loadError && goal && !editing ? (
               <Pressable
-                style={styles.goalAddButton}
-                onPress={() => {
-                  setSelectedGoalId(goal.id);
-                  setAmountText("");
-                  setMode("add");
-                }}
+                style={styles.editButton}
+                onPress={startEditing}
                 accessibilityRole="button"
-                accessibilityLabel={`Add USDC to ${goal.title} goal`}
+                accessibilityLabel="Edit goal"
               >
-                <Text style={styles.goalAddLabel}>Add to {goal.title} goal</Text>
+                <Text style={styles.editLabel}>Edit goal</Text>
               </Pressable>
-            </View>
-          ))}
-        </ScrollView>
-
-        {goals.length > 1 ? (
-          <View style={styles.pagerRow}>
-            <View style={styles.dots} accessibilityLabel="Goal pages">
-              {goals.map((goal, index) => (
-                <View
-                  key={goal.id}
-                  style={[styles.dot, index === goalIndex ? styles.dotActive : null]}
-                />
-              ))}
-            </View>
-            {goalIndex < goals.length - 1 ? (
-              <View style={styles.swipeHint}>
-                <Text style={styles.scrollHint}>Swipe</Text>
-                <Ionicons name="chevron-forward" size={14} color={colors.inkMuted} />
-              </View>
-            ) : null}
+            ) : (
+              <View style={styles.editButton} />
+            )}
+          </View>
+        )}
+        {loading ? (
+          <View style={styles.statusBlock}>
+            <ActivityIndicator color={colors.raspberry} />
+            <Text style={styles.subtitle}>Loading your goal.</Text>
           </View>
         ) : null}
 
-        <Pressable
-          style={styles.secondaryButton}
-          onPress={() => {
-            setAmountText("");
-            setMode("create");
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="New goal"
-        >
-          <Ionicons name="add" size={18} color={colors.ink} />
-          <Text style={styles.secondaryLabel}>New goal</Text>
-        </Pressable>
+        {!loading && loadError ? (
+          <View style={styles.statusBlock}>
+            <Text style={styles.subtitle}>{loadError}</Text>
+            <Pressable
+              style={styles.primaryButton}
+              onPress={() => {
+                void loadGoal();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Try again"
+            >
+              <Text style={styles.primaryLabel}>Try again</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {showSavedProgress && goal && liveGrowBalanceUsdc && liveRemainingUsdc ? (
+          <SavedGoal
+            name={goal.name}
+            targetAmountUsd={goal.targetAmountUsd}
+            growBalanceUsdc={liveGrowBalanceUsdc}
+            remainingUsdc={liveRemainingUsdc}
+            yieldEarnedUsdc={goal.yieldEarnedUsdc}
+          />
+        ) : null}
+
+        {!loading && !loadError && goal && !editing && !showSavedProgress && growLoading ? (
+          <View style={styles.statusBlock}>
+            <ActivityIndicator color={colors.raspberry} />
+            <Text style={styles.subtitle}>Loading your goal.</Text>
+          </View>
+        ) : null}
+
+        {showGoalForm ? (
+          <View style={styles.setup}>
+            <View style={styles.setupCard}>
+              <View style={styles.setupField}>
+                <Text style={styles.setupLabel}>Goal name</Text>
+                <TextInput
+                  style={[
+                    styles.setupNameInput,
+                    nameFocused ? styles.setupInputFocused : null,
+                  ]}
+                  value={name}
+                  onChangeText={(value) => setName(value.slice(0, NAME_MAX_LENGTH))}
+                  onFocus={() => setNameFocused(true)}
+                  onBlur={() => setNameFocused(false)}
+                  placeholder="Emergency Fund"
+                  placeholderTextColor={SETUP_PLACEHOLDER}
+                  autoCorrect={false}
+                  accessibilityLabel="Goal name"
+                />
+              </View>
+              <View style={styles.setupField}>
+                <Text style={styles.setupLabel}>Target amount</Text>
+                <View
+                  style={[
+                    styles.setupAmountRow,
+                    amountFocused ? styles.setupInputFocused : null,
+                  ]}
+                >
+                  <Text style={styles.setupCurrency}>$</Text>
+                  <TextInput
+                    style={styles.setupAmountInput}
+                    value={targetText}
+                    onChangeText={(value) => setTargetText(sanitizeAmount(value))}
+                    onFocus={() => setAmountFocused(true)}
+                    onBlur={() => setAmountFocused(false)}
+                    placeholder="5,000"
+                    placeholderTextColor={SETUP_PLACEHOLDER}
+                    keyboardType="decimal-pad"
+                    accessibilityLabel="Target amount"
+                  />
+                </View>
+              </View>
+            </View>
+            <Pressable
+              style={[styles.setupButton, !canSave ? styles.setupButtonDisabled : null]}
+              onPress={() => {
+                void handleSave();
+              }}
+              disabled={!canSave}
+              accessibilityRole="button"
+              accessibilityLabel={editing ? "Save changes" : "Set my goal"}
+            >
+              <Text
+                style={[
+                  styles.setupButtonLabel,
+                  !canSave ? styles.setupButtonLabelDisabled : null,
+                ]}
+              >
+                {saving ? "Saving" : editing ? "Save changes" : "Set my goal"}
+              </Text>
+            </Pressable>
+            {saveError ? <Text style={styles.errorText}>{saveError}</Text> : null}
+            <View style={styles.setupNote}>
+              <Ionicons name="trending-up" size={16} color={colors.inkMuted} />
+              <Text style={styles.noteText}>
+                Your Grow balance counts toward your goal. Setting a goal doesn't move money.
+              </Text>
+            </View>
+            {editing ? (
+              <Pressable
+                onPress={cancelEditing}
+                disabled={saving}
+                style={styles.setupCancel}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel editing goal"
+              >
+                <Text style={styles.setupCancelLabel}>Cancel</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
       </ScrollView>
       <AppTabBar active="savings" />
     </SafeAreaView>
+  );
+}
+
+function SavedGoal({
+  name,
+  targetAmountUsd,
+  growBalanceUsdc,
+  remainingUsdc,
+  yieldEarnedUsdc,
+}: {
+  name: string;
+  targetAmountUsd: string;
+  growBalanceUsdc: string;
+  remainingUsdc: string;
+  yieldEarnedUsdc: string | null;
+}) {
+  const percent = progressPercent(growBalanceUsdc, targetAmountUsd);
+  const filled = Math.min(percent, 100) / 100;
+  const dash = filled * RING_CIRCUMFERENCE;
+  const yieldVisible = showYieldStrip(yieldEarnedUsdc);
+
+  return (
+    <View>
+      <View style={styles.goalCard}>
+        <Text style={styles.goalName}>{name}</Text>
+        <View style={styles.ring} accessibilityLabel={`${percent} percent of your goal`}>
+          <Svg width={RING_SIZE} height={RING_SIZE}>
+            <Circle
+              cx={RING_SIZE / 2}
+              cy={RING_SIZE / 2}
+              r={RING_RADIUS}
+              stroke={colors.rose}
+              strokeWidth={12}
+              fill="none"
+            />
+            {dash > 0 ? (
+              <Circle
+                cx={RING_SIZE / 2}
+                cy={RING_SIZE / 2}
+                r={RING_RADIUS}
+                stroke={colors.raspberry}
+                strokeWidth={12}
+                fill="none"
+                strokeLinecap="round"
+                strokeDasharray={`${dash} ${RING_CIRCUMFERENCE}`}
+                transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+              />
+            ) : null}
+          </Svg>
+          <View style={styles.percentWrap} pointerEvents="none">
+            <Text style={styles.percent}>{percent}%</Text>
+          </View>
+        </View>
+        <View style={styles.amounts}>
+          <Text style={styles.ofLine}>
+            {formatGoalUsd(growBalanceUsdc)} of {formatGoalUsd(targetAmountUsd)}
+          </Text>
+          <Text style={styles.toGo}>{formatGoalUsd(remainingUsdc)} to go</Text>
+        </View>
+        {yieldVisible && yieldEarnedUsdc ? (
+          <View style={styles.yieldStrip}>
+            <Text style={styles.yieldAmount}>{formatYield(yieldEarnedUsdc)} yield earned ✨</Text>
+            <Text style={styles.yieldSub}>Lifetime, from Grow</Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={styles.noteRow}>
+        <Ionicons name="trending-up" size={16} color={colors.inkMuted} />
+        <Text style={styles.noteText}>Your Grow balance is working toward your goal.</Text>
+      </View>
+    </View>
   );
 }
 
@@ -253,201 +465,6 @@ function Wash() {
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 0.45 }}
     />
-  );
-}
-
-type AddToSavingsViewProps = {
-  goals: SavingsGoal[];
-  selectedGoalId: string;
-  amountText: string;
-  onSelectGoal: (id: string) => void;
-  onChangeAmount: (value: string) => void;
-  onBack: () => void;
-  onConfirm: () => void;
-};
-
-function AddToSavingsView({
-  goals,
-  selectedGoalId,
-  amountText,
-  onSelectGoal,
-  onChangeAmount,
-  onBack,
-  onConfirm,
-}: AddToSavingsViewProps) {
-  const selected = goals.find((goal) => goal.id === selectedGoalId);
-  const amount = parseAmount(amountText);
-  const afterPrincipal = (selected?.principalUsd ?? 0) + (amount > 0 ? amount : 0);
-
-  return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <Wash />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.flowContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.topBar}>
-          <Pressable style={styles.backButton} onPress={onBack} accessibilityLabel="Back">
-            <Ionicons name="arrow-back" size={20} color={colors.ink} />
-          </Pressable>
-          <Text style={styles.wordmark}>Olimpia</Text>
-          <View style={styles.backSpacer} />
-        </View>
-
-        <Text style={styles.title}>Add to savings</Text>
-        <Text style={styles.subtitle}>
-          Organize USDC from your available balance into a goal.
-        </Text>
-
-        <View style={styles.fieldCard}>
-          <Text style={styles.fieldLabel}>Amount (USDC)</Text>
-          <View style={styles.inputRow}>
-            <Text style={styles.currency}>$</Text>
-            <TextInput
-              value={amountText}
-              onChangeText={onChangeAmount}
-              keyboardType="decimal-pad"
-              placeholder="0.00"
-              placeholderTextColor={colors.inkMuted}
-              style={styles.input}
-              accessibilityLabel="Amount in USDC"
-            />
-          </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>Add to</Text>
-        {goals.map((goal) => {
-          const selectedGoal = goal.id === selectedGoalId;
-          return (
-            <Pressable
-              key={goal.id}
-              style={[styles.selectRow, selectedGoal ? styles.selectRowActive : null]}
-              onPress={() => onSelectGoal(goal.id)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: selectedGoal }}
-            >
-              <View>
-                <Text style={styles.goalTitle}>{goal.title}</Text>
-                <Text style={styles.mutedSmall}>${formatUsd(goal.principalUsd)}</Text>
-              </View>
-              {selectedGoal ? <Text style={styles.selectedTag}>Selected</Text> : null}
-            </Pressable>
-          );
-        })}
-
-        {selected ? (
-          <View style={styles.summaryCard}>
-            <Text style={styles.muted}>After this add</Text>
-            <Text style={styles.cardHeadline}>
-              {selected.title} · ${formatUsd(afterPrincipal)}
-            </Text>
-            <Text style={styles.body}>Your updated goal amount after this add.</Text>
-          </View>
-        ) : null}
-
-        <Pressable
-          style={[styles.primaryButton, amount <= 0 ? styles.buttonDisabled : null]}
-          onPress={onConfirm}
-          disabled={amount <= 0}
-          accessibilityRole="button"
-          accessibilityLabel="Confirm add"
-        >
-          <Text style={styles.primaryLabel}>Confirm add</Text>
-        </Pressable>
-      </ScrollView>
-      <AppTabBar active="savings" />
-    </SafeAreaView>
-  );
-}
-
-type CreateGoalViewProps = {
-  title: string;
-  amountText: string;
-  showBack: boolean;
-  isFirstGoal: boolean;
-  onChangeTitle: (value: string) => void;
-  onChangeAmount: (value: string) => void;
-  onBack: () => void;
-  onCreate: () => void;
-};
-
-function CreateGoalView({
-  title,
-  amountText,
-  showBack,
-  isFirstGoal,
-  onChangeTitle,
-  onChangeAmount,
-  onBack,
-  onCreate,
-}: CreateGoalViewProps) {
-  return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <Wash />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={isFirstGoal ? styles.scrollContent : styles.flowContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {showBack ? (
-          <View style={styles.topBar}>
-            <Pressable style={styles.backButton} onPress={onBack} accessibilityLabel="Back">
-              <Ionicons name="arrow-back" size={20} color={colors.ink} />
-            </Pressable>
-            <Text style={styles.wordmark}>Olimpia</Text>
-            <View style={styles.backSpacer} />
-          </View>
-        ) : null}
-
-        <Text style={styles.title}>{isFirstGoal ? "Savings" : "New goal"}</Text>
-        <Text style={styles.subtitle}>Name a goal and add money when you’re ready.</Text>
-
-        <View style={styles.fieldCard}>
-          <Text style={styles.fieldLabel}>Goal title</Text>
-          <TextInput
-            value={title}
-            onChangeText={onChangeTitle}
-            placeholder="Name your goal"
-            placeholderTextColor={colors.inkMuted}
-            style={styles.titleInput}
-            accessibilityLabel="Goal title"
-            autoCorrect
-            autoCapitalize="words"
-          />
-        </View>
-
-        <View style={styles.fieldCard}>
-          <Text style={styles.fieldLabel}>Add money (optional)</Text>
-          <View style={styles.inputRow}>
-            <Text style={styles.currency}>$</Text>
-            <TextInput
-              value={amountText}
-              onChangeText={onChangeAmount}
-              keyboardType="decimal-pad"
-              placeholder="0.00"
-              placeholderTextColor={colors.inkMuted}
-              style={styles.input}
-              accessibilityLabel="Optional amount in dollars"
-            />
-          </View>
-        </View>
-
-        <Pressable
-          style={[styles.primaryButton, !title.trim() ? styles.buttonDisabled : null]}
-          onPress={onCreate}
-          disabled={!title.trim()}
-          accessibilityRole="button"
-          accessibilityLabel="Create goal"
-        >
-          <Text style={styles.primaryLabel}>Create goal</Text>
-        </Pressable>
-        <Text style={styles.hint}>You can add more to this goal anytime.</Text>
-      </ScrollView>
-      <AppTabBar active="savings" />
-    </SafeAreaView>
   );
 }
 
@@ -464,90 +481,29 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: spacing.block,
   },
-  sectionHeader: {
-    marginTop: 32,
-    marginBottom: 12,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  sectionTitleInline: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    color: colors.ink,
-  },
-  scrollHint: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    color: colors.inkMuted,
-  },
-  goalCarousel: {
-    marginHorizontal: -spacing.screenX,
-  },
-  goalCarouselContent: {
-    paddingHorizontal: spacing.screenX,
-    gap: 12,
-  },
-  pagerRow: {
-    marginTop: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
-  dots: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.border,
-  },
-  dotActive: {
-    width: 16,
-    backgroundColor: colors.raspberry,
-  },
-  swipeHint: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-  },
-  flowContent: {
-    paddingHorizontal: spacing.screenX + 8,
-    paddingTop: spacing.card,
-    paddingBottom: spacing.block,
-  },
-  topBar: {
+  headerRow: {
+    marginTop: 8,
+    marginBottom: 8,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.pill,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  backSpacer: {
-    width: 40,
-    height: 40,
-  },
-  wordmark: {
-    fontFamily: "CormorantGaramond_400Regular",
-    fontSize: 22,
-    color: colors.berry,
   },
   title: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 28,
     lineHeight: 34,
     color: colors.ink,
-    marginTop: 8,
+  },
+  editButton: {
+    minWidth: 72,
+    minHeight: 44,
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  editLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 15,
+    color: colors.inkMuted,
   },
   subtitle: {
     marginTop: 8,
@@ -556,32 +512,103 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: colors.inkMuted,
   },
-  summaryCard: {
+  statusBlock: {
     marginTop: 24,
-    paddingHorizontal: spacing.card,
-    paddingVertical: 20,
+    gap: 12,
+  },
+  goalCard: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingTop: 28,
+    paddingBottom: 20,
     borderRadius: radius.card,
     backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: "rgba(232, 225, 218, 0.4)",
+    borderColor: "rgba(232, 225, 218, 0.8)",
+    alignItems: "center",
+    gap: 20,
+    shadowColor: colors.berry,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
+    elevation: 2,
   },
-  muted: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 14,
-    color: colors.inkMuted,
-  },
-  mutedSmall: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    color: colors.inkMuted,
-  },
-  heroAmount: {
-    marginTop: 8,
-    fontFamily: "Inter_600SemiBold",
+  goalName: {
+    fontFamily: "CormorantGaramond_400Regular",
     fontSize: 36,
-    lineHeight: 42,
-    letterSpacing: -0.5,
+    lineHeight: 40,
+    color: colors.berry,
+    textAlign: "center",
+  },
+  ring: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  percentWrap: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  percent: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 40,
+    lineHeight: 44,
+    letterSpacing: -0.8,
     color: colors.ink,
+  },
+  amounts: {
+    alignItems: "center",
+    gap: 4,
+  },
+  ofLine: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 22,
+    lineHeight: 28,
+    color: colors.ink,
+    textAlign: "center",
+  },
+  toGo: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 15,
+    lineHeight: 20,
+    color: colors.inkMuted,
+    textAlign: "center",
+  },
+  yieldStrip: {
+    alignSelf: "stretch",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: radius.card,
+    backgroundColor: colors.roseSoft,
+    gap: 2,
+  },
+  yieldAmount: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 17,
+    lineHeight: 22,
+    color: colors.berry,
+  },
+  yieldSub: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.inkMuted,
+  },
+  noteRow: {
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    paddingHorizontal: 4,
+  },
+  noteText: {
+    flex: 1,
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.inkMuted,
   },
   primaryButton: {
     marginTop: 16,
@@ -590,158 +617,121 @@ const styles = StyleSheet.create({
     backgroundColor: colors.raspberry,
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "row",
-    gap: 8,
   },
   primaryLabel: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 14,
     color: colors.white,
   },
-  buttonDisabled: {
-    opacity: 0.45,
-  },
-  hint: {
+  setupTitle: {
     marginTop: 8,
-    textAlign: "center",
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    color: colors.inkMuted,
-  },
-  sectionTitle: {
-    marginTop: 32,
-    marginBottom: 12,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    color: colors.ink,
-  },
-  goalCard: {
-    marginBottom: 0,
-    paddingHorizontal: spacing.card,
-    paddingVertical: 16,
-    borderRadius: radius.card,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: "rgba(232, 225, 218, 0.4)",
-  },
-  goalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-  },
-  goalTitle: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    color: colors.ink,
-  },
-  goalAmount: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 22,
-    color: colors.ink,
-  },
-  goalAddButton: {
-    marginTop: 16,
-    paddingVertical: 10,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: "rgba(229, 75, 122, 0.25)",
-    backgroundColor: "rgba(252, 238, 242, 0.6)",
-    alignItems: "center",
-  },
-  goalAddLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: colors.raspberry,
-  },
-  secondaryButton: {
-    marginTop: 8,
-    height: 48,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
     gap: 8,
   },
-  secondaryLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: colors.ink,
-  },
-  cardHeadline: {
-    marginTop: 8,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 22,
-    color: colors.ink,
-  },
-  body: {
-    marginTop: 8,
+  setupSubtitle: {
     fontFamily: "Inter_400Regular",
-    fontSize: 14,
+    fontSize: 15,
     lineHeight: 22,
     color: colors.inkMuted,
   },
-  fieldCard: {
+  setup: {
     marginTop: 24,
-    paddingHorizontal: spacing.card,
-    paddingVertical: 14,
+    gap: 24,
+  },
+  setupCard: {
+    padding: 20,
+    gap: 24,
     borderRadius: radius.card,
     backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: "rgba(232, 225, 218, 0.4)",
+    borderColor: "rgba(232, 225, 218, 0.8)",
+    shadowColor: colors.berry,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 1,
   },
-  fieldLabel: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 12,
+  setupField: {
+    gap: 6,
+  },
+  setupLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
     color: colors.inkMuted,
   },
-  inputRow: {
-    marginTop: 8,
+  setupNameInput: {
+    paddingTop: 4,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    fontFamily: "CormorantGaramond_400Regular",
+    fontSize: 32,
+    lineHeight: 38,
+    color: colors.berry,
+  },
+  setupAmountRow: {
     flexDirection: "row",
+    alignItems: "baseline",
+    gap: 4,
+    paddingTop: 4,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  setupInputFocused: {
+    borderBottomColor: colors.raspberry,
+  },
+  setupCurrency: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 24,
+    lineHeight: 32,
+    color: colors.inkMuted,
+  },
+  setupAmountInput: {
+    flex: 1,
+    padding: 0,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 24,
+    lineHeight: 32,
+    color: colors.ink,
+  },
+  setupButton: {
+    height: 56,
+    borderRadius: radius.pill,
+    backgroundColor: colors.berryDark,
     alignItems: "center",
+    justifyContent: "center",
+  },
+  setupButtonDisabled: {
+    backgroundColor: colors.border,
+  },
+  setupButtonLabel: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: colors.white,
+  },
+  setupButtonLabelDisabled: {
+    color: colors.inkMuted,
+  },
+  setupNote: {
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: 8,
   },
-  currency: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: colors.ink,
-  },
-  input: {
-    flex: 1,
-    fontFamily: "Inter_400Regular",
-    fontSize: 18,
-    color: colors.ink,
-    padding: 0,
-  },
-  titleInput: {
-    marginTop: 8,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 18,
-    color: colors.ink,
-    padding: 0,
-  },
-  selectRow: {
-    marginBottom: 8,
-    paddingHorizontal: spacing.card,
-    paddingVertical: 14,
-    borderRadius: radius.card,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: "rgba(232, 225, 218, 0.4)",
-    flexDirection: "row",
-    justifyContent: "space-between",
+  setupCancel: {
+    minHeight: 44,
     alignItems: "center",
+    justifyContent: "center",
   },
-  selectRowActive: {
-    borderColor: "rgba(229, 75, 122, 0.35)",
-    borderWidth: 2,
+  setupCancelLabel: {
+    fontFamily: "Inter_500Medium",
+    fontSize: 15,
+    color: colors.inkMuted,
   },
-  selectedTag: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 12,
+  errorText: {
+    textAlign: "center",
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    lineHeight: 20,
     color: colors.raspberry,
   },
 });
