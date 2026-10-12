@@ -1,12 +1,14 @@
 import {
   CormorantGaramond_400Regular,
   CormorantGaramond_400Regular_Italic,
+  CormorantGaramond_500Medium,
   useFonts,
 } from "@expo-google-fonts/cormorant-garamond";
 import {
   Inter_400Regular,
   Inter_500Medium,
   Inter_600SemiBold,
+  Inter_700Bold,
   useFonts as useInterFonts,
 } from "@expo-google-fonts/inter";
 import { PrivyProvider } from "@privy-io/expo";
@@ -27,10 +29,12 @@ export default function App() {
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
+    Inter_700Bold,
   });
   const [displayLoaded] = useFonts({
     CormorantGaramond_400Regular,
     CormorantGaramond_400Regular_Italic,
+    CormorantGaramond_500Medium,
   });
 
   if (!interLoaded || !displayLoaded) {

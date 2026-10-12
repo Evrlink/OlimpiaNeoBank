@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTabNavigation } from "@/context/TabNavigationContext";
 import { colors } from "@/theme/colors";
 
-export type TabId = "home" | "savings" | "card" | "profile";
+export type TabId = "home" | "savings" | "profile";
 
 const tabs: {
   id: TabId;
@@ -13,7 +13,6 @@ const tabs: {
 }[] = [
   { id: "home", label: "Home", icon: "home-outline", activeIcon: "home" },
   { id: "savings", label: "Savings", icon: "wallet-outline", activeIcon: "wallet" },
-  { id: "card", label: "Card", icon: "card-outline", activeIcon: "card" },
   { id: "profile", label: "Profile", icon: "person-outline", activeIcon: "person" },
 ];
 

@@ -1,105 +1,153 @@
-/**
- * You're in — post-auth confirmation.
- * Polished: headline + value props + how it works + slim Built for you + Start earning.
- */
-import { Check, ChevronRight, Shield, Sprout, Target } from "lucide-react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { AppPreviewWordmark } from "./app-preview-wordmark";
 
-const valueProps = [
-  { Icon: Sprout, title: "Earn yield" },
-  { Icon: Target, title: "Set goals" },
-  { Icon: Shield, title: "You're in control" },
+/**
+ * Account-ready artboard (390×844). Sizes here are mockup-scale so the
+ * preview matches the phone design; the frame already draws the status bar.
+ */
+
+const steps = [
+  {
+    label: "Step 1",
+    title: "Add USDC",
+    body: "Send USDC to your Olimpia account from an app like Coinbase.",
+    help: true,
+    thread: true,
+  },
+  {
+    label: "Step 2",
+    title: "Grow with Yield, no lock ups!",
+    body: "Enjoy the benefits of yield with flexibility banks can't offer. Withdraw anytime!",
+    thread: true,
+  },
+  {
+    label: "Step 3",
+    title: "Set a goal",
+    body: "Choose what you're growing your money toward.",
+    thread: false,
+  },
 ] as const;
 
-const steps = ["Add money", "Earn yield", "Grow money"] as const;
-
-const builtForYou = ["No lockups", "Withdraw anytime", "Higher yields than your bank"] as const;
+const helpLines = [
+  "USDC is a digital dollar designed to hold a $1 value.",
+  "Buy and add USDC from an app like Coinbase.",
+  "We'll guide you through the steps.",
+] as const;
 
 export function YoureInScreen() {
+  const [helpOpen, setHelpOpen] = useState(false);
+
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col bg-background">
-      <div className="app-welcome-bg" aria-hidden />
+    <div className={`relative flex min-h-0 flex-1 flex-col ${helpOpen ? "z-20" : ""}`}>
+      <div
+        className="pointer-events-none absolute inset-x-0 -top-11 -bottom-3 bg-[linear-gradient(160deg,#F5DFE4_0%,#F7EBEC_38%,#F8F3F0_70%,#F8F4F1_100%)]"
+        aria-hidden
+      />
 
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-4">
-          <AppPreviewWordmark />
+      <div
+        className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-[22px] pt-[30px]"
+        aria-hidden={helpOpen}
+      >
+        <p className="font-display text-[30px] font-medium leading-[30px] tracking-normal text-[#6E2A45]">
+          Olimpia
+        </p>
 
-          <div className="mx-auto mt-8 max-w-[20rem] text-center">
-            <h1 className="text-h2 font-semibold text-foreground">
-              Simple access to decentralized finance.
-            </h1>
-            <p className="mt-3 text-body-sm text-ink-muted">
-              Save, grow, and stay in control.
-            </p>
-          </div>
+        <h1 className="mt-8 font-display text-[46px] font-medium leading-[44px] tracking-[-0.8px] text-[#2E2B2C]">
+          Your account
+          <br />
+          is ready.
+        </h1>
+        <p className="mt-3 text-[17px] leading-[26px] text-[#6F6869]">Here's how to get started.</p>
 
-          <div className="mt-10 grid grid-cols-3 gap-3">
-            {valueProps.map(({ Icon, title }) => (
-              <div key={title} className="flex flex-col items-center text-center">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-raspberry/30 bg-card text-raspberry">
-                  <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        <ol className="mt-8 flex list-none flex-col gap-6 p-0">
+          {steps.map((step) => (
+            <li key={step.label} className="relative pl-7">
+              <span
+                aria-hidden
+                className="absolute left-0 top-[3px] h-[9px] w-[9px] rounded-[5px] bg-[#C93A6B]"
+              />
+              {step.thread ? (
+                <span aria-hidden className="absolute bottom-[-27px] left-1 top-4 w-px bg-[#E8C2CE]" />
+              ) : null}
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold uppercase leading-[14px] tracking-[1.4px] text-[#C93A6B]">
+                  {step.label}
                 </span>
-                <p className="mt-2.5 text-caption font-semibold text-foreground">{title}</p>
+                <span className="mt-0.5 text-[18px] font-semibold leading-6 tracking-[-0.2px] text-[#2E2B2C]">
+                  {step.title}
+                </span>
+                <span className="text-[15px] leading-[22px] text-[#6F6869]">{step.body}</span>
+                {"help" in step ? (
+                  <button
+                    type="button"
+                    onClick={() => setHelpOpen(true)}
+                    className="-mb-3 -mt-2 self-start py-3 text-[15px] font-semibold leading-5 text-[#C93A6B] hover:text-[#A8325C]"
+                  >
+                    How does this work?
+                  </button>
+                ) : null}
               </div>
-            ))}
-          </div>
+            </li>
+          ))}
+        </ol>
 
-          <section className="mt-10">
-            <h2 className="text-center text-body font-semibold text-foreground">
-              How it works
-            </h2>
-            <div className="mt-5 flex items-center justify-center gap-1">
-              {steps.map((label, index) => (
-                <div key={label} className="contents">
-                  <p className="min-w-0 flex-1 text-center text-caption font-medium text-foreground">
-                    {label}
-                  </p>
-                  {index < steps.length - 1 ? (
-                    <ChevronRight
-                      className="h-3.5 w-3.5 shrink-0 text-ink-muted/40"
-                      strokeWidth={2}
-                      aria-hidden
-                    />
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </section>
+        <div className="min-h-4 flex-1" />
 
-          <section className="mt-10 rounded-2xl border border-border/40 bg-card px-4 py-4">
-            <h3 className="text-body-sm font-semibold text-foreground">Built for you</h3>
-            <ul className="mt-3 space-y-2.5">
-              {builtForYou.map((item) => (
-                <li key={item} className="flex items-center gap-2.5">
-                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-raspberry text-white">
-                    <Check className="h-2.5 w-2.5" strokeWidth={3} aria-hidden />
-                  </span>
-                  <span className="text-body-sm text-foreground">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-
-        <div className="shrink-0 space-y-3 border-t border-border/40 bg-background/95 px-6 pb-4 pt-3 backdrop-blur-sm">
+        <div className="flex flex-col gap-1">
           <Link
             to="/app-preview/add-funds"
-            className="flex h-12 w-full items-center justify-center rounded-2xl bg-raspberry text-body-sm font-semibold text-white shadow-soft transition hover:opacity-90"
+            className="flex h-[54px] items-center justify-center rounded-full bg-[#E04E7B] text-[17px] font-semibold text-white transition hover:opacity-90"
           >
-            Start earning
+            Add USDC
           </Link>
           <Link
             to="/app-preview/home"
-            className="block text-center text-body-sm font-medium text-ink-muted transition hover:text-foreground"
+            className="flex min-h-11 items-center justify-center text-[15px] font-semibold text-[#5C5457] transition hover:text-[#2E2B2C]"
           >
-            Explore
+            I'll do this later
           </Link>
-          <p className="px-1 text-center text-caption text-ink-muted">
+          <p className="text-center text-[13px] leading-[18px] text-[#776C70]">
             Yield is variable and not guaranteed.
           </p>
         </div>
       </div>
+
+      {helpOpen ? (
+        <div className="absolute inset-x-0 -bottom-3 -top-11 z-20 flex flex-col justify-end">
+          <button
+            type="button"
+            className="absolute inset-0 bg-[rgba(46,43,44,0.32)]"
+            aria-label="Close"
+            onClick={() => setHelpOpen(false)}
+          />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-usdc-help-title"
+            className="relative flex flex-col rounded-t-[28px] bg-white px-6 pb-12 pt-[10px] text-[#2E2B2C]"
+          >
+            <div className="h-[5px] w-9 self-center rounded-[3px] bg-[#DDD3D4]" aria-hidden />
+            <h2
+              id="add-usdc-help-title"
+              className="mt-7 text-[22px] font-bold leading-7 tracking-[-0.3px] text-[#2E2B2C]"
+            >
+              How do I add USDC?
+            </h2>
+            {helpLines.map((line, index) => (
+              <p
+                key={line}
+                className={
+                  index === 0
+                    ? "mt-2 text-[17px] font-normal leading-[26px] text-[#5C5457]"
+                    : "mt-3 text-[17px] font-normal leading-[26px] text-[#5C5457]"
+                }
+              >
+                {line}
+              </p>
+            ))}
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }

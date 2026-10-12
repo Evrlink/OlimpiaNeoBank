@@ -1,7 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AppTabBar } from "@/components/AppTabBar";
 import { colors, radius, spacing } from "@/theme/colors";
 
 export function CardScreen() {
@@ -24,8 +23,6 @@ export function CardScreen() {
           <Text style={styles.body}>Your Olimpia card is coming soon.</Text>
         </View>
       </ScrollView>
-
-      <AppTabBar active="card" />
     </SafeAreaView>
   );
 }

@@ -5,7 +5,7 @@ type AppPreviewWordmarkProps = {
   className?: string;
 };
 
-/** Centered Olimpia wordmark — matches Welcome (A1). Cormorant, berry, text-h3. */
+/** Centered Olimpia wordmark for in-app chrome. Cormorant, berry, text-h3. */
 export function AppPreviewWordmark({ className }: AppPreviewWordmarkProps) {
   return (
     <p className={cn("text-center font-display text-h3 tracking-tight text-berry", className)}>

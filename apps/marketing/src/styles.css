@@ -1669,16 +1669,6 @@
       radial-gradient(ellipse 50% 40% at 78% 28%, color-mix(in srgb, var(--raspberry-soft) 14%, transparent), transparent 70%);
   }
 
-  .app-welcome-sparkle {
-    position: absolute;
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: rgb(255 255 255 / 0.85);
-    box-shadow: 0 0 6px 1px rgb(229 75 122 / 0.2);
-    opacity: 0.35;
-  }
-
   /* Auth preview — soft glow top-right (matches auth mock) */
   .auth-preview-glow {
     position: absolute;

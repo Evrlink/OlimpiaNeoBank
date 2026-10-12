@@ -14,7 +14,7 @@ function YoureInPreviewPage() {
   return (
     <AppPreviewShell
       title="You're in (A3)"
-      description="Post sign-up confirmation — Add money or explore Empty Home."
+      description="Account ready — add USDC, or continue to Empty Home later."
       active="youre-in"
     >
       <PhoneFrame>

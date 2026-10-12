@@ -5,7 +5,6 @@ import type { TabId } from "@/components/AppTabBar";
 import { WithdrawSheet } from "@/components/WithdrawSheet";
 import { TabNavigationProvider } from "@/context/TabNavigationContext";
 import { ActivityScreen } from "@/screens/ActivityScreen";
-import { CardScreen } from "@/screens/CardScreen";
 import { ChooseYieldScreen } from "@/screens/ChooseYieldScreen";
 import { EmptyHomeScreen } from "@/screens/EmptyHomeScreen";
 import { ProfileScreen } from "@/screens/ProfileScreen";
@@ -267,7 +266,6 @@ export function AuthenticatedTabShell({
             growLoading={growthLoading}
           />
         ) : null}
-        {activeTab === "card" ? <CardScreen /> : null}
         {activeTab === "profile" ? (
           <ProfileScreen
             user={authSync.user}

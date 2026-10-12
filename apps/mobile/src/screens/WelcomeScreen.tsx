@@ -1,133 +1,205 @@
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, radius, spacing } from "@/theme/colors";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 
 type WelcomeScreenProps = {
   onGetStarted?: () => void;
   onSignIn?: () => void;
 };
 
-const sparkles = [
-  { top: "12%", left: "18%" },
-  { top: "22%", left: "72%" },
-  { top: "34%", left: "44%" },
-];
+const welcomeColors = {
+  wordmark: "#6E2A45",
+  eyebrow: "#E04E7B",
+  charcoal: "#2E2B2C",
+  iconChip: "#FBE1E8",
+  iconStroke: "#E04E7B",
+  tagline: "#7A2E4A",
+  supporting: "#85797D",
+  cta: "#E04E7B",
+  ctaText: "#FFFFFF",
+  signInMuted: "#6F6869",
+  signInLink: "#C93A6B",
+  screen: "#F8F4F1",
+} as const;
 
-const features: { icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
-  { icon: "sparkles-outline", label: "Earn yield on USDC" },
-  { icon: "card-outline", label: "Spend anywhere Visa is accepted" },
-  { icon: "book-outline", label: "Learn DeFi on your terms" },
-];
+const gradientColors = ["#F5DFE4", "#F7EBEC", "#F8F3F0", "#F8F4F1"] as const;
+
+function YieldIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M10 3.5l1.6 4.4 4.4 1.6-4.4 1.6L10 15.5l-1.6-4.4L4 9.5l4.4-1.6z"
+        stroke={welcomeColors.iconStroke}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M18 13.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"
+        stroke={welcomeColors.iconStroke}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M18 3v3M16.5 4.5h3"
+        stroke={welcomeColors.iconStroke}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function LearnIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M2.5 5h6a3.5 3.5 0 0 1 3.5 3.5V20a2.5 2.5 0 0 0-2.5-2.5h-7z"
+        stroke={welcomeColors.iconStroke}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M21.5 5h-6A3.5 3.5 0 0 0 12 8.5V20a2.5 2.5 0 0 1 2.5-2.5h7z"
+        stroke={welcomeColors.iconStroke}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+const features = [
+  { key: "yield", Icon: YieldIcon, label: "Earn yield on USDC" },
+  { key: "learn", Icon: LearnIcon, label: "Learn DeFi on your terms" },
+] as const;
 
 export function WelcomeScreen({ onGetStarted, onSignIn }: WelcomeScreenProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+    <View style={styles.screen}>
       <LinearGradient
-        colors={["rgba(229, 75, 122, 0.12)", "rgba(251, 221, 230, 0.2)", colors.background]}
+        colors={gradientColors}
+        locations={[0, 0.38, 0.7, 1]}
+        start={{ x: 0.33, y: 0.03 }}
+        end={{ x: 0.67, y: 0.97 }}
         style={StyleSheet.absoluteFill}
-        start={{ x: 0.2, y: 0 }}
-        end={{ x: 0.8, y: 0.5 }}
       />
-      {sparkles.map((pos, i) => (
-        <View key={i} style={[styles.sparkle, { top: pos.top as `${number}%`, left: pos.left as `${number}%` }]} />
-      ))}
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: Math.max(74, insets.top),
+            paddingBottom: Math.max(64, insets.bottom),
+          },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.wordmark}>Olimpia</Text>
 
-        <View style={styles.hero}>
-          <Text style={styles.eyebrow}>Financial freedom, designed for women</Text>
-          <Text style={styles.headline}>
-            Better than a checking account,{" "}
-            <Text style={styles.headlineAccent}>everything your bank can't do.</Text>
+        <Text style={styles.eyebrow}>Financial freedom, designed for women</Text>
+
+        <Text style={styles.headline}>
+          Better than a checking{"\n"}
+          account,{" "}
+          <Text style={styles.headlineAccent}>
+            everything your bank{"\n"}
+            can't do.
           </Text>
+        </Text>
 
-          <View style={styles.featureList}>
-            {features.map(({ icon, label }) => (
-              <View key={label} style={styles.featureRow}>
-                <View style={styles.featureIconWrap}>
-                  <Ionicons name={icon} size={18} color={colors.raspberry} />
-                </View>
-                <Text style={styles.featureLabel}>{label}</Text>
+        <View style={styles.featureList}>
+          {features.map(({ key, Icon, label }) => (
+            <View key={key} style={styles.featureRow}>
+              <View style={styles.featureIconWrap}>
+                <Icon />
               </View>
-            ))}
-          </View>
-
-          <Text style={styles.tagline}>More choices. More freedom.</Text>
-          <Text style={styles.subhead}>Save, spend, and grow your money with confidence.</Text>
+              <Text style={styles.featureLabel}>{label}</Text>
+            </View>
+          ))}
         </View>
 
-        <View style={styles.ctaStack}>
-          <Pressable style={styles.primaryButton} onPress={onGetStarted}>
+        <Text style={styles.tagline}>More choices. More freedom.</Text>
+        <Text style={styles.supporting}>Save, spend, and grow your money with confidence.</Text>
+
+        <View style={styles.spacer} />
+
+        <View style={styles.actions}>
+          <Pressable
+            style={styles.primaryButton}
+            onPress={onGetStarted}
+            accessibilityRole="button"
+            accessibilityLabel="Get started"
+          >
             <Text style={styles.primaryLabel}>Get started</Text>
           </Pressable>
-          <Pressable style={styles.secondaryButton} onPress={onSignIn}>
-            <Text style={styles.secondaryLabel}>Sign in</Text>
+          <Pressable
+            style={styles.signInRow}
+            onPress={onSignIn}
+            accessibilityRole="button"
+            accessibilityLabel="Sign in"
+          >
+            <Text style={styles.signInMuted}>Already have an account?</Text>
+            <Text style={styles.signInLink}>Sign in</Text>
           </Pressable>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  screen: {
     flex: 1,
-    backgroundColor: colors.background,
-  },
-  sparkle: {
-    position: "absolute",
-    width: 3,
-    height: 3,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(255,255,255,0.85)",
+    backgroundColor: welcomeColors.screen,
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.screenX + 8,
-    paddingBottom: spacing.block,
-    paddingTop: spacing.card,
+    paddingHorizontal: 24,
   },
   wordmark: {
-    fontFamily: "CormorantGaramond_400Regular",
-    fontSize: 22,
-    color: colors.berry,
-  },
-  hero: {
-    flex: 1,
-    paddingTop: spacing.block + 8,
+    fontFamily: "CormorantGaramond_500Medium",
+    fontSize: 30,
+    lineHeight: 30,
+    color: welcomeColors.wordmark,
   },
   eyebrow: {
+    marginTop: 56,
     fontFamily: "Inter_600SemiBold",
-    fontSize: 10,
+    fontSize: 11,
+    lineHeight: 14,
     letterSpacing: 1.4,
     textTransform: "uppercase",
-    color: colors.raspberry,
+    color: welcomeColors.eyebrow,
   },
   headline: {
     marginTop: 20,
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 28,
-    lineHeight: 34,
-    letterSpacing: -0.3,
-    color: colors.ink,
+    fontFamily: "Inter_700Bold",
+    fontSize: 25,
+    lineHeight: 32,
+    letterSpacing: -0.4,
+    color: welcomeColors.charcoal,
   },
   headlineAccent: {
     fontFamily: "CormorantGaramond_400Regular_Italic",
+    fontSize: 28,
+    letterSpacing: 0,
     fontWeight: "400",
   },
   featureList: {
-    marginTop: 24,
-    gap: 16,
+    marginTop: 44,
+    gap: 20,
   },
   featureRow: {
     flexDirection: "row",
@@ -137,8 +209,8 @@ const styles = StyleSheet.create({
   featureIconWrap: {
     width: 40,
     height: 40,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(251, 221, 230, 0.7)",
+    borderRadius: 20,
+    backgroundColor: welcomeColors.iconChip,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -147,49 +219,58 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     fontSize: 16,
     lineHeight: 22,
-    color: colors.ink,
+    color: welcomeColors.charcoal,
   },
   tagline: {
-    marginTop: 24,
+    marginTop: 48,
     fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    color: colors.berry,
+    fontSize: 15,
+    lineHeight: 20,
+    color: welcomeColors.tagline,
   },
-  subhead: {
-    marginTop: 16,
+  supporting: {
+    marginTop: 12,
     fontFamily: "Inter_400Regular",
-    fontSize: 18,
-    lineHeight: 29,
-    color: colors.inkMuted,
+    fontSize: 17,
+    lineHeight: 28,
+    color: welcomeColors.supporting,
   },
-  ctaStack: {
-    gap: 12,
-    paddingTop: 24,
+  spacer: {
+    flexGrow: 1,
+    minHeight: 24,
+  },
+  actions: {
+    gap: 8,
   },
   primaryButton: {
-    height: 56,
-    borderRadius: radius.pill,
-    backgroundColor: colors.raspberry,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: welcomeColors.cta,
     alignItems: "center",
     justifyContent: "center",
   },
   primaryLabel: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    color: colors.white,
+    fontSize: 17,
+    color: welcomeColors.ctaText,
   },
-  secondaryButton: {
-    height: 56,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.card,
+  signInRow: {
+    minHeight: 44,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 5,
   },
-  secondaryLabel: {
+  signInMuted: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 15,
+    lineHeight: 20,
+    color: welcomeColors.signInMuted,
+  },
+  signInLink: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    color: colors.ink,
+    fontSize: 15,
+    lineHeight: 20,
+    color: welcomeColors.signInLink,
   },
 });

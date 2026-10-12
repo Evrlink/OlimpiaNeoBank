@@ -17,7 +17,7 @@ export function PhoneFrame({ children, className }: PhoneFrameProps) {
         />
         <div className="relative flex min-h-[780px] flex-col overflow-hidden rounded-[2.75rem] bg-background">
           {/* Mockup-scale status bar — phone chrome only */}
-          <div className="relative flex h-11 shrink-0 items-center justify-between px-7 pt-3 text-[11px] font-semibold text-foreground">
+          <div className="relative z-10 flex h-11 shrink-0 items-center justify-between px-7 pt-3 text-[11px] font-semibold text-foreground">
             <span>9:41</span>
             <div className="absolute left-1/2 top-2.5 h-6 w-24 -translate-x-1/2 rounded-full bg-[#111]" />
             <div className="flex items-center gap-1.5">
